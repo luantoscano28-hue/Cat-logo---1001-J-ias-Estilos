@@ -282,6 +282,16 @@ dialog::backdrop{background:#000b}
 .midia-slot .cap{position:absolute;bottom:0;left:0;right:0;background:#000a;color:#fff;font-size:.62rem;text-align:center;padding:1px}
 /* arrastar pra reordenar: a foto que está sendo levada some um pouco, e a que
    vai receber ganha uma borda — sem os dois, não dá pra saber onde vai cair */
+/* palco de enquadramento: o quadrado é exatamente o recorte que a loja usa */
+#dlgFoto{max-width:420px;width:94vw}
+.foto-palco{position:relative;width:100%;aspect-ratio:1/1;background:#000;border-radius:10px;
+  overflow:hidden;touch-action:none;cursor:grab}
+.foto-palco.movendo{cursor:grabbing}
+.foto-palco canvas{width:100%;height:100%;display:block}
+.foto-guia{position:absolute;inset:0;pointer-events:none;
+  box-shadow:0 0 0 2px var(--acento) inset}
+.midia-slot .ed{position:absolute;top:2px;left:2px;background:#000a;color:#fff;border:none;
+  border-radius:6px;width:20px;height:20px;font-size:.7rem;line-height:1;cursor:pointer}
 .midia-slot[draggable=true]{cursor:grab}
 .midia-slot.arrastando{opacity:.4;cursor:grabbing}
 .midia-slot.alvo{border-color:var(--acento);box-shadow:0 0 0 2px var(--acento) inset}
@@ -625,6 +635,27 @@ dialog::backdrop{background:#000b}
 </dialog>
 
 <!-- ====== FECHAR MÊS FISCAL ====== -->
+<!-- enquadrar a foto: a loja mostra tudo em quadrado, e sem isto o corte
+     automático decapita a modelo em foto vertical -->
+<dialog id="dlgFoto">
+  <h3 style="margin:0 0 .2rem">Enquadrar a foto</h3>
+  <p class="mut" style="margin:0 0 .8rem;font-size:.82rem">Arraste a imagem para escolher o que aparece. O que estiver dentro do quadrado é o que a loja mostra.</p>
+  <div id="fotoPalco" class="foto-palco">
+    <canvas id="fotoCanvas"></canvas>
+    <div class="foto-guia"></div>
+  </div>
+  <label class="linha" style="margin-top:.7rem">Zoom
+    <input type="range" id="fotoZoom" min="100" max="300" value="100" style="flex:1"
+      oninput="fotoZoomMudou()"></label>
+  <div class="barra" style="margin-top:.3rem">
+    <button type="button" class="bt mini" onclick="fotoEnquadrarTudo()">↔ mostrar a foto inteira</button>
+    <button type="button" class="bt mini" onclick="fotoCentralizar()">⊕ centralizar</button>
+  </div>
+  <div class="rodape">
+    <button class="bt" onclick="dlgFoto.close()">Cancelar</button>
+    <button class="bt primario" onclick="confirmarEnquadrar()">Usar esta foto</button>
+  </div>
+</dialog>
 <!-- de onde veio o número de uma linha do DRE / Fluxo de caixa -->
 <dialog id="dlgDetalhe">
   <h3 id="dlgDetTitulo" style="margin:0 0 .2rem"></h3>
@@ -1625,6 +1656,120 @@ function selProdIds(){return Object.keys(ui.p.sel).filter(id=>ui.p.sel[id]);}
 function toggleProdSel(id,on){ui.p.sel[id]=on;renderProdutos();}
 function limparProdSel(){ui.p.sel={};renderProdutos();}
 function selecionarFiltrados(){produtosFiltrados().forEach(p=>ui.p.sel[p.id]=true);renderProdutos();}
+/* seleciona quem tem estoque "—" (null = nunca foi contado). São justamente os
+   que continuam aparecendo na loja mesmo sem ninguém saber se existem. */
+function selecionarSemControle(){
+  ui.p.sel={};
+  dados.produtos.filter(p=>p.estoque==null).forEach(p=>ui.p.sel[p.id]=true);
+  renderProdutos();
+  toast(selProdIds().length+' produto(s) sem estoque informado');
+}
+
+/* ---------- mudar vários produtos de uma vez ----------
+   Cada ação toca UM campo só. Misturar várias numa tela grande convida ao
+   engano de alterar sem querer algo que não se pretendia. */
+function painelEmMassa(sel){
+  const ps=sel.map(prodPorId).filter(Boolean);
+  const semEstoque=ps.filter(p=>p.estoque==null).length;
+  const avisando=ps.filter(p=>p.avisarEstoque!==false).length;
+  const naLojaAgora=ps.filter(p=>typeof naLoja==='function'&&naLoja(p)).length;
+  return `<div class="painel" style="border-color:var(--acento);margin-bottom:.6rem">
+    <h3 style="margin-top:0">✏️ Alterar os ${ps.length} produto(s) selecionados</h3>
+    <p class="mut" style="font-size:.82rem;margin-bottom:.6rem">
+      ${naLojaAgora} aparece(m) na loja agora${semEstoque?` · ${semEstoque} está(ão) com estoque "—"`:''}${avisando?` · ${avisando} avisa(m) estoque baixo`:''}
+    </p>
+    <div class="barra" style="flex-wrap:wrap;gap:.4rem">
+      <button class="bt" onclick="massaEstoque()">📦 Definir estoque…</button>
+      <button class="bt" onclick="massaAviso(false)">🔕 Não avisar estoque baixo</button>
+      <button class="bt" onclick="massaAviso(true)">🔔 Voltar a avisar</button>
+      <button class="bt" onclick="massaStatus()">🏷️ Mudar status…</button>
+      <button class="bt" onclick="massaColecao()">✨ Coleção…</button>
+      <button class="bt" onclick="massaCadastro()">📂 Categoria / tipo / fornecedor…</button>
+    </div>
+    ${semEstoque?`<p style="margin-top:.7rem;font-size:.84rem;color:var(--laranja)">
+      💡 Produto com estoque "—" significa "não controlo esta peça", e por isso
+      ele <b>continua na loja</b>. Para tirar da loja, use
+      <button class="bt mini" onclick="massaZerarSemControle()">definir esses ${semEstoque} como estoque 0 e sem aviso</button>
+    </p>`:''}
+  </div>`;
+}
+function produtosSel(){return selProdIds().map(prodPorId).filter(Boolean);}
+/* aplica a mudança, salva uma vez só e conta o que mudou de fato */
+function aplicarEmMassa(fn,rotulo){
+  const ps=produtosSel();if(!ps.length)return;
+  let n=0;
+  ps.forEach(p=>{if(fn(p)!==false)n++;});
+  salvar();renderProdutos();
+  toast(n+' produto(s) '+rotulo);
+}
+function massaEstoque(){
+  const ps=produtosSel();
+  const v=prompt('Novo estoque para os '+ps.length+' produtos selecionados:\n\n'
+    +'Digite um número (0 tira da loja).\n'
+    +'Deixe em branco e confirme para voltar a "—" (não controlo esta peça).','0');
+  if(v===null)return;
+  const vazio=v.trim()==='';
+  const q=vazio?null:(+v.replace(',','.')||0);
+  const comGrade=ps.filter(temGrade).length;
+  if(comGrade&&!confirm(comGrade+' produto(s) usam grade de tamanhos e serão pulados —\n'
+    +'o estoque deles vem da soma dos tamanhos. Continuar com os demais?'))return;
+  aplicarEmMassa(p=>{
+    if(temGrade(p))return false;
+    p.estoque=q;return true;
+  },vazio?'voltaram para "—"':'ficaram com estoque '+fmtN(q));
+}
+function massaAviso(ligar){
+  aplicarEmMassa(p=>{p.avisarEstoque=!!ligar;return true;},
+    ligar?'voltaram a avisar estoque baixo':'não avisam mais estoque baixo');
+}
+function massaZerarSemControle(){
+  const ps=produtosSel().filter(p=>p.estoque==null&&!temGrade(p));
+  if(!ps.length){toast('Nenhum dos selecionados está com estoque "—".');return;}
+  if(!confirm(ps.length+' produto(s) vão ficar com estoque 0 e sem aviso de estoque baixo.\n\n'
+    +'Eles saem da loja imediatamente. Quando você contar as peças e informar a\n'
+    +'quantidade, voltam sozinhos.'))return;
+  ps.forEach(p=>{p.estoque=0;p.avisarEstoque=false;});
+  salvar();renderProdutos();
+  toast(ps.length+' produto(s) zerados e fora da loja ✓');
+}
+function massaStatus(){
+  const op=prompt('Novo status para os selecionados:\n\n0) À venda\n1) Esgotado\n2) Oculto (não aparece na loja)','0');
+  if(op===null)return;
+  const st=({'0':'ativo','1':'esgotado','2':'oculto'})[op.trim()];
+  if(!st){toast('Opção inválida.');return;}
+  aplicarEmMassa(p=>{p.status=st;return true;},'agora estão como "'+({ativo:'À venda',esgotado:'Esgotado',oculto:'Oculto'})[st]+'"');
+}
+function massaColecao(){
+  const cs=colecoes();
+  if(!cs.length){toast('Nenhuma coleção criada — crie em Configurações → Coleções.');return;}
+  const lista=cs.map((c,i)=>i+') '+c.nome).join('\n');
+  const idx=prompt('Qual coleção?\n'+lista,'0');
+  if(idx===null)return;
+  const c=cs[+idx];if(!c){toast('Opção inválida.');return;}
+  const marcar=confirm('OK = ADICIONAR "'+c.nome+'" aos selecionados\nCancelar = REMOVER "'+c.nome+'" deles');
+  aplicarEmMassa(p=>{
+    if(!Array.isArray(p.colecaoIds))p.colecaoIds=[];
+    const tem=p.colecaoIds.indexOf(c.id)>=0;
+    if(marcar&&!tem)p.colecaoIds.push(c.id);
+    else if(!marcar&&tem)p.colecaoIds=p.colecaoIds.filter(x=>x!==c.id);
+    else return false;
+    return true;
+  },(marcar?'entraram em "':'saíram de "')+c.nome+'"');
+}
+function massaCadastro(){
+  const qual=prompt('O que mudar nos selecionados?\n\n0) Categoria\n1) Tipo\n2) Fornecedor','0');
+  if(qual===null)return;
+  const mapa={'0':{lista:'categorias',campo:'catId',rot:'categoria'},
+              '1':{lista:'tipos',campo:'tipoId',rot:'tipo'},
+              '2':{lista:'fornecedores',campo:'fornId',rot:'fornecedor'}}[qual.trim()];
+  if(!mapa){toast('Opção inválida.');return;}
+  const itens=C()[mapa.lista]||[];
+  if(!itens.length){toast('Nenhum(a) '+mapa.rot+' cadastrado(a).');return;}
+  const idx=prompt('Nova '+mapa.rot+':\n'+itens.map((x,i)=>i+') '+x.nome).join('\n'),'0');
+  if(idx===null)return;
+  const it=itens[+idx];if(!it){toast('Opção inválida.');return;}
+  aplicarEmMassa(p=>{p[mapa.campo]=it.id;return true;},'ficaram com '+mapa.rot+' "'+it.nome+'"');
+}
 
 /* cadastro rápido de conta e de categoria financeira (usado no diálogo do Financeiro) */
 function novaContaInline(selId){
@@ -1754,7 +1899,10 @@ function renderProdutos(){
   const sel=selProdIds(),T=totaisEstoque(sel),neg=estoqueNegativo().length;
   const escopo=sel.length?`<span class="bd cat">seleção: ${sel.length} produto(s)</span> <button class="bt mini" onclick="limparProdSel()">mostrar todos</button>`:'<span class="mut">mostrando todo o estoque</span>';
   $('tab-produtos').innerHTML=cabecalhoProdutos()+`
-  <div class="barra" style="margin-bottom:.5rem">${escopo}${sel.length?'':' <button class="bt mini" onclick="selecionarFiltrados()">selecionar os listados</button>'}</div>
+  <div class="barra" style="margin-bottom:.5rem">${escopo}${sel.length?'':`
+    <button class="bt mini" onclick="selecionarFiltrados()">selecionar os listados</button>
+    ${dados.produtos.some(p=>p.estoque==null)?`<button class="bt mini" onclick="selecionarSemControle()" title="produtos que nunca tiveram a quantidade informada">selecionar os sem estoque "—"</button>`:''}`}</div>
+  ${sel.length?painelEmMassa(sel):''}
   <div class="mini-cards">
     <div class="card"><div class="rotulo">Custo do estoque${sel.length?' (seleção)':' ativo'}</div><div class="valor">${fmt(T.custo)}</div><div class="extra">o que está investido em mercadoria</div></div>
     <div class="card"><div class="rotulo">Valor de venda${sel.length?' (seleção)':' do estoque'}</div><div class="valor pos">${fmt(T.venda)}</div><div class="extra">se vender tudo pelo preço atual</div></div>
@@ -1832,6 +1980,7 @@ function renderMidiaProduto(){
     ondragstart="fotoArrastaInicio(event,${i})" ondragover="fotoArrastaSobre(event,${i})"
     ondrop="fotoSolta(event,${i})" ondragend="fotoArrastaFim()"
     title="arraste para mudar a ordem"><img src="${f}" alt="" draggable="false">
+    <button type="button" class="ed" title="reenquadrar" onclick="reenquadrarFoto(${i})">✎</button>
     <button type="button" class="rm" onclick="removerFotoProduto(${i})">✕</button>
     <span class="cap">${i===0?'capa':(i+1)+'ª'}</span></div>`;});
   if(prodFotos.length<3)h+=`<div class="midia-slot add" onclick="document.getElementById('pFotoInput').click()">📷<span>foto</span></div>`;
@@ -1872,7 +2021,132 @@ document.addEventListener('dragleave',e=>{
   const s=e.target&&e.target.closest?e.target.closest('#pMidia .midia-slot'):null;
   if(s)s.classList.remove('alvo');
 },true);
-/* comprime a imagem escolhida e devolve como data URL */
+/* ============================================================
+   ENQUADRAR A FOTO
+   A loja mostra tudo em quadrado. Recortar sozinho pelo centro
+   funciona pra peça isolada, mas em foto vertical de modelo
+   corta a cabeça — daí a escolha ser do usuário.
+   ============================================================ */
+const LADO_FOTO=900;               // resolução final do quadrado
+let enq={img:null,zoom:1,x:0,y:0,base:1,aoPronto:null,arrastando:false,px:0,py:0};
+
+function abrirEnquadrar(src,aoPronto){
+  const img=new Image();
+  img.onload=()=>{
+    enq.img=img;enq.aoPronto=aoPronto;
+    /* Começa preenchendo o quadrado — é o mesmo resultado que a loja daria
+       sozinha, então quem só confirmar não piora nada. O corte fica visível
+       na hora, e quem não gostar arrasta. Começar com a foto inteira deixaria
+       barras pretas pra quem clicasse OK sem olhar. */
+    fotoCentralizar();
+    dlgFoto.showModal();
+    desenharEnquadrar();
+  };
+  img.onerror=()=>alert('Não deu para abrir esta imagem.');
+  img.src=src;
+}
+/* escala em que a imagem COBRE o quadrado (nada de borda vazia) */
+function escalaCobrir(){
+  const i=enq.img;return Math.max(LADO_FOTO/i.width,LADO_FOTO/i.height);
+}
+/* escala em que a imagem CABE inteira dentro do quadrado (pode sobrar borda) */
+function escalaCaber(){
+  const i=enq.img;return Math.min(LADO_FOTO/i.width,LADO_FOTO/i.height);
+}
+function fotoCentralizar(){
+  enq.base=escalaCobrir();enq.zoom=1;
+  centralizarOffset();
+  $('fotoZoom').value=100;
+  desenharEnquadrar();
+}
+function fotoEnquadrarTudo(){
+  enq.base=escalaCaber();enq.zoom=1;
+  centralizarOffset();
+  $('fotoZoom').value=100;
+  desenharEnquadrar();
+}
+function centralizarOffset(){
+  const e=enq.base*enq.zoom;
+  enq.x=(LADO_FOTO-enq.img.width*e)/2;
+  enq.y=(LADO_FOTO-enq.img.height*e)/2;
+}
+function fotoZoomMudou(){
+  const novo=(+$('fotoZoom').value||100)/100;
+  // mantém o centro no lugar ao aproximar, senão a imagem foge da mão
+  const meio=LADO_FOTO/2,ant=enq.base*enq.zoom,dep=enq.base*novo;
+  enq.x=meio-(meio-enq.x)*(dep/ant);
+  enq.y=meio-(meio-enq.y)*(dep/ant);
+  enq.zoom=novo;desenharEnquadrar();
+}
+function desenharEnquadrar(){
+  const cv=$('fotoCanvas');cv.width=LADO_FOTO;cv.height=LADO_FOTO;
+  const c=cv.getContext('2d');
+  c.fillStyle='#000';c.fillRect(0,0,LADO_FOTO,LADO_FOTO);
+  const e=enq.base*enq.zoom;
+  c.drawImage(enq.img,enq.x,enq.y,enq.img.width*e,enq.img.height*e);
+}
+/* arrastar dentro do palco — funciona com mouse e com o dedo */
+(function(){
+  const palco=()=>$('fotoPalco');
+  function ponto(ev){
+    const r=palco().getBoundingClientRect();
+    const t=ev.touches&&ev.touches[0]?ev.touches[0]:ev;
+    // a tela mostra o palco menor que os 900px reais do canvas
+    const f=LADO_FOTO/r.width;
+    return {x:(t.clientX-r.left)*f,y:(t.clientY-r.top)*f};
+  }
+  function inicio(ev){
+    if(!enq.img||!dlgFoto.open)return;
+    const p=ponto(ev);enq.arrastando=true;enq.px=p.x;enq.py=p.y;
+    palco().classList.add('movendo');
+  }
+  function move(ev){
+    if(!enq.arrastando)return;
+    ev.preventDefault();
+    const p=ponto(ev);
+    enq.x+=p.x-enq.px;enq.y+=p.y-enq.py;
+    enq.px=p.x;enq.py=p.y;
+    desenharEnquadrar();
+  }
+  function fim(){enq.arrastando=false;const el=palco();if(el)el.classList.remove('movendo');}
+  document.addEventListener('mousedown',e=>{if(e.target.closest&&e.target.closest('#fotoPalco'))inicio(e);});
+  document.addEventListener('mousemove',move);
+  document.addEventListener('mouseup',fim);
+  document.addEventListener('touchstart',e=>{if(e.target.closest&&e.target.closest('#fotoPalco'))inicio(e);},{passive:true});
+  document.addEventListener('touchmove',move,{passive:false});
+  document.addEventListener('touchend',fim);
+})();
+function confirmarEnquadrar(){
+  const d=$('fotoCanvas').toDataURL('image/jpeg',0.85);
+  const cb=enq.aoPronto;
+  dlgFoto.close();enq.img=null;enq.aoPronto=null;
+  if(cb)cb(d);
+}
+/* reabrir o enquadramento de uma foto já salva. Busca por fetch e não por
+   crossOrigin: assim o canvas nunca fica "sujo" e o recorte pode ser lido. */
+function reenquadrarFoto(i){
+  const atual=prodFotos[i];if(!atual)return;
+  const seguir=src=>abrirEnquadrar(src,d=>{
+    toast('Enviando foto...');
+    guardarMidiaOuAvisar(d,'produtos',u=>{prodFotos[i]=u;renderMidiaProduto();toast('Foto atualizada ✓');});
+  });
+  if(atual.slice(0,5)==='data:')return seguir(atual);
+  fetch(atual).then(r=>r.blob()).then(b=>{
+    const fr=new FileReader();fr.onload=()=>seguir(fr.result);fr.readAsDataURL(b);
+  }).catch(()=>alert('Não deu para carregar a foto para reenquadrar. Verifique a conexão.'));
+}
+
+/* lê o arquivo escolhido como data URL, sem mexer no conteúdo — o recorte e a
+   redução de tamanho acontecem depois, no enquadramento */
+function lerImagem(f,cb){
+  if(!f)return;
+  if(f.size>8*1024*1024){alert('Foto muito grande (máx 8MB). Tente uma menor.');return;}
+  const r=new FileReader();
+  r.onload=()=>cb(r.result);
+  r.readAsDataURL(f);
+}
+/* comprime a imagem escolhida e devolve como data URL (usado onde não há
+   enquadramento, como a logo da loja) */
 function comprimirFoto(f,cb){
   if(!f)return;
   if(f.size>3*1024*1024){alert('Foto muito grande (máx 3MB). Tente uma menor.');return;}
@@ -1891,10 +2165,11 @@ function comprimirFoto(f,cb){
 function addFotoProduto(inp){
   const f=inp.files[0];inp.value='';if(!f)return;
   if(prodFotos.length>=3){toast('Máximo de 3 fotos.');return;}
-  comprimirFoto(f,d=>{
+  // enquadra antes de enviar: depois de subir, mexer exige baixar de volta
+  lerImagem(f,src=>abrirEnquadrar(src,d=>{
     toast('Enviando foto...');
     guardarMidiaOuAvisar(d,'produtos',u=>{prodFotos.push(u);renderMidiaProduto();toast('Foto enviada ✓');});
-  });
+  }));
 }
 function addVideoProduto(inp){
   const f=inp.files[0];inp.value='';if(!f)return;
@@ -2029,10 +2304,10 @@ function renderMidiaQuick(){
 function addFotoQuick(inp){
   const f=inp.files[0];inp.value='';if(!f)return;
   if(qpFotos.length>=3){toast('Máximo de 3 fotos.');return;}
-  comprimirFoto(f,d=>{
+  lerImagem(f,src=>abrirEnquadrar(src,d=>{
     toast('Enviando foto...');
     guardarMidiaOuAvisar(d,'produtos',u=>{qpFotos.push(u);renderMidiaQuick();toast('Foto enviada ✓');});
-  });
+  }));
 }
 function removerFotoQuick(i){qpFotos.splice(i,1);renderMidiaQuick();}
 function abrirQuickProd(idx){
@@ -5364,7 +5639,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-08-10 22:57';
+const VERSAO_APP='2026-08-13 23:55';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
