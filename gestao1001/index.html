@@ -44,9 +44,16 @@ small,.mut{color:var(--texto2)}
 a{color:var(--azul)}
 button{font-family:inherit;cursor:pointer}
 
-.topo{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,var(--topo1),var(--topo2));border-bottom:1px solid var(--borda);padding:.55rem .9rem;display:flex;flex-wrap:wrap;align-items:center;gap:.6rem 1.2rem}
-.marca{display:flex;align-items:center;gap:.6rem}
-.logo{width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--logo1),var(--logo2) 70%);color:var(--logoTx);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:.8rem;box-shadow:0 0 8px var(--brilho);overflow:hidden;flex:none}
+/* O topo é a moldura da caderneta: uma faixa dourada fina no alto, como a
+   costura de um caderno, e a navegação em abas que "encaixam" na página. */
+.topo{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,var(--topo1),var(--topo2));
+  border-bottom:1px solid var(--borda);padding:.7rem 1.1rem .55rem;display:flex;flex-wrap:wrap;align-items:center;gap:.6rem 1.4rem;
+  box-shadow:0 4px 20px rgba(0,0,0,.35)}
+.topo::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--acento),var(--acento2),var(--acento))}
+.marca{display:flex;align-items:center;gap:.7rem}
+.marca h1{font-size:1.12rem}
+.logo{width:42px;height:42px;border-radius:12px;background:radial-gradient(circle at 35% 30%,var(--logo1),var(--logo2) 70%);color:var(--logoTx);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:.82rem;box-shadow:0 3px 12px var(--brilho);overflow:hidden;flex:none}
 .logo img{width:100%;height:100%;object-fit:cover}
 .grade-row{display:flex;gap:.5rem;align-items:center;margin-bottom:.35rem}
 .grade-row .gr-rot{width:120px}
@@ -55,12 +62,16 @@ button{font-family:inherit;cursor:pointer}
 .grade-mini{font-size:.7rem;color:var(--texto2);margin-top:.1rem;line-height:1.3}
 .logo-prev{width:76px;height:76px;border-radius:50%;object-fit:cover;border:1px solid var(--borda);background:#000}
 .recibo-prev{background:var(--painel2);border:1px solid var(--borda);border-radius:8px;padding:.6rem;font-family:ui-monospace,Consolas,monospace;font-size:.78rem;white-space:pre;overflow-x:auto;max-height:260px}
-nav{display:flex;gap:.25rem;flex-wrap:wrap}
-nav button{background:none;border:1px solid transparent;color:var(--texto2);padding:.48rem .8rem;border-radius:9px;font-size:.9rem;
-  transition:color .15s ease,background .15s ease}
-nav button:hover{color:var(--ouro2);background:rgba(255,255,255,.04)}
-nav button.ativo{background:var(--painel2);border-color:var(--borda);color:var(--ouro2);font-weight:600;
-  box-shadow:0 1px 4px rgba(0,0,0,.25)}
+nav{display:flex;gap:.15rem;flex-wrap:wrap}
+/* abas com marcador embaixo, como as divisórias coloridas de uma caderneta:
+   a seção em uso "puxa" a cor da marca e fica óbvia mesmo de relance */
+nav button{background:none;border:none;color:var(--texto2);padding:.55rem .85rem;font-size:.92rem;
+  border-radius:9px 9px 0 0;position:relative;transition:color .16s ease,background .16s ease}
+nav button::after{content:"";position:absolute;left:.6rem;right:.6rem;bottom:0;height:3px;border-radius:3px 3px 0 0;
+  background:transparent;transition:background .16s ease}
+nav button:hover{color:var(--ouro2);background:rgba(255,255,255,.05)}
+nav button.ativo{color:var(--ouro2);font-weight:700;background:rgba(255,255,255,.045)}
+nav button.ativo::after{background:var(--acento)}
 nav button .cont{background:var(--vermelho);color:#fff;border-radius:9px;font-size:.68rem;padding:0 .35rem;margin-left:.25rem;vertical-align:middle}
 
 .aviso{background:var(--aviso1);border-bottom:1px solid var(--aviso2);color:var(--avisoTx);padding:.5rem .9rem;font-size:.88rem;display:flex;gap:.8rem;align-items:center;flex-wrap:wrap}
@@ -73,10 +84,13 @@ main{padding:1.4rem 1.1rem;max-width:1240px;margin:0 auto}
 
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.85rem;margin-bottom:1.3rem}
 /* sombra de baixo em vez de só borda: dá profundidade sem pesar a tela */
-.card{background:var(--painel);border:1px solid var(--borda);border-radius:14px;padding:1rem 1.1rem;
-  box-shadow:0 1px 3px rgba(0,0,0,.28);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
-.card .rotulo{font-size:.74rem;color:var(--texto2);text-transform:uppercase;letter-spacing:.8px;font-weight:600}
-.card .valor{font-size:1.55rem;font-weight:700;margin-top:.35rem;letter-spacing:-.02em;line-height:1.15}
+/* faixa de cor na lateral, como o marcador de página de uma caderneta —
+   dá identidade ao card sem precisar de mais borda ou mais texto */
+.card{background:var(--painel);border:1px solid var(--borda);border-left:3px solid var(--acento);
+  border-radius:6px 14px 14px 6px;padding:1.05rem 1.15rem;
+  box-shadow:0 2px 6px rgba(0,0,0,.3);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
+.card .rotulo{font-size:.72rem;color:var(--texto2);text-transform:uppercase;letter-spacing:.9px;font-weight:700}
+.card .valor{font-size:1.7rem;font-weight:800;margin-top:.4rem;letter-spacing:-.025em;line-height:1.1}
 .card .extra{font-size:.78rem;color:var(--texto2);margin-top:.3rem;line-height:1.45}
 .card.clicavel{cursor:pointer}
 /* o card sobe de leve ao passar o mouse — sinaliza que é clicável sem precisar
@@ -87,8 +101,11 @@ main{padding:1.4rem 1.1rem;max-width:1240px;margin:0 auto}
 .card.alerta{border-color:var(--vermelho);background:linear-gradient(180deg,rgba(224,96,92,.10),transparent)}
 .card.alerta:hover{border-color:var(--vermelho)}
 
-.painel{background:var(--painel);border:1px solid var(--borda);border-radius:14px;padding:1.15rem;margin-bottom:1.2rem;
-  box-shadow:0 1px 3px rgba(0,0,0,.24)}
+.painel{background:var(--painel);border:1px solid var(--borda);border-radius:14px;padding:1.25rem;margin-bottom:1.2rem;
+  box-shadow:0 2px 8px rgba(0,0,0,.26)}
+/* linha dourada discreta sob o título de cada bloco: separa sem pesar */
+.painel>h3:first-child{padding-bottom:.6rem;margin-bottom:1rem;border-bottom:1px solid var(--borda);
+  display:flex;align-items:center;gap:.5rem}
 .grade2{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
 .grade3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem}
 @media(max-width:860px){.grade2,.grade3{grid-template-columns:1fr}}
@@ -5078,9 +5095,13 @@ a{color:inherit}
 .bt-menu{flex:none;background:var(--painel);border:1px solid var(--borda);color:var(--texto);border-radius:9px;padding:.45rem .7rem;font-size:1rem;cursor:pointer;display:none}
 /* materiais (AÇO, FOLHEADO...) — centralizados, é o menu principal */
 .chips{display:flex;gap:.45rem;justify-content:center;flex-wrap:wrap;padding:0 1rem .7rem}
-.chips button{background:var(--painel);border:1px solid var(--borda);color:var(--texto2);border-radius:20px;padding:.4rem 1rem;font-size:.84rem;white-space:nowrap;cursor:pointer;letter-spacing:.3px}
-.chips button:hover{border-color:var(--acento)}
-.chips button.ativo{background:var(--painel2);border-color:var(--acento);color:var(--acento2);font-weight:600}
+.chips button{background:var(--painel);border:1px solid var(--borda);color:var(--texto2);border-radius:999px;padding:.5rem 1.15rem;font-size:.86rem;white-space:nowrap;cursor:pointer;letter-spacing:.3px;
+  transition:border-color .16s ease,color .16s ease,background .16s ease,transform .1s ease}
+.chips button:hover{border-color:var(--acento);color:var(--texto)}
+.chips button:active{transform:scale(.97)}
+/* o material escolhido fica preenchido, não só contornado: some a dúvida de
+   qual filtro está valendo */
+.chips button.ativo{background:var(--acento);border-color:var(--acento);color:#1a1206;font-weight:700}
 /* ---- corpo: coleções na lateral ESQUERDA + grade de produtos ---- */
 .corpo-loja{display:flex;gap:1.2rem;max-width:1400px;margin:0 auto;padding:1rem 1rem 6rem;align-items:flex-start}
 .lateral{flex:none;width:190px;position:sticky;top:118px}
@@ -5092,8 +5113,8 @@ a{color:inherit}
 /* precisa ser mais específico que ".lateral button" acima, senão o display:flex
    daquela regra ganha e o botão de fechar aparece no desktop também */
 .lateral button.lateral-fechar{display:none}
-.grade{flex:1;display:grid;grid-template-columns:repeat(2,1fr);gap:.7rem;min-width:0}
-@media(min-width:700px){.grade{grid-template-columns:repeat(3,1fr)}}
+.grade{flex:1;display:grid;grid-template-columns:repeat(2,1fr);gap:1.1rem;min-width:0}
+@media(min-width:700px){.grade{grid-template-columns:repeat(3,1fr);gap:1.3rem}}
 @media(min-width:1050px){.grade{grid-template-columns:repeat(4,1fr)}}
 /* celular: a lateral virou gaveta (não cabe sidebar fixa em 375px) */
 @media(max-width:699px){
@@ -5106,10 +5127,16 @@ a{color:inherit}
   .fundo-lateral{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:55;display:none}
   .fundo-lateral.show{display:block}
 }
-.prodcard{background:var(--painel);border:1px solid var(--borda);border-radius:12px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;transition:border-color .15s}
-.prodcard:hover{border-color:var(--acento)}
+/* A vitrine é o que vende. Cartão limpo, foto grande e sem moldura pesada —
+   quem olha tem que ver a peça, não a interface. */
+.prodcard{background:var(--painel);border:1px solid var(--borda);border-radius:16px;overflow:hidden;cursor:pointer;
+  display:flex;flex-direction:column;
+  transition:transform .2s cubic-bezier(.2,.7,.3,1),box-shadow .2s ease,border-color .2s ease}
+.prodcard:hover{border-color:var(--acento);transform:translateY(-4px);box-shadow:0 14px 34px rgba(0,0,0,.45)}
 .prodcard .foto{width:100%;aspect-ratio:1/1;background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
-.prodcard .foto img{width:100%;height:100%;object-fit:cover}
+/* a foto aproxima de leve junto com o cartão: dá vida sem distrair */
+.prodcard .foto img{width:100%;height:100%;object-fit:cover;transition:transform .45s cubic-bezier(.2,.7,.3,1)}
+@media (hover:hover){.prodcard:hover .foto img{transform:scale(1.05)}}
 /* prévia: a 2ª foto fica por cima, invisível, e aparece ao passar o mouse.
    Só em telas que têm ponteiro de verdade — no celular hover "gruda" e a peça
    ficaria mostrando a segunda foto pra sempre depois de um toque. */
@@ -5117,11 +5144,11 @@ a{color:inherit}
 @media (hover:hover){.prodcard:hover .foto .previa{opacity:1}}
 .prodcard .semfoto{font-size:2rem;opacity:.3}
 .ribbon{position:absolute;top:.5rem;left:0;background:var(--vermelho);color:#fff;font-size:.68rem;padding:.15rem .6rem;border-radius:0 6px 6px 0;z-index:2}
-.prodcard .info{padding:.55rem .65rem .7rem}
-.prodcard .nome{font-size:.86rem;font-weight:600;line-height:1.25;margin-bottom:.15rem}
-.prodcard .cat{font-size:.7rem;color:var(--texto2)}
-.prodcard .cols{font-size:.66rem;color:var(--texto3);margin-top:.15rem}
-.prodcard .preco{font-size:.98rem;color:var(--acento2);font-weight:700;margin-top:.3rem}
+.prodcard .info{padding:.85rem .9rem 1rem}
+.prodcard .nome{font-size:.92rem;font-weight:600;line-height:1.35;margin-bottom:.25rem}
+.prodcard .cat{font-size:.7rem;color:var(--texto2);text-transform:uppercase;letter-spacing:.7px}
+.prodcard .cols{font-size:.68rem;color:var(--texto3);margin-top:.2rem}
+.prodcard .preco{font-size:1.18rem;color:var(--acento2);font-weight:800;margin-top:.5rem;letter-spacing:-.02em}
 .vazio{grid-column:1/-1;padding:3rem 1rem;text-align:center;color:var(--texto2)}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:flex-end;justify-content:center;z-index:100}
 .overlay.show{display:flex}
@@ -5739,7 +5766,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-08-22 18:07';
+const VERSAO_APP='2026-08-22 18:45';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
