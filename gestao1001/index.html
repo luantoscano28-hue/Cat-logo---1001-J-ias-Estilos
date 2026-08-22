@@ -36,10 +36,10 @@
 [hidden]{display:none!important}
 html{font-size:15px}
 body{background:var(--bg);color:var(--texto);font-family:"Segoe UI",system-ui,Arial,sans-serif;min-height:100vh}
-h1{font-size:1.05rem;color:var(--ouro2);letter-spacing:.5px}
-h2{font-size:1.15rem;color:var(--ouro2);margin-bottom:.7rem;font-weight:600}
-h3{color:var(--ouro2);font-size:1.05rem;margin-bottom:.8rem}
-h4{color:var(--ouro2);font-size:.92rem;margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.5px}
+h1{font-size:1.05rem;color:var(--ouro2);letter-spacing:.3px;font-weight:700}
+h2{font-size:1.3rem;color:var(--ouro2);margin-bottom:.9rem;font-weight:600;letter-spacing:-.01em}
+h3{color:var(--ouro2);font-size:1.05rem;margin-bottom:.85rem;font-weight:600}
+h4{color:var(--ouro2);font-size:.88rem;margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.7px}
 small,.mut{color:var(--texto2)}
 a{color:var(--azul)}
 button{font-family:inherit;cursor:pointer}
@@ -56,57 +56,75 @@ button{font-family:inherit;cursor:pointer}
 .logo-prev{width:76px;height:76px;border-radius:50%;object-fit:cover;border:1px solid var(--borda);background:#000}
 .recibo-prev{background:var(--painel2);border:1px solid var(--borda);border-radius:8px;padding:.6rem;font-family:ui-monospace,Consolas,monospace;font-size:.78rem;white-space:pre;overflow-x:auto;max-height:260px}
 nav{display:flex;gap:.25rem;flex-wrap:wrap}
-nav button{background:none;border:1px solid transparent;color:var(--texto2);padding:.45rem .7rem;border-radius:8px;font-size:.9rem}
-nav button:hover{color:var(--ouro2)}
-nav button.ativo{background:var(--painel2);border-color:var(--borda);color:var(--ouro2);font-weight:600}
+nav button{background:none;border:1px solid transparent;color:var(--texto2);padding:.48rem .8rem;border-radius:9px;font-size:.9rem;
+  transition:color .15s ease,background .15s ease}
+nav button:hover{color:var(--ouro2);background:rgba(255,255,255,.04)}
+nav button.ativo{background:var(--painel2);border-color:var(--borda);color:var(--ouro2);font-weight:600;
+  box-shadow:0 1px 4px rgba(0,0,0,.25)}
 nav button .cont{background:var(--vermelho);color:#fff;border-radius:9px;font-size:.68rem;padding:0 .35rem;margin-left:.25rem;vertical-align:middle}
 
 .aviso{background:var(--aviso1);border-bottom:1px solid var(--aviso2);color:var(--avisoTx);padding:.5rem .9rem;font-size:.88rem;display:flex;gap:.8rem;align-items:center;flex-wrap:wrap}
 .aviso.info{background:#1d2f42;border-color:#2f4a6b;color:#bcd8f2}
 .aviso button{margin-left:auto}
 
-main{padding:1rem;max-width:1200px;margin:0 auto}
+main{padding:1.4rem 1.1rem;max-width:1240px;margin:0 auto}
 .tab{display:none}
 .tab.ativo{display:block}
 
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.7rem;margin-bottom:1rem}
-.card{background:var(--painel);border:1px solid var(--borda);border-radius:12px;padding:.8rem .9rem}
-.card .rotulo{font-size:.78rem;color:var(--texto2);text-transform:uppercase;letter-spacing:.5px}
-.card .valor{font-size:1.35rem;font-weight:700;margin-top:.2rem}
-.card .extra{font-size:.78rem;color:var(--texto2);margin-top:.15rem}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.85rem;margin-bottom:1.3rem}
+/* sombra de baixo em vez de só borda: dá profundidade sem pesar a tela */
+.card{background:var(--painel);border:1px solid var(--borda);border-radius:14px;padding:1rem 1.1rem;
+  box-shadow:0 1px 3px rgba(0,0,0,.28);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
+.card .rotulo{font-size:.74rem;color:var(--texto2);text-transform:uppercase;letter-spacing:.8px;font-weight:600}
+.card .valor{font-size:1.55rem;font-weight:700;margin-top:.35rem;letter-spacing:-.02em;line-height:1.15}
+.card .extra{font-size:.78rem;color:var(--texto2);margin-top:.3rem;line-height:1.45}
 .card.clicavel{cursor:pointer}
-.card.clicavel:hover{border-color:var(--ouro)}
+/* o card sobe de leve ao passar o mouse — sinaliza que é clicável sem precisar
+   de texto explicando */
+.card.clicavel:hover{border-color:var(--acento);transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.38)}
 /* fiado atrasado é a única coisa da tela que pede ação imediata: borda viva
    pra saltar aos olhos mesmo de relance */
 .card.alerta{border-color:var(--vermelho);background:linear-gradient(180deg,rgba(224,96,92,.10),transparent)}
 .card.alerta:hover{border-color:var(--vermelho)}
 
-.painel{background:var(--painel);border:1px solid var(--borda);border-radius:12px;padding:.9rem;margin-bottom:1rem}
-.grade2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
-.grade3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.painel{background:var(--painel);border:1px solid var(--borda);border-radius:14px;padding:1.15rem;margin-bottom:1.2rem;
+  box-shadow:0 1px 3px rgba(0,0,0,.24)}
+.grade2{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+.grade3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem}
 @media(max-width:860px){.grade2,.grade3{grid-template-columns:1fr}}
 
-.barra{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.8rem}
+.barra{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.9rem}
 .esp{flex:1}
-input,select,textarea{background:var(--painel2);border:1px solid var(--borda);color:var(--texto);border-radius:8px;padding:.42rem .55rem;font-size:.9rem;font-family:inherit}
-input:focus,select:focus,textarea:focus{outline:1px solid var(--ouro);border-color:var(--ouro)}
+input,select,textarea{background:var(--painel2);border:1px solid var(--borda);color:var(--texto);border-radius:9px;padding:.5rem .65rem;font-size:.9rem;font-family:inherit;
+  transition:border-color .15s ease,box-shadow .15s ease}
+/* anel de foco em vez de outline seco: fica claro onde se está digitando */
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acento);
+  box-shadow:0 0 0 3px var(--brilho)}
 input[type=date]{color-scheme:dark}
 textarea{resize:vertical;min-height:2.2rem}
 label.campo{display:flex;flex-direction:column;gap:.25rem;font-size:.8rem;color:var(--texto2)}
 label.linha{display:flex;align-items:center;gap:.45rem;font-size:.85rem;color:var(--texto2)}
 
-.bt{background:var(--painel2);color:var(--texto);border:1px solid var(--borda);border-radius:8px;padding:.45rem .8rem;font-size:.9rem}
-.bt:hover{border-color:var(--ouro)}
-.bt.primario{background:linear-gradient(180deg,var(--btp1),var(--btp2));color:var(--btpTx);font-weight:700;border:none}
-.bt.primario:hover{filter:brightness(1.08)}
+.bt{background:var(--painel2);color:var(--texto);border:1px solid var(--borda);border-radius:9px;padding:.5rem .9rem;font-size:.9rem;
+  transition:border-color .15s ease,background .15s ease,transform .08s ease,box-shadow .15s ease}
+.bt:hover{border-color:var(--acento);background:var(--painel3)}
+/* afunda ao clicar: confirma o toque sem precisar esperar a tela responder */
+.bt:active{transform:translateY(1px)}
+.bt.primario{background:linear-gradient(180deg,var(--btp1),var(--btp2));color:var(--btpTx);font-weight:700;border:none;
+  box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.bt.primario:hover{filter:brightness(1.08);box-shadow:0 4px 14px rgba(0,0,0,.32)}
 .bt.perigo{color:var(--vermelho)}
-.bt.mini{padding:.15rem .45rem;font-size:.8rem;border-radius:6px}
+.bt.perigo:hover{border-color:var(--vermelho);background:rgba(224,96,92,.1)}
+.bt.mini{padding:.2rem .5rem;font-size:.8rem;border-radius:7px}
 .bt.verde{color:var(--verde)}
+.bt.verde:hover{border-color:var(--verde);background:rgba(90,191,138,.1)}
+.bt:disabled{opacity:.5;cursor:default;transform:none}
 
 .rolagem{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:.88rem}
-th{color:var(--texto2);text-align:left;font-weight:600;font-size:.76rem;text-transform:uppercase;letter-spacing:.4px;padding:.45rem .5rem;border-bottom:1px solid var(--borda);white-space:nowrap}
-td{padding:.45rem .5rem;border-bottom:1px solid var(--borda);vertical-align:middle}
+th{color:var(--texto2);text-align:left;font-weight:600;font-size:.74rem;text-transform:uppercase;letter-spacing:.6px;padding:.55rem .6rem;border-bottom:1px solid var(--borda);white-space:nowrap}
+td{padding:.55rem .6rem;border-bottom:1px solid var(--borda);vertical-align:middle}
+tr{transition:background .12s ease}
 tr:hover td{background:var(--painel2)}
 td.num,th.num{text-align:right;white-space:nowrap}
 td.acoes{white-space:nowrap;text-align:right}
@@ -155,7 +173,15 @@ td.acoes{white-space:nowrap;text-align:right}
 .legenda{display:flex;gap:1rem;font-size:.78rem;color:var(--texto2);flex-wrap:wrap;margin-top:.3rem}
 .legenda i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:.3rem}
 
-dialog{background:var(--painel);color:var(--texto);border:1px solid var(--borda);border-radius:14px;padding:1.1rem;max-width:640px;width:min(95vw,640px);box-shadow:0 10px 40px #000a}
+dialog{background:var(--painel);color:var(--texto);border:1px solid var(--borda);border-radius:16px;padding:1.35rem;max-width:640px;width:min(95vw,640px);box-shadow:0 20px 60px rgba(0,0,0,.6)}
+/* o diálogo entra subindo de leve — sem isso ele "aparece" de um quadro pro
+   outro e a pessoa perde a referência de onde estava */
+dialog[open]{animation:sobe .18s ease-out}
+@keyframes sobe{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  dialog[open]{animation:none}
+  .card,.bt,tr,nav button,input,select,textarea{transition:none!important}
+}
 dialog.larga{max-width:820px;width:min(96vw,820px)}
 dialog::backdrop{background:#000b}
 .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem .7rem}
@@ -282,6 +308,16 @@ dialog::backdrop{background:#000b}
 .midia-slot .cap{position:absolute;bottom:0;left:0;right:0;background:#000a;color:#fff;font-size:.62rem;text-align:center;padding:1px}
 /* arrastar pra reordenar: a foto que está sendo levada some um pouco, e a que
    vai receber ganha uma borda — sem os dois, não dá pra saber onde vai cair */
+/* passos do primeiro acesso */
+#dlgBoasVindas{max-width:520px;width:94vw}
+.passo{display:flex;align-items:center;gap:.7rem;padding:.6rem;border:1px solid var(--borda);
+  border-radius:10px;margin-bottom:.5rem;background:var(--painel2)}
+.passo.feito{opacity:.6;border-color:var(--verde)}
+.passo-marca{width:26px;height:26px;flex:0 0 26px;border-radius:50%;border:2px solid var(--borda);
+  display:flex;align-items:center;justify-content:center;color:var(--verde);font-weight:700}
+.passo.feito .passo-marca{border-color:var(--verde);background:rgba(90,191,138,.15)}
+.passo-txt{flex:1;font-size:.86rem;line-height:1.35}
+.passo-txt .mut{font-size:.78rem}
 /* palco de enquadramento: o quadrado é exatamente o recorte que a loja usa */
 #dlgFoto{max-width:420px;width:94vw}
 .foto-palco{position:relative;width:100%;aspect-ratio:1/1;background:#000;border-radius:10px;
@@ -319,8 +355,36 @@ dialog::backdrop{background:#000b}
       <input type="password" id="loginSenha" autocomplete="current-password" required></label>
     <div class="login-erro" id="loginErro" hidden></div>
     <button class="bt primario" type="submit" id="loginBt">Entrar</button>
+    <a href="#" class="mut" style="font-size:.8rem;text-align:center"
+       onclick="event.preventDefault();esqueciSenha()">Esqueci minha senha</a>
+    <button class="bt" type="button" onclick="mostrarCadastro()">Criar minha conta</button>
     <button class="bt" type="button" id="loginOffline" onclick="entrarOffline()"
       title="usa só o que já está guardado neste aparelho">Trabalhar sem conexão</button>
+  </form>
+
+  <!-- criar conta: só o essencial, o resto se configura depois -->
+  <form class="login-caixa" id="formCadastro" onsubmit="event.preventDefault();criarConta()" hidden>
+    <div class="login-marca"><div class="logo">1001</div></div>
+    <h2>Criar minha conta</h2>
+    <p class="mut">14 dias para testar, sem cartão.</p>
+    <label class="campo">Nome do seu negócio
+      <input type="text" id="cadNegocio" placeholder="ex.: Joias da Ana" required></label>
+    <label class="campo">WhatsApp
+      <input type="tel" id="cadTel" placeholder="(11) 9...." required></label>
+    <label class="campo">E-mail <small class="mut">confira bem: é por ele que você recupera a senha</small>
+      <input type="email" id="cadEmail" autocomplete="username" required
+        oninput="conferirEmailCad()"></label>
+    <div class="mut" id="cadEmailDica" style="font-size:.76rem;margin-top:-.4rem" hidden></div>
+    <!-- só aparece para domínio próprio, onde não há como conferir a escrita -->
+    <label class="campo" id="cadEmail2Box" hidden>Digite o e-mail de novo
+      <small class="mut">é um endereço próprio — sem conferir, um erro deixaria você sem acesso</small>
+      <input type="email" id="cadEmail2" autocomplete="off" oninput="conferirEmailCad()"
+        onpaste="return false" ondrop="return false"></label>
+    <label class="campo">Crie uma senha <small class="mut">no mínimo 6 caracteres</small>
+      <input type="password" id="cadSenha" autocomplete="new-password" minlength="6" required></label>
+    <div class="login-erro" id="cadErro" hidden></div>
+    <button class="bt primario" type="submit" id="cadBt">Criar conta</button>
+    <button class="bt" type="button" onclick="mostrarLogin()">Já tenho conta</button>
   </form>
 </div>
 <header class="topo">
@@ -635,6 +699,17 @@ dialog::backdrop{background:#000b}
 </dialog>
 
 <!-- ====== FECHAR MÊS FISCAL ====== -->
+<!-- primeiro acesso: tela vazia não ensina nada -->
+<dialog id="dlgBoasVindas">
+  <h3 style="margin:0 0 .2rem">Bem-vindo(a), <span id="dlgBvNome"></span> 👋</h3>
+  <p class="mut" style="margin:0 0 .9rem;font-size:.86rem">
+    Quatro passos e o sistema já mostra seu lucro de verdade.
+    <b id="dlgBvProgresso"></b></p>
+  <div id="dlgBvPassos"></div>
+  <div class="rodape">
+    <button class="bt" onclick="dlgBoasVindas.close()">Explorar sozinho</button>
+  </div>
+</dialog>
 <!-- enquadrar a foto: a loja mostra tudo em quadrado, e sem isto o corte
      automático decapita a modelo em foto vertical -->
 <dialog id="dlgFoto">
@@ -932,7 +1007,11 @@ function estruturaInicial(){
   return {
     versao:18, criadoEm:hoje(), alteradoEm:null, ultimoBackup:null, nAlteracoes:0, seqCriacao:0,
     config:{
-      loja:{nome:'1001 Joias e Estilos', whatsapp:'5511989455153', dominio:'x1001joiasestilos.com.br', pix:'11989455153', logo:'', msgFiado:MSG_FIADO_PADRAO},
+      /* Nasce NEUTRA. Deixar aqui o WhatsApp e o Pix de alguém faria toda conta
+         nova receber os pedidos e as cobranças no contato errado — e o dono da
+         conta só descobriria pelo cliente reclamando. Estes campos são
+         preenchidos no cadastro e em Configurações → Geral / Loja. */
+      loja:{nome:'Minha Loja', whatsapp:'', dominio:'', pix:'', logo:'', msgFiado:MSG_FIADO_PADRAO},
       fiscal:{diaInicio:11}, autoBaixaCartao:true, tema:'ouro',
       categorias:idfy([{nome:'Aço'},{nome:'Folheado'},{nome:'Biju'},{nome:'Prata'},{nome:'Acessórios'}]),
       colecoes:[],
@@ -5566,8 +5645,29 @@ function previewLoja(){
   window.open(URL.createObjectURL(blob),'_blank');
 }
 
+/* Tela mostrada a quem tem o plano só do painel. Explica o que a loja faz em
+   vez de simplesmente sumir com a aba — quem não sabe que existe nunca contrata. */
+function painelLojaBloqueada(){
+  const n=dados.produtos.filter(naLoja).length;
+  return `<div class="painel">
+    <h3 style="margin-top:0">🛍️ Catálogo online <span class="bd cat">não incluído no seu plano</span></h3>
+    <p style="font-size:.9rem;line-height:1.6;color:var(--texto2)">
+      Seus clientes veriam suas peças com foto e preço num site próprio, montariam
+      o pedido e mandariam pelo WhatsApp. Sem pagamento online — você fecha a venda
+      na conversa, como já faz.</p>
+    <ul style="font-size:.88rem;line-height:1.8;color:var(--texto2);padding-left:1.1rem">
+      <li>Atualiza sozinho: cadastrou peça aqui, aparece lá</li>
+      <li>Peça que acaba some do site na hora</li>
+      <li>Endereço próprio para mandar no Instagram e no status</li>
+      <li>Filtros por material e por coleção</li>
+    </ul>
+    ${n?`<p class="mut" style="font-size:.84rem">Você já tem <b>${n} peça(s)</b> prontas para entrar na loja.</p>`:''}
+    <div class="barra"><button class="bt primario" onclick="falarSobreAssinatura()">Quero incluir o catálogo</button></div>
+  </div>`;
+}
 function painelLojaSite(){
   const cfg=C();
+  if(typeof temCatalogo==='function'&&!temCatalogo())return painelLojaBloqueada();
   const visiveis=dados.produtos.filter(naLoja);
   const foraPorEstoque=dados.produtos.filter(p=>p.status!=='oculto'&&p.status!=='esgotado'&&!naLoja(p)).length;
   const semFoto=visiveis.filter(p=>!(p.fotos&&p.fotos.length)).length;
@@ -5639,14 +5739,14 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-08-13 23:55';
+const VERSAO_APP='2026-08-22 18:07';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
    a variável ainda estaria na zona morta e a exceção abortaria a inicialização
    inteira — foi exatamente o que aconteceu na 25ª rodada com o LOJA_TEMPLATE.
    Com var, ela já existe como undefined e a guarda abaixo resolve. */
-var NUVEM={modo:'indefinido',sessao:null,sincronizando:false,ultimoErro:null,ultimoSync:null,progresso:null,appVelho:null};
+var NUVEM={modo:'indefinido',sessao:null,sincronizando:false,ultimoErro:null,ultimoSync:null,progresso:null,appVelho:null,assinatura:null};
 
 function nuvemConfigurada(){return typeof NUVEM_URL!=='undefined'&&!!(NUVEM_URL&&NUVEM_KEY);}
 function nuvemLigada(){return !!NUVEM&&NUVEM.modo==='nuvem'&&!!(NUVEM.sessao&&NUVEM.sessao.access_token);}
@@ -5755,9 +5855,199 @@ function sairDaConta(){
 function mostrarLogin(){
   const t=$('telaLogin');if(!t)return;
   t.hidden=false;
+  $('formLogin').hidden=false;
+  if($('formCadastro'))$('formCadastro').hidden=true;
   $('loginErro').hidden=true;
   const em=emailDaConta();if(em)$('loginEmail').value=em;
   setTimeout(()=>{const c=$('loginEmail').value?$('loginSenha'):$('loginEmail');if(c)c.focus();},60);
+}
+/* dica enquanto digita: corrige o engano antes de a conta existir */
+function conferirEmailCad(){
+  const el=$('cadEmailDica'),box=$('cadEmail2Box');if(!el)return;
+  const v=($('cadEmail').value||'').trim();
+  // o segundo campo só entra em cena quando o domínio não é de provedor conhecido
+  if(box)box.hidden=!exigeConferencia(v);
+  if(!v||v.indexOf('@')<0){el.hidden=true;return;}
+  const sug=sugerirEmail(v);
+  if(sug&&sug!==v.toLowerCase()){
+    el.hidden=false;
+    el.innerHTML='🤔 Você quis dizer <a href="#" onclick="event.preventDefault();'
+      +'document.getElementById(\'cadEmail\').value=\''+esc(sug)+'\';conferirEmailCad()">'
+      +'<b>'+esc(sug)+'</b></a>?';
+    return;
+  }
+  if(!emailValido(v)){
+    el.hidden=false;el.innerHTML='<span style="color:var(--laranja)">Falta completar — algo como nome@provedor.com</span>';
+    return;
+  }
+  if(exigeConferencia(v)){
+    const v2=($('cadEmail2').value||'').trim();
+    if(v2&&v2.toLowerCase()!==v.toLowerCase()){
+      el.hidden=false;
+      el.innerHTML='<span style="color:var(--vermelho)">Os dois e-mails estão diferentes.</span>';
+      return;
+    }
+  }
+  el.hidden=true;
+}
+/* Recuperar senha: o Supabase manda o link por e-mail. Só funciona se o
+   endereço cadastrado for de verdade — daí a insistência na hora do cadastro. */
+async function esqueciSenha(){
+  const email=prompt('Digite o e-mail da sua conta:\n\nVamos enviar um link para você criar uma senha nova.',
+    ($('loginEmail').value||'').trim());
+  if(email===null)return;
+  if(!emailValido(email)){alert('Esse e-mail não parece completo.');return;}
+  try{
+    await chamarApi('/auth/v1/recover',{metodo:'POST',semToken:true,corpo:{email:email.trim()}});
+    alert('Se existir uma conta com esse e-mail, o link chega em instantes.\n\n'
+      +'Confira também a caixa de spam.');
+  }catch(e){
+    alert(erroDeRede(e)?'Sem conexão com a internet.':'Não deu para enviar agora. Tente daqui a pouco.');
+  }
+}
+function mostrarCadastro(){
+  $('telaLogin').hidden=false;
+  $('formLogin').hidden=true;
+  $('formCadastro').hidden=false;
+  $('cadErro').hidden=true;
+  if($('cadEmailDica'))$('cadEmailDica').hidden=true;
+  setTimeout(()=>$('cadNegocio').focus(),60);
+}
+/* ---------- conferir o e-mail ----------
+   Sem confirmação por link, um e-mail errado cria uma conta que a pessoa NÃO
+   consegue recuperar: a redefinição de senha vai para um endereço que não é
+   dela. Por isso a checagem aqui é mais rígida que a do navegador, que aceita
+   coisas como "ana@gmail" e "ana@gmail.con" sem reclamar. */
+const DOMINIOS_COMUNS=['gmail.com','hotmail.com','outlook.com','yahoo.com.br',
+  'yahoo.com','icloud.com','live.com','bol.com.br','uol.com.br','terra.com.br',
+  'globo.com','me.com','msn.com'];
+function emailValido(e){
+  // exige nome, arroba, domínio e pelo menos um ponto com terminação de 2+ letras
+  return /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)*\.[A-Za-z]{2,}$/.test((e||'').trim());
+}
+/* distância de edição: quantas letras é preciso trocar pra chegar no outro */
+function distancia(a,b){
+  const m=a.length,n=b.length,d=[];
+  for(let i=0;i<=m;i++)d[i]=[i];
+  for(let j=0;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)
+    d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+  return d[m][n];
+}
+/* Provedor conhecido dá pra conferir letra a letra. Domínio próprio, não:
+   "joiasdaana.com.br" e "joiasdana.com.br" são igualmente plausíveis, e um
+   engano ali cria uma conta que ninguém recupera. Nesses casos o endereço é
+   pedido duas vezes. */
+function dominioConhecido(e){
+  const p=(e||'').trim().toLowerCase().split('@');
+  return p.length===2&&DOMINIOS_COMUNS.indexOf(p[1])>=0;
+}
+function exigeConferencia(e){return emailValido(e)&&!dominioConhecido(e);}
+/* devolve o endereço corrigido quando o domínio parece erro de digitação */
+function sugerirEmail(e){
+  const p=(e||'').trim().toLowerCase().split('@');
+  if(p.length!==2||!p[1])return null;
+  const dom=p[1];
+  if(DOMINIOS_COMUNS.indexOf(dom)>=0)return null;      // já está certo
+  let melhor=null,menor=99;
+  DOMINIOS_COMUNS.forEach(d=>{
+    const dist=distancia(dom,d);
+    if(dist<menor){menor=dist;melhor=d;}
+  });
+  // 1 ou 2 letras de diferença é quase sempre engano; acima disso pode ser
+  // um domínio próprio de verdade (empresa, site da pessoa)
+  return (melhor&&menor<=2)?(p[0]+'@'+melhor):null;
+}
+
+/* Cria a conta e já entra. O nome do negócio e o WhatsApp viajam como dados do
+   usuário: um gatilho no banco copia pra tabela de assinaturas, então o dono do
+   produto sabe quem é cada conta sem precisar perguntar. */
+async function criarConta(){
+  const negocio=($('cadNegocio').value||'').trim();
+  const tel=($('cadTel').value||'').trim();
+  const email=($('cadEmail').value||'').trim();
+  const senha=$('cadSenha').value||'';
+  const erro=$('cadErro'),bt=$('cadBt');
+  const falha=m=>{erro.hidden=false;erro.textContent=m;};
+  if(!negocio){falha('Diga o nome do seu negócio.');return;}
+  if(!emailValido(email)){
+    falha('Esse e-mail não parece completo. Confira se está no formato nome@provedor.com');
+    $('cadEmail').focus();return;
+  }
+  /* Domínio próprio não tem como ser conferido por comparação — "joiasdaana" e
+     "joiasdana" são igualmente possíveis. Pedir de novo (sem deixar colar) é o
+     que separa um engano de digitação de um endereço de verdade. */
+  if(exigeConferencia(email)){
+    const email2=($('cadEmail2').value||'').trim();
+    if(!email2){
+      falha('Digite o e-mail uma segunda vez para conferir.');
+      $('cadEmail2').focus();return;
+    }
+    if(email2.toLowerCase()!==email.toLowerCase()){
+      falha('Os dois e-mails estão diferentes. Confira qual é o certo.');
+      $('cadEmail2').focus();return;
+    }
+  }
+  if(senha.length<6){falha('A senha precisa ter 6 caracteres ou mais.');$('cadSenha').focus();return;}
+  /* Erro de digitação no domínio é o caso mais comum e o mais caro: a conta
+     nasce presa a um endereço que não existe, e a recuperação de senha nunca
+     chega. Melhor perguntar uma vez do que deixar a pessoa trancada depois. */
+  const sug=sugerirEmail(email);
+  if(sug&&sug!==email.toLowerCase()){
+    if(confirm('Você quis dizer '+sug+' ?\n\n'
+      +'Digitado: '+email+'\n\n'
+      +'OK = corrigir para '+sug+'\nCancelar = manter como está')){
+      $('cadEmail').value=sug;
+      return criarConta();
+    }
+  }
+  if(!confirm('Confirme seu e-mail:\n\n'+email+'\n\n'
+    +'É por ele que você entra no sistema e recupera a senha se esquecer.\n'
+    +'Se estiver errado, não haverá como recuperar a conta depois.')){
+    $('cadEmail').focus();return;
+  }
+  bt.disabled=true;bt.textContent='Criando...';erro.hidden=true;
+  try{
+    const r=await chamarApi('/auth/v1/signup',{metodo:'POST',semToken:true,
+      corpo:{email,password:senha,data:{nome_negocio:negocio,telefone:tel}}});
+    /* Se a confirmação por e-mail estiver ligada no Supabase, o cadastro não
+       devolve sessão — a pessoa precisa clicar no link antes. Tratar os dois
+       casos evita a tela travar sem explicação. */
+    const sessao=r&&r.access_token?r:(r&&r.session?r.session:null);
+    if(!sessao||!sessao.access_token){
+      $('formCadastro').hidden=true;$('formLogin').hidden=false;
+      $('loginEmail').value=email;
+      $('loginErro').hidden=false;
+      $('loginErro').style.color='';
+      $('loginErro').textContent='Conta criada! Confirme o e-mail que enviamos e depois entre aqui.';
+      return;
+    }
+    guardarSessao(sessao);
+    NUVEM.modo='nuvem';
+    try{localStorage.removeItem(LS_MODO);}catch(e){}
+    limparBase();
+    $('telaLogin').hidden=true;$('cadSenha').value='';
+    // a conta nasce vazia: o nome do negócio já entra na configuração dela
+    C().loja.nome=negocio;
+    if(tel){
+      const so=tel.replace(/\D/g,'');
+      // o link wa.me exige o número com o código do país
+      C().loja.whatsapp=so.slice(0,2)==='55'?so:('55'+so);
+      if(!C().loja.pix)C().loja.pix=so;   // ponto de partida; ele troca se quiser
+    }
+    salvar();aplicarIdentidade();
+    atualizarChipNuvem();
+    await sincronizarComNuvem({completo:true});
+    renderTudo();
+    setTimeout(abrirBoasVindas,400);
+  }catch(e){
+    erro.hidden=false;
+    erro.textContent=erroDeRede(e)?'Sem conexão com a internet.'
+      :(/already|registered|exists/i.test(e.msg||'')?'Já existe uma conta com esse e-mail. Tente entrar.'
+      :(e.msg||'Não deu para criar a conta.'));
+  }finally{
+    bt.disabled=false;bt.textContent='Criar conta';
+  }
 }
 
 /* ---------- indicador no cabeçalho ---------- */
@@ -5787,6 +6077,18 @@ function atualizarChipNuvem(){
     el.className='nuvem-chip erro';
     el.innerHTML='⚠️ <b>não sincronizado</b> '+
       '<button class="bt mini" onclick="sincronizarComNuvem()">tentar de novo</button>';
+    return;
+  }
+  const asn=estadoAssinatura();
+  if(!asn.ok){
+    el.className='nuvem-chip erro';
+    el.innerHTML='💳 <b>'+esc(asn.aviso||'assinatura pendente')+'</b> '+
+      '<button class="bt mini" onclick="falarSobreAssinatura()">resolver</button>';
+    return;
+  }
+  if(asn.situacao==='teste'&&asn.aviso){
+    el.className='nuvem-chip';
+    el.innerHTML='⏳ '+esc(asn.aviso)+' <button class="bt mini" onclick="falarSobreAssinatura()">assinar</button>';
     return;
   }
   if(NUVEM.appVelho){
@@ -5852,13 +6154,24 @@ function limparBase(){base={};try{localStorage.removeItem(LS_BASE);}catch(e){}}
 
 /* upsert em lotes — o Postgres reclama de requisição gigante, e mandar 900
    vendas de uma vez estoura o limite do plano grátis */
+/* Quem é o dono desta sessão. Toda linha gravada leva esse carimbo, e o
+   servidor só devolve o que tem o carimbo de quem pediu — é isso que impede
+   um cliente de enxergar os dados de outro quando houver vários. */
+function contaId(){return (NUVEM.sessao&&NUVEM.sessao.user&&NUVEM.sessao.user.id)||null;}
+function comDono(linha){
+  const d=contaId();
+  return d?Object.assign({},linha,{dono:d}):linha;
+}
+
 async function enviarLote(tab,linhas){
   // produto carrega até 3 fotos em base64, então o lote é pequeno de propósito:
   // 80 produtos numa requisição só passaria de vários MB
   const T=25;
   for(let i=0;i<linhas.length;i+=T){
-    await chamarApi('/rest/v1/'+tab+'?on_conflict=id',{
-      metodo:'POST',corpo:linhas.slice(i,i+T),
+    // o conflito é por (dono,id): dois clientes podem gerar o mesmo id sem que
+    // um sobrescreva o registro do outro
+    await chamarApi('/rest/v1/'+tab+'?on_conflict=dono,id',{
+      metodo:'POST',corpo:linhas.slice(i,i+T).map(comDono),
       headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}
     });
     if(linhas.length>T){
@@ -6088,9 +6401,14 @@ async function sincronizarComNuvem(op){
   NUVEM.sincronizando=true;NUVEM.ultimoErro=null;atualizarChipNuvem();
   try{
     await garantirToken();
+    if(o.completo)await buscarAssinatura();
+    /* Assinatura vencida para a sincronização, nunca o trabalho: o painel
+       continua salvando no aparelho e nada é apagado. */
+    if(assinaturaBloqueia()){NUVEM.sincronizando=false;atualizarChipNuvem();return;}
     if(o.completo)await sincronizarTudo();
     else await subirParaNuvem();
     NUVEM.ultimoSync=Date.now();
+    if(o.completo)talvezBoasVindas();
   }catch(e){
     NUVEM.ultimoErro=e;
     if(!erroDeRede(e)&&e.tipo==='credencial'){limparSessao();NUVEM.modo='indefinido';mostrarLogin();}
@@ -6202,6 +6520,7 @@ async function publicarCatalogo(){
    (receber um fiado, lançar uma despesa) reescreveria o catálogo à toa. */
 async function talvezPublicarCatalogo(){
   if(typeof catalogoLoja!=='function')return;
+  if(!temCatalogo())return;   // plano sem loja online: nada a publicar
   let atual;
   try{atual=hashReg(catalogoPublicavel());}catch(e){return;}
   if(atual===base.catalogo)return;
@@ -6263,6 +6582,155 @@ function explicarAtualizacao(){
     +'\n\nEnquanto isso nada se perde: os dados continuam sincronizando normalmente.');
 }
 
+/* ============================================================
+   PRIMEIRO ACESSO
+   Conta nova chega numa tela vazia, e tela vazia não ensina
+   nada. Isto mostra por onde começar, na ordem que faz o
+   sistema ficar útil mais rápido.
+   ============================================================ */
+function abrirBoasVindas(){
+  const nome=(C().loja&&C().loja.nome)||'sua loja';
+  $('dlgBvNome').textContent=nome;
+  atualizarBoasVindas();
+  dlgBoasVindas.showModal();
+}
+/* os passos se marcam sozinhos conforme a pessoa usa o sistema */
+function passosIniciais(){
+  const temProduto=dados.produtos.length>0;
+  const temVenda=dados.vendas.length>0;
+  const cfg=C().loja||{};
+  return [
+    {ok:temProduto,tit:'Cadastre suas peças',
+     txt:'Nome, preço, custo e quantas você tem. É o que faz o estoque e o lucro funcionarem.',
+     bt:'Cadastrar peça',acao:'dlgBoasVindas.close();trocarTab("produtos");abrirNovoProduto()'},
+    {ok:temVenda,tit:'Registre uma venda',
+     txt:'À vista, no cartão ou fiado. O estoque baixa sozinho e o caixa se atualiza.',
+     bt:'Registrar venda',acao:'dlgBoasVindas.close();trocarTab("vendas");abrirNovaVenda()'},
+    {ok:!!cfg.whatsapp,tit:'Confirme seu WhatsApp',
+     txt:'É por ele que os clientes mandam pedido e você cobra os fiados.',
+     bt:'Configurar',acao:'dlgBoasVindas.close();ui.cfgTab="geral";trocarTab("config")'},
+    {ok:(C().contas||[]).length>0&&dados.lancamentos.length>0,tit:'Diga quanto tem em caixa',
+     txt:'Informe o saldo real das suas contas pro fluxo de caixa bater com a realidade.',
+     bt:'Ajustar saldo',acao:'dlgBoasVindas.close();trocarTab("fin")'}
+  ];
+}
+function atualizarBoasVindas(){
+  const ps=passosIniciais(),feitos=ps.filter(p=>p.ok).length;
+  $('dlgBvPassos').innerHTML=ps.map(p=>`
+    <div class="passo ${p.ok?'feito':''}">
+      <div class="passo-marca">${p.ok?'✓':''}</div>
+      <div class="passo-txt"><b>${esc(p.tit)}</b><div class="mut">${esc(p.txt)}</div></div>
+      ${p.ok?'':`<button class="bt mini" onclick='${p.acao}'>${esc(p.bt)}</button>`}
+    </div>`).join('');
+  $('dlgBvProgresso').textContent=feitos+' de '+ps.length+' concluídos';
+}
+/* aparece sozinho enquanto a conta é nova e ainda falta algo */
+function talvezBoasVindas(){
+  if(!nuvemLigada())return;
+  if(dados.vendas.length||dados.produtos.length)return;   // já começou a usar
+  if(localStorage.getItem('g1001_bv')==='visto')return;
+  try{localStorage.setItem('g1001_bv','visto');}catch(e){}
+  setTimeout(abrirBoasVindas,600);
+}
+
+/* ============================================================
+   ASSINATURA
+   O sistema é vendido por mês. Quem está em teste ou em dia usa
+   tudo; quem atrasou para de SINCRONIZAR, mas continua abrindo
+   o painel e trabalhando no próprio aparelho — os dados são do
+   cliente, não reféns da mensalidade.
+   ============================================================ */
+/* ---------- planos ----------
+   O catálogo online é vendido à parte: tem quem só queira controlar as vendas
+   e o fiado, sem loja nenhuma. Quem está em teste experimenta tudo — não dá
+   pra decidir se vale a pena por algo que nunca viu funcionando. */
+const PLANOS={
+  painel:  {nome:'Painel',            catalogo:false, preco:29},
+  completo:{nome:'Painel + Catálogo', catalogo:true,  preco:49},
+  dono:    {nome:'Criador',           catalogo:true,  preco:0 }
+};
+/* O domínio próprio é serviço à parte, não muda nada no sistema — fica só
+   registrado aqui pra aparecer na tela de assinatura. */
+const ADICIONAL_DOMINIO={nome:'Endereço próprio da loja',preco:10};
+function planoAtual(){
+  const a=NUVEM.assinatura;
+  if(!a)return PLANOS.completo;              // sem informação, não tira nada de ninguém
+  if(a.situacao==='teste')return PLANOS.completo;
+  return PLANOS[a.plano]||PLANOS.completo;
+}
+function temCatalogo(){return !!planoAtual().catalogo;}
+
+async function buscarAssinatura(){
+  try{
+    const r=await chamarApi('/rest/v1/assinaturas?select=*&limit=1');
+    NUVEM.assinatura=(r&&r[0])||null;
+  }catch(e){NUVEM.assinatura=null;}
+  return NUVEM.assinatura;
+}
+function diasAte(iso){
+  if(!iso)return null;
+  return Math.floor((new Date(iso+'T12:00:00')-new Date(hoje()+'T12:00:00'))/864e5);
+}
+/* devolve {ok, situacao, aviso} — `ok` decide se ainda sincroniza */
+function estadoAssinatura(){
+  const a=NUVEM.assinatura;
+  if(!a)return {ok:true,situacao:'',aviso:''};      // sem informação, não atrapalha
+  if(a.situacao==='ativa'||a.plano==='dono')return {ok:true,situacao:'ativa',aviso:''};
+  if(a.situacao==='teste'){
+    const d=diasAte(a.testa_ate);
+    if(d===null||d>=0)return {ok:true,situacao:'teste',
+      aviso:d===null?'':('Período de teste: '+(d===0?'último dia':d+' dia(s) restante(s)'))};
+    return {ok:false,situacao:'teste_vencido',aviso:'Seu período de teste terminou.'};
+  }
+  if(a.situacao==='suspensa')return {ok:false,situacao:'suspensa',aviso:'Assinatura suspensa por falta de pagamento.'};
+  if(a.situacao==='cancelada')return {ok:false,situacao:'cancelada',aviso:'Assinatura cancelada.'};
+  return {ok:true,situacao:a.situacao||'',aviso:''};
+}
+function assinaturaBloqueia(){return !estadoAssinatura().ok;}
+function painelAssinatura(){
+  const a=NUVEM.assinatura;if(!a)return '';
+  const e=estadoAssinatura(),pl=planoAtual();
+  const cor=e.ok?(e.situacao==='teste'?'var(--laranja)':'var(--verde)'):'var(--vermelho)';
+  const rot={ativa:'Assinatura ativa',teste:'Período de teste',
+    teste_vencido:'Teste terminado',suspensa:'Assinatura suspensa',
+    cancelada:'Assinatura cancelada'}[e.situacao]||e.situacao;
+  return `<div class="painel" style="border-color:${cor}">
+    <h3 style="margin-top:0">💳 ${rot}</h3>
+    ${e.aviso?`<p style="color:${cor};margin:0 0 .5rem">${esc(e.aviso)}</p>`:''}
+    <p class="mut" style="font-size:.84rem;margin:0 0 .5rem">
+      Plano: <b>${esc(pl.nome)}</b>${e.situacao==='teste'?' <span class="bd cat">tudo liberado no teste</span>':''}
+      ${!pl.catalogo?' · <a href="#" onclick="event.preventDefault();falarSobreAssinatura()">incluir o catálogo online</a>':''}
+    </p>
+    ${a.paga_ate?`<p class="mut" style="font-size:.84rem;margin:0 0 .5rem">Pago até ${fmtData(a.paga_ate)}</p>`:''}
+    ${!e.ok?`<p class="mut" style="font-size:.84rem">
+      O painel continua funcionando neste aparelho e <b>nada é apagado</b> — só a
+      sincronização com a nuvem fica parada até regularizar.</p>`:''}
+    ${(!e.ok||e.situacao==='teste')?tabelaPlanos():''}
+    ${!e.ok||e.situacao==='teste'?`<div class="barra"><button class="bt primario" onclick="falarSobreAssinatura()">${e.ok?'Quero assinar':'Falar sobre a assinatura'}</button></div>`:''}
+  </div>`;
+}
+/* Mostrada quando o teste está correndo ou a assinatura venceu — os dois
+   momentos em que a pessoa precisa decidir. Fora deles, só polui a tela. */
+function tabelaPlanos(){
+  return `<div style="border:1px solid var(--borda);border-radius:10px;overflow:hidden;margin:.6rem 0">
+    <table style="width:100%;border-collapse:collapse;font-size:.86rem">
+      <tr><td style="padding:.45rem .6rem">${esc(PLANOS.painel.nome)}
+        <div class="mut" style="font-size:.76rem">vendas, fiado, estoque e financeiro</div></td>
+        <td class="num" style="padding:.45rem .6rem;text-align:right;white-space:nowrap"><b>R$ ${PLANOS.painel.preco}</b><span class="mut">/mês</span></td></tr>
+      <tr style="border-top:1px solid var(--borda)"><td style="padding:.45rem .6rem">${esc(PLANOS.completo.nome)}
+        <div class="mut" style="font-size:.76rem">tudo do Painel + loja online que se atualiza sozinha</div></td>
+        <td class="num" style="padding:.45rem .6rem;text-align:right;white-space:nowrap"><b>R$ ${PLANOS.completo.preco}</b><span class="mut">/mês</span></td></tr>
+      <tr style="border-top:1px solid var(--borda)"><td style="padding:.45rem .6rem">${esc(ADICIONAL_DOMINIO.nome)}
+        <div class="mut" style="font-size:.76rem">opcional — sualoja.com.br em vez do endereço padrão</div></td>
+        <td class="num" style="padding:.45rem .6rem;text-align:right;white-space:nowrap"><b>+R$ ${ADICIONAL_DOMINIO.preco}</b><span class="mut">/mês</span></td></tr>
+    </table></div>`;
+}
+function falarSobreAssinatura(){
+  const wpp=(C().loja&&C().loja.suporteWpp)||'5511989455153';
+  const msg='Olá! Quero regularizar a assinatura do sistema de gestão.';
+  window.open('https://wa.me/'+wpp+'?text='+encodeURIComponent(msg),'_blank');
+}
+
 /* ---------- painel da nuvem em Configurações → Dados ---------- */
 function painelNuvem(){
   if(!nuvemConfigurada())return '';
@@ -6277,6 +6745,7 @@ function painelNuvem(){
         title="usa este aparelho como versão correta e substitui a da nuvem">⬆ Este aparelho está certo</button>`
       :`<button class="bt primario" onclick="mostrarLogin()">Entrar na conta</button>`}
     </div>
+    ${dentro?painelAssinatura():''}
     ${dentro&&midiasLocais().length?`<p style="margin-top:.7rem;color:var(--laranja);font-size:.84rem">
       📷 <b>${midiasLocais().length} foto(s)/vídeo(s)</b> ainda ocupam espaço neste navegador.</p>
       <div class="barra"><button class="bt primario" onclick="migrarMidiaParaNuvem()">☁️ Enviar as fotos para a nuvem</button></div>
