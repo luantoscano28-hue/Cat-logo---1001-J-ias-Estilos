@@ -4809,6 +4809,7 @@ function paineisDados(){
         <button class="bt" onclick="document.getElementById('inpImp').click()">⬆ Restaurar</button>
         <input type="file" id="inpImp" accept=".json" hidden onchange="importarBackup(this.files[0]);this.value=''"></div></div>
     ${typeof painelNuvem==='function'?painelNuvem():''}
+    ${typeof painelEquipe==='function'?painelEquipe():''}
     <div class="painel"><h3>📄 Exportar (Excel/CSV)</h3><div class="barra">
       <button class="bt" onclick="exportarVendasCSV()">Vendas</button>
       <button class="bt" onclick="exportarFiadoCSV()">Fiado em aberto</button>
@@ -5766,14 +5767,14 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-08-22 18:45';
+const VERSAO_APP='2026-08-25 23:07';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
    a variável ainda estaria na zona morta e a exceção abortaria a inicialização
    inteira — foi exatamente o que aconteceu na 25ª rodada com o LOJA_TEMPLATE.
    Com var, ela já existe como undefined e a guarda abaixo resolve. */
-var NUVEM={modo:'indefinido',sessao:null,sincronizando:false,ultimoErro:null,ultimoSync:null,progresso:null,appVelho:null,assinatura:null};
+var NUVEM={modo:'indefinido',sessao:null,sincronizando:false,ultimoErro:null,ultimoSync:null,progresso:null,appVelho:null,assinatura:null,acesso:null};
 
 function nuvemConfigurada(){return typeof NUVEM_URL!=='undefined'&&!!(NUVEM_URL&&NUVEM_KEY);}
 function nuvemLigada(){return !!NUVEM&&NUVEM.modo==='nuvem'&&!!(NUVEM.sessao&&NUVEM.sessao.access_token);}
@@ -5811,7 +5812,17 @@ async function chamarApi(caminho,opcoes){
   try{corpo=txt?JSON.parse(txt):null;}catch(e){corpo=txt;}
   if(!r.ok){
     const msg=(corpo&&(corpo.error_description||corpo.msg||corpo.message||corpo.error))||('Erro '+r.status);
-    throw {tipo:r.status===401||r.status===400?'credencial':'servidor',status:r.status,msg};
+    /* Só é problema de credencial quando o servidor reclama do LOGIN. Um 400 é
+       quase sempre dado inválido (campo obrigatório faltando, por exemplo) e
+       tratá-lo como senha errada expulsava o usuário da conta no meio do
+       trabalho, sem explicar nada — foi o que aconteceu em 09/08/2026. */
+    const noLogin=caminho.indexOf('/auth/')===0;   // entrar, renovar, recuperar
+    const falaDeSessao=/jwt|token expired|not authenticated|unauthorized|invalid login|invalid credential/i.test(msg);
+    const tipo=noLogin ? 'credencial'                     // erro no próprio login
+      : (r.status===401&&falaDeSessao) ? 'credencial'     // o acesso venceu
+      : (r.status===400||r.status===409||r.status===422||r.status===403) ? 'dado'
+      : 'servidor';
+    throw {tipo,status:r.status,msg,caminho};
   }
   return corpo;
 }
@@ -6101,9 +6112,13 @@ function atualizarChipNuvem(){
     return;
   }
   if(NUVEM.ultimoErro){
+    const e=NUVEM.ultimoErro;
     el.className='nuvem-chip erro';
+    /* erro de dado tem causa específica e some sozinho quando corrigido —
+       mostrar o motivo evita a pessoa ficar clicando "tentar de novo" à toa */
     el.innerHTML='⚠️ <b>não sincronizado</b> '+
-      '<button class="bt mini" onclick="sincronizarComNuvem()">tentar de novo</button>';
+      (e.tipo==='dado'?'<button class="bt mini" onclick="verErroSync()">ver motivo</button> ':'')+
+      '<button class="bt mini" onclick="sincronizarComNuvem({completo:true})">tentar de novo</button>';
     return;
   }
   const asn=estadoAssinatura();
@@ -6185,10 +6200,50 @@ function limparBase(){base={};try{localStorage.removeItem(LS_BASE);}catch(e){}}
    servidor só devolve o que tem o carimbo de quem pediu — é isso que impede
    um cliente de enxergar os dados de outro quando houver vários. */
 function contaId(){return (NUVEM.sessao&&NUVEM.sessao.user&&NUVEM.sessao.user.id)||null;}
+/* A LOJA é o que identifica os dados; a CONTA é quem está mexendo neles.
+   Para quem trabalha sozinho os dois são iguais. Para quem divide o acesso
+   (a mãe, um funcionário), a loja continua sendo a do dono. */
+function lojaId(){return (NUVEM.acesso&&NUVEM.acesso.loja)||contaId();}
 function comDono(linha){
-  const d=contaId();
-  return d?Object.assign({},linha,{dono:d}):linha;
+  const l=lojaId();
+  return l?Object.assign({},linha,{dono:l}):linha;
 }
+
+/* ---------- o que esta pessoa pode fazer ----------
+   Espelha as regras do servidor. Aqui serve só para não mostrar botão que
+   não vai funcionar; quem realmente barra é o banco. */
+const AREAS=['estoque','vendas','clientes','fiado','financeiro','resumo','loja','config'];
+const PAPEIS={
+  dono:      {nome:'Dono',       desc:'acesso a tudo, inclusive financeiro e configurações'},
+  gerente:   {nome:'Gerente',    desc:'vende, cobra fiado e cuida do estoque; vê o financeiro sem alterar'},
+  estoquista:{nome:'Estoquista', desc:'cadastra produtos e ajusta estoque; não vê financeiro'}
+};
+function nivelDoPapel(papel,area){
+  if(papel==='dono')return 'escrever';
+  if(papel==='gerente'){
+    if(['estoque','vendas','clientes','fiado','loja'].includes(area))return 'escrever';
+    if(['financeiro','resumo'].includes(area))return 'ler';
+    return 'nenhum';
+  }
+  if(papel==='estoquista'){
+    if(area==='estoque')return 'escrever';
+    if(['vendas','loja'].includes(area))return 'ler';
+    return 'nenhum';
+  }
+  return 'nenhum';
+}
+function nivelEm(area){
+  const a=NUVEM.acesso;
+  if(!a)return 'escrever';                 // sem nuvem, o sistema é todo seu
+  const ajuste=(a.ajustes||{})[area];
+  return ajuste||nivelDoPapel(a.papel,area);
+}
+function podeLer(area){return ['ler','escrever'].includes(nivelEm(area));}
+function podeEscrever(area){return nivelEm(area)==='escrever';}
+function souDono(){return !NUVEM.acesso||NUVEM.acesso.papel==='dono';}
+/* qual área do sistema corresponde a cada aba */
+const AREA_DA_ABA={resumo:'resumo',vendas:'vendas',fiado:'fiado',produtos:'estoque',
+  fin:'financeiro',clientes:'clientes',config:'config'};
 
 async function enviarLote(tab,linhas){
   // produto carrega até 3 fotos em base64, então o lote é pequeno de propósito:
@@ -6428,17 +6483,27 @@ async function sincronizarComNuvem(op){
   NUVEM.sincronizando=true;NUVEM.ultimoErro=null;atualizarChipNuvem();
   try{
     await garantirToken();
-    if(o.completo)await buscarAssinatura();
+    if(o.completo){await buscarAcesso();await buscarAssinatura();}
     /* Assinatura vencida para a sincronização, nunca o trabalho: o painel
        continua salvando no aparelho e nada é apagado. */
     if(assinaturaBloqueia()){NUVEM.sincronizando=false;atualizarChipNuvem();return;}
     if(o.completo)await sincronizarTudo();
     else await subirParaNuvem();
     NUVEM.ultimoSync=Date.now();
-    if(o.completo)talvezBoasVindas();
+    if(o.completo){talvezBoasVindas();carregarEquipe();}
   }catch(e){
     NUVEM.ultimoErro=e;
-    if(!erroDeRede(e)&&e.tipo==='credencial'){limparSessao();NUVEM.modo='indefinido';mostrarLogin();}
+    /* Antes de expulsar alguém da conta, tenta renovar o acesso: token vencido
+       é situação normal e não deve custar o trabalho de quem está usando. Só
+       depois de o próprio login falhar é que a sessão é descartada. */
+    if(e.tipo==='credencial'){
+      // se o erro já veio do próprio login, tentar renovar não vai adiantar
+      let salvou=false;
+      if((e.caminho||'').indexOf('/auth/')!==0){
+        try{await renovarToken();salvou=true;}catch(e2){}
+      }
+      if(!salvou){limparSessao();NUVEM.modo='indefinido';mostrarLogin();}
+    }
   }finally{
     NUVEM.sincronizando=false;NUVEM.progresso=null;atualizarChipNuvem();
   }
@@ -6536,9 +6601,18 @@ function catalogoPublicavel(){
   delete c.geradoEm;
   return c;
 }
+/* apelido da loja no endereço do site: letras, números e hífen, tirado do nome
+   do negócio. É o que vai permitir cada cliente ter a própria vitrine. */
+function slugDaLoja(){
+  const nome=((C().loja&&C().loja.nome)||'').toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')   // tira acento
+    .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  // sem nome utilizável, cai no id da conta — nunca colide com o de outro
+  return nome||('loja-'+(contaId()||'').slice(0,8));
+}
 async function publicarCatalogo(){
   const c=catalogoPublicavel();
-  await enviarLote('catalogo',[{id:'unico',
+  await enviarLote('catalogo',[{id:'unico',slug:slugDaLoja(),
     dados:Object.assign({},c,{publicadoEm:new Date().toISOString()}),
     atualizado_em:new Date().toISOString()}]);
   base.catalogo=hashReg(c);gravarBase();
@@ -6687,6 +6761,35 @@ function planoAtual(){
 }
 function temCatalogo(){return !!planoAtual().catalogo;}
 
+/* Descobre de qual loja esta pessoa faz parte e com que papel. Sem isso o
+   painel não sabe quais dados carregar nem o que esconder. */
+async function buscarAcesso(){
+  try{
+    const r=await chamarApi('/rest/v1/rpc/meu_acesso',{metodo:'POST',corpo:{}});
+    NUVEM.acesso=(r&&r[0])||null;
+  }catch(e){
+    /* Banco ainda sem o recurso de equipe (ou erro de rede): trata como dono
+       da própria loja, que é como o sistema sempre funcionou. */
+    NUVEM.acesso=null;
+  }
+  aplicarPermissoesNaTela();
+  return NUVEM.acesso;
+}
+/* Esconde as abas que a pessoa não pode ver. É conveniência, não segurança:
+   quem barra de verdade é o servidor. */
+function aplicarPermissoesNaTela(){
+  document.querySelectorAll('#nav button').forEach(b=>{
+    const area=AREA_DA_ABA[b.dataset.tab];
+    b.hidden=!!(area&&!podeLer(area));
+  });
+  // se a aba aberta virou proibida, leva pra primeira permitida
+  const atual=AREA_DA_ABA[ui.tab];
+  if(atual&&!podeLer(atual)){
+    const livre=Object.keys(AREA_DA_ABA).find(t=>podeLer(AREA_DA_ABA[t]));
+    if(livre)trocarTab(livre);
+  }
+}
+
 async function buscarAssinatura(){
   try{
     const r=await chamarApi('/rest/v1/assinaturas?select=*&limit=1');
@@ -6752,10 +6855,146 @@ function tabelaPlanos(){
         <td class="num" style="padding:.45rem .6rem;text-align:right;white-space:nowrap"><b>+R$ ${ADICIONAL_DOMINIO.preco}</b><span class="mut">/mês</span></td></tr>
     </table></div>`;
 }
+function verErroSync(){
+  const e=NUVEM.ultimoErro;if(!e)return;
+  alert('A nuvem recusou a última gravação.\n\n'
+    +'Motivo: '+(e.msg||'desconhecido')+'\n'
+    +(e.caminho?'Onde: '+e.caminho+'\n':'')
+    +'\nSeus dados continuam salvos neste aparelho — nada se perdeu.\n'
+    +'Se isso se repetir, me mostre esta mensagem.');
+}
 function falarSobreAssinatura(){
   const wpp=(C().loja&&C().loja.suporteWpp)||'5511989455153';
   const msg='Olá! Quero regularizar a assinatura do sistema de gestão.';
   window.open('https://wa.me/'+wpp+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+/* ============================================================
+   PESSOAS COM ACESSO À LOJA
+   ============================================================ */
+var EQUIPE={membros:[],convites:[],carregando:false};
+async function carregarEquipe(){
+  if(!nuvemLigada())return;
+  EQUIPE.carregando=true;
+  try{
+    EQUIPE.membros=await chamarApi('/rest/v1/membros?select=*&order=criado_em')||[];
+    if(souDono())EQUIPE.convites=await chamarApi('/rest/v1/convites?select=*&order=criado_em')||[];
+  }catch(e){EQUIPE.membros=[];EQUIPE.convites=[];}
+  EQUIPE.carregando=false;
+  if(ui.tab==='config')renderConfig();
+}
+function painelEquipe(){
+  if(!nuvemConfigurada())return '';
+  if(!nuvemLigada())return `<div class="painel"><h3>👥 Pessoas com acesso</h3>
+    <p class="mut">Entre na conta para gerenciar quem acessa esta loja.</p></div>`;
+  const dono=souDono();
+  const linhas=EQUIPE.membros.map(m=>{
+    const eu=m.usuario===contaId();
+    const p=PAPEIS[m.papel]||{nome:m.papel,desc:''};
+    return `<tr>
+      <td>${esc(m.nome||(eu?'Você':'—'))}${eu?' <span class="bd cat">você</span>':''}
+        <div class="mut" style="font-size:.76rem">${esc(p.desc)}</div></td>
+      <td>${esc(p.nome)}</td>
+      <td class="acoes">${(dono&&!eu)?`
+        <button class="bt mini" onclick="editarMembro('${attr(m.usuario)}')">✎ acesso</button>
+        <button class="bt mini perigo" onclick="removerMembro('${attr(m.usuario)}')">✕</button>`
+        :'<span class="mut" style="font-size:.76rem">'+(eu?'—':'')+'</span>'}</td>
+    </tr>`;}).join('');
+  const pendentes=EQUIPE.convites.map(c=>`<tr>
+      <td>${esc(c.email)}<div class="mut" style="font-size:.76rem">aguardando criar a conta</div></td>
+      <td>${esc((PAPEIS[c.papel]||{}).nome||c.papel)}</td>
+      <td class="acoes"><button class="bt mini perigo" onclick="cancelarConvite('${attr(c.email)}')">✕</button></td>
+    </tr>`).join('');
+  return `<div class="painel">
+    <h3>👥 Pessoas com acesso</h3>
+    <p class="mut" style="font-size:.85rem;margin-bottom:.8rem">
+      Cada pessoa entra com o e-mail e a senha dela, e enxerga só o que você liberar.
+      ${dono?'':'<b>Só o dono da loja pode mudar isto.</b>'}</p>
+    <div class="rolagem"><table>
+      <tr><th>Pessoa</th><th>Acesso</th><th></th></tr>
+      ${linhas||'<tr><td colspan="3" class="centro mut">Carregando...</td></tr>'}
+      ${pendentes}
+    </table></div>
+    ${dono?`<div class="rodape"><button class="bt primario" onclick="convidarPessoa()">+ Dar acesso a alguém</button></div>`:''}
+  </div>`;
+}
+async function convidarPessoa(){
+  const email=prompt('E-mail de quem vai ter acesso:\n\n'
+    +'Se a pessoa ainda não tiver conta, ela cria com esse mesmo e-mail e já entra na sua loja.');
+  if(email===null)return;
+  if(!emailValido(email)){alert('Esse e-mail não parece completo.');return;}
+  const nome=prompt('Nome dela (só para você identificar aqui):','')||'';
+  const papel=escolherPapel('estoquista');
+  if(!papel)return;
+  try{
+    await chamarApi('/rest/v1/convites?on_conflict=loja,email',{metodo:'POST',
+      corpo:[{loja:lojaId(),email:email.trim().toLowerCase(),papel,nome:nome.trim()||null}],
+      headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}});
+    await carregarEquipe();
+    alert('Convite criado para '+email+'.\n\n'
+      +'Peça para ela abrir o painel, clicar em "Criar minha conta" e usar\n'
+      +'exatamente esse e-mail. O acesso à sua loja é liberado sozinho.');
+  }catch(e){alert('Não deu para convidar: '+(e.msg||'erro'));}
+}
+function escolherPapel(atual){
+  const ordem=['dono','gerente','estoquista'];
+  const lista=ordem.map((p,i)=>i+') '+PAPEIS[p].nome+' — '+PAPEIS[p].desc).join('\n');
+  const idx=prompt('Que acesso essa pessoa terá?\n\n'+lista,
+    String(Math.max(0,ordem.indexOf(atual||'estoquista'))));
+  if(idx===null)return null;
+  return ordem[+idx]||null;
+}
+async function editarMembro(usuario){
+  const m=EQUIPE.membros.find(x=>x.usuario===usuario);if(!m)return;
+  const papel=escolherPapel(m.papel);
+  if(!papel)return;
+  /* Ajuste fino: o papel dá o padrão e aqui se abre ou fecha uma área
+     específica, sem precisar de um papel novo pra cada combinação. */
+  const ajustar=confirm('Acesso definido como "'+PAPEIS[papel].nome+'".\n\n'
+    +'Quer ajustar alguma área específica dessa pessoa?\n'
+    +'OK = ajustar · Cancelar = usar o padrão do acesso');
+  let ajustes=ajustar?(m.ajustes||{}):{};
+  if(ajustar){
+    const lista=AREAS.map((a,i)=>i+') '+a+'  ('+(ajustes[a]||nivelDoPapel(papel,a))+')').join('\n');
+    const qual=prompt('Qual área ajustar?\n\n'+lista,'0');
+    if(qual!==null&&AREAS[+qual]){
+      const area=AREAS[+qual];
+      const n=prompt('Acesso de "'+area+'":\n\n0) nenhum\n1) ler\n2) escrever','1');
+      const niveis={'0':'nenhum','1':'ler','2':'escrever'};
+      if(n!==null&&niveis[n.trim()]){
+        ajustes=Object.assign({},ajustes);ajustes[area]=niveis[n.trim()];
+      }
+    }
+  }
+  try{
+    await chamarApi('/rest/v1/membros?loja=eq.'+encodeURIComponent(lojaId())
+      +'&usuario=eq.'+encodeURIComponent(usuario),
+      {metodo:'PATCH',corpo:{papel,ajustes},headers:{'Prefer':'return=minimal'}});
+    await carregarEquipe();
+    toast('Acesso atualizado ✓');
+  }catch(e){alert('Não deu para atualizar: '+(e.msg||'erro'));}
+}
+async function removerMembro(usuario){
+  const m=EQUIPE.membros.find(x=>x.usuario===usuario);if(!m)return;
+  if(!confirm('Tirar o acesso de '+(m.nome||'esta pessoa')+'?\n\n'
+    +'Ela não vai mais enxergar nada desta loja. Nada é apagado —\n'
+    +'os dados continuam seus.'))return;
+  try{
+    await chamarApi('/rest/v1/membros?loja=eq.'+encodeURIComponent(lojaId())
+      +'&usuario=eq.'+encodeURIComponent(usuario),
+      {metodo:'DELETE',headers:{'Prefer':'return=minimal'}});
+    await carregarEquipe();
+    toast('Acesso removido ✓');
+  }catch(e){alert('Não deu para remover: '+(e.msg||'erro'));}
+}
+async function cancelarConvite(email){
+  if(!confirm('Cancelar o convite de '+email+'?'))return;
+  try{
+    await chamarApi('/rest/v1/convites?loja=eq.'+encodeURIComponent(lojaId())
+      +'&email=eq.'+encodeURIComponent(email),
+      {metodo:'DELETE',headers:{'Prefer':'return=minimal'}});
+    await carregarEquipe();
+  }catch(e){alert('Não deu para cancelar: '+(e.msg||'erro'));}
 }
 
 /* ---------- painel da nuvem em Configurações → Dados ---------- */
