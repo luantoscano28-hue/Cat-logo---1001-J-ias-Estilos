@@ -5767,7 +5767,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-08-25 23:07';
+const VERSAO_APP='2026-08-26 09:28';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -6872,15 +6872,23 @@ function falarSobreAssinatura(){
 /* ============================================================
    PESSOAS COM ACESSO À LOJA
    ============================================================ */
-var EQUIPE={membros:[],convites:[],carregando:false};
+var EQUIPE={membros:[],convites:[],carregando:false,erro:null,buscou:false};
 async function carregarEquipe(){
   if(!nuvemLigada())return;
-  EQUIPE.carregando=true;
+  EQUIPE.carregando=true;EQUIPE.erro=null;
+  if(ui.tab==='config')renderConfig();
   try{
     EQUIPE.membros=await chamarApi('/rest/v1/membros?select=*&order=criado_em')||[];
-    if(souDono())EQUIPE.convites=await chamarApi('/rest/v1/convites?select=*&order=criado_em')||[];
-  }catch(e){EQUIPE.membros=[];EQUIPE.convites=[];}
-  EQUIPE.carregando=false;
+    EQUIPE.convites=souDono()
+      ? (await chamarApi('/rest/v1/convites?select=*&order=criado_em')||[])
+      : [];
+  }catch(e){
+    /* guardar o motivo em vez de engolir: "Carregando..." eterno não diz
+       se está lento, se deu erro ou se realmente não há ninguém */
+    EQUIPE.membros=[];EQUIPE.convites=[];
+    EQUIPE.erro=(e&&e.msg)||'não deu para carregar';
+  }
+  EQUIPE.carregando=false;EQUIPE.buscou=true;
   if(ui.tab==='config')renderConfig();
 }
 function painelEquipe(){
@@ -6910,12 +6918,21 @@ function painelEquipe(){
     <p class="mut" style="font-size:.85rem;margin-bottom:.8rem">
       Cada pessoa entra com o e-mail e a senha dela, e enxerga só o que você liberar.
       ${dono?'':'<b>Só o dono da loja pode mudar isto.</b>'}</p>
+    ${EQUIPE.erro?`<div class="painel" style="border-color:var(--vermelho);margin-bottom:.8rem">
+      <b style="color:var(--vermelho)">Não deu para carregar a lista</b>
+      <div class="mut" style="font-size:.82rem;margin-top:.3rem">${esc(EQUIPE.erro)}</div>
+      <div class="mut" style="font-size:.82rem;margin-top:.3rem">Se falar em "does not exist", falta rodar o SQL do acesso compartilhado.</div>
+      <div class="barra" style="margin-top:.6rem"><button class="bt mini" onclick="carregarEquipe()">tentar de novo</button></div>
+    </div>`:''}
     <div class="rolagem"><table>
       <tr><th>Pessoa</th><th>Acesso</th><th></th></tr>
-      ${linhas||'<tr><td colspan="3" class="centro mut">Carregando...</td></tr>'}
+      ${linhas||`<tr><td colspan="3" class="centro mut">${
+        EQUIPE.carregando?'Carregando...':(EQUIPE.buscou?'Só você tem acesso a esta loja.':'—')}</td></tr>`}
       ${pendentes}
     </table></div>
-    ${dono?`<div class="rodape"><button class="bt primario" onclick="convidarPessoa()">+ Dar acesso a alguém</button></div>`:''}
+    ${dono?`<div class="rodape">
+      <button class="bt primario" onclick="convidarPessoa()">+ Dar acesso a alguém</button>
+      <button class="bt" onclick="carregarEquipe()">🔄 atualizar</button></div>`:''}
   </div>`;
 }
 async function convidarPessoa(){
