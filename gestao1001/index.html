@@ -5767,7 +5767,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-08-26 09:28';
+const VERSAO_APP='2026-08-28 13:52';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -6149,17 +6149,19 @@ function atualizarChipNuvem(){
    Cada lista do sistema vira uma tabela; o registro inteiro vai
    como JSON, então campo novo não exige mexer no banco.
    ============================================================ */
+/* cada lista do sistema, a tabela onde mora e a área que a governa —
+   é a área que decide se esta pessoa pode ler ou gravar aquilo */
 const TABELAS=[
-  {tab:'produtos',         lista:'produtos'},
-  {tab:'clientes',         lista:'clientes'},
-  {tab:'vendas',           lista:'vendas'},
-  {tab:'lancamentos',      lista:'lancamentos'},
-  {tab:'mov_estoque',      lista:'movEstoque'},
-  {tab:'recebiveis',       lista:'recebiveis'},
-  {tab:'pagamentos_fiado', lista:'pagamentosFiado'},
-  {tab:'descontos_fiado',  lista:'descontosFiado'},
-  {tab:'planos_fiado',     lista:'planosFiado'},
-  {tab:'fechamentos',      lista:'fechamentos'}
+  {tab:'produtos',         lista:'produtos',        area:'estoque'},
+  {tab:'clientes',         lista:'clientes',        area:'clientes'},
+  {tab:'vendas',           lista:'vendas',          area:'vendas'},
+  {tab:'lancamentos',      lista:'lancamentos',     area:'financeiro'},
+  {tab:'mov_estoque',      lista:'movEstoque',      area:'estoque'},
+  {tab:'recebiveis',       lista:'recebiveis',      area:'financeiro'},
+  {tab:'pagamentos_fiado', lista:'pagamentosFiado', area:'fiado'},
+  {tab:'descontos_fiado',  lista:'descontosFiado',  area:'fiado'},
+  {tab:'planos_fiado',     lista:'planosFiado',     area:'fiado'},
+  {tab:'fechamentos',      lista:'fechamentos',     area:'financeiro'}
 ];
 /* ------------------------------------------------------------
    A BASE: retrato de quando este aparelho e o servidor estavam
@@ -6222,12 +6224,14 @@ function nivelDoPapel(papel,area){
   if(papel==='dono')return 'escrever';
   if(papel==='gerente'){
     if(['estoque','vendas','clientes','fiado','loja'].includes(area))return 'escrever';
-    if(['financeiro','resumo'].includes(area))return 'ler';
+    if(['financeiro','resumo','config'].includes(area))return 'ler';
     return 'nenhum';
   }
   if(papel==='estoquista'){
     if(area==='estoque')return 'escrever';
-    if(['vendas','loja'].includes(area))return 'ler';
+    // config entra como leitura: dela vêm categorias, tipos e fornecedores —
+    // sem isso o estoque aparece todo como "—"
+    if(['vendas','loja','config'].includes(area))return 'ler';
     return 'nenhum';
   }
   return 'nenhum';
@@ -6299,6 +6303,9 @@ async function baixarDaNuvem(){
    Com dois aparelhos no ar, um deles pode ficar com o Painel.html antigo; sem
    esta trava, ele baixaria dados num formato que o código dele não entende. */
 async function enviarMeta(metaRemota){
+  // a versão do formato mora na tabela de configuração: quem não pode
+  // escrever lá também não registra isso
+  if(!podeEscrever('config'))return;
   /* A versão do PROGRAMA nunca é rebaixada: se o aparelho aberto é o mais
      velho dos dois, ele registra a do outro. Assim a nuvem guarda sempre a
      mais nova que já rodou, que é a referência pra avisar quem ficou pra trás. */
@@ -6401,6 +6408,10 @@ async function sincronizarTudo(){
   let mudouAqui=false;
   for(const t of TABELAS){
     const p=planejarLista(dados[t.lista],remoto.listas[t.lista],base[t.tab]);
+    /* Área só de leitura: adota o que vem da loja e não tenta devolver nada.
+       Sem isto, quem não pode gravar ficaria com a versão do próprio aparelho
+       divergindo em silêncio da versão da loja. */
+    if(!podeEscrever(t.area)){p.subir=[];p.apagarLa=[];}
     if(p.trazer.length||p.apagarAqui.length){
       const fora={};p.apagarAqui.forEach(i=>fora[i]=1);
       const trocas={};p.trazer.forEach(r=>trocas[r.id]=r);
@@ -6419,7 +6430,9 @@ async function sincronizarTudo(){
   const hLocal=hashReg(dados.config),hBase=base.config;
   const hRemoto=remoto.config?hashReg(remoto.config):null;
   if(hRemoto&&hRemoto!==hLocal){
-    if(virgem||(hBase&&hBase===hLocal)){
+    // quem não pode gravar a configuração sempre adota a da loja
+    if(!podeEscrever('config')){dados.config=remoto.config;mudouAqui=true;}
+    else if(virgem||(hBase&&hBase===hLocal)){
       // Rede de segurança: trocar por uma configuração visivelmente menor
       // significa perder cadastros, e sem cadastro os lançamentos ficam órfãos
       // (o caixa zera e os gráficos mostram "—"). Nunca fazer isso calado.
@@ -6436,7 +6449,7 @@ async function sincronizarTudo(){
       }
     }
     else await enviarLote('config',[{id:'unico',dados:dados.config,atualizado_em:new Date().toISOString()}]);
-  }else if(!hRemoto){
+  }else if(!hRemoto&&podeEscrever('config')){
     await enviarLote('config',[{id:'unico',dados:dados.config,atualizado_em:new Date().toISOString()}]);
   }
   if(mudouAqui){
@@ -6459,6 +6472,10 @@ async function sincronizarTudo(){
    a base e manda só a diferença, que é o caso comum (registrar uma venda). */
 async function subirParaNuvem(){
   for(const t of TABELAS){
+    /* Sem permissão de escrita nessa área, nem tenta: o servidor recusaria e
+       o painel ficaria batendo numa porta trancada a cada gravação. A base
+       também não é atualizada, senão perderíamos o registro do que falta. */
+    if(!podeEscrever(t.area))continue;
     const atual=retratoDe(dados[t.lista]),antes=base[t.tab]||{};
     const mudados=(dados[t.lista]||[]).filter(r=>r&&r.id&&atual[r.id]!==antes[r.id]);
     const sumiram=Object.keys(antes).filter(id=>!(id in atual));
@@ -6467,7 +6484,7 @@ async function subirParaNuvem(){
     base[t.tab]=atual;
   }
   const hCfg=hashReg(dados.config);
-  if(hCfg!==base.config){
+  if(hCfg!==base.config&&podeEscrever('config')){
     await enviarLote('config',[{id:'unico',dados:dados.config,atualizado_em:new Date().toISOString()}]);
     base.config=hCfg;
   }
@@ -6621,7 +6638,8 @@ async function publicarCatalogo(){
    (receber um fiado, lançar uma despesa) reescreveria o catálogo à toa. */
 async function talvezPublicarCatalogo(){
   if(typeof catalogoLoja!=='function')return;
-  if(!temCatalogo())return;   // plano sem loja online: nada a publicar
+  if(!temCatalogo())return;        // plano sem loja online: nada a publicar
+  if(!podeEscrever('loja'))return; // quem só consulta a loja não republica
   let atual;
   try{atual=hashReg(catalogoPublicavel());}catch(e){return;}
   if(atual===base.catalogo)return;
@@ -6777,15 +6795,21 @@ async function buscarAcesso(){
 }
 /* Esconde as abas que a pessoa não pode ver. É conveniência, não segurança:
    quem barra de verdade é o servidor. */
+/* A aba Configurações existe para EDITAR os cadastros. Ler a configuração
+   todo mundo precisa (é de lá que vêm categorias e tipos), mas quem não pode
+   alterar não tem o que fazer nessa tela. */
+function abaPermitida(tab){
+  const area=AREA_DA_ABA[tab];
+  if(!area)return true;
+  return tab==='config'?podeEscrever('config'):podeLer(area);
+}
 function aplicarPermissoesNaTela(){
   document.querySelectorAll('#nav button').forEach(b=>{
-    const area=AREA_DA_ABA[b.dataset.tab];
-    b.hidden=!!(area&&!podeLer(area));
+    b.hidden=!abaPermitida(b.dataset.tab);
   });
   // se a aba aberta virou proibida, leva pra primeira permitida
-  const atual=AREA_DA_ABA[ui.tab];
-  if(atual&&!podeLer(atual)){
-    const livre=Object.keys(AREA_DA_ABA).find(t=>podeLer(AREA_DA_ABA[t]));
+  if(ui.tab&&!abaPermitida(ui.tab)){
+    const livre=Object.keys(AREA_DA_ABA).find(abaPermitida);
     if(livre)trocarTab(livre);
   }
 }
