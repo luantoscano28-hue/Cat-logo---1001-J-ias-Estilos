@@ -34,12 +34,34 @@ a{color:inherit}
 .bt-menu{flex:none;background:var(--painel);border:1px solid var(--borda);color:var(--texto);border-radius:9px;padding:.45rem .7rem;font-size:1rem;cursor:pointer;display:none}
 /* materiais (AÇO, FOLHEADO...) — centralizados, é o menu principal */
 .chips{display:flex;gap:.45rem;justify-content:center;flex-wrap:wrap;padding:0 1rem .7rem}
-.chips button{background:var(--painel);border:1px solid var(--borda);color:var(--texto2);border-radius:20px;padding:.4rem 1rem;font-size:.84rem;white-space:nowrap;cursor:pointer;letter-spacing:.3px}
-.chips button:hover{border-color:var(--acento)}
-.chips button.ativo{background:var(--painel2);border-color:var(--acento);color:var(--acento2);font-weight:600}
+.chips button{background:var(--painel);border:1px solid var(--borda);color:var(--texto2);border-radius:999px;padding:.5rem 1.15rem;font-size:.86rem;white-space:nowrap;cursor:pointer;letter-spacing:.3px;
+  transition:border-color .16s ease,color .16s ease,background .16s ease,transform .1s ease}
+.chips button:hover{border-color:var(--acento);color:var(--texto)}
+.chips button:active{transform:scale(.97)}
+/* o material escolhido fica preenchido, não só contornado: some a dúvida de
+   qual filtro está valendo */
+.chips button.ativo{background:var(--acento);border-color:var(--acento);color:#1a1206;font-weight:700}
+/* 2ª fileira: o tipo da peça (Anel, Colar, Bracelete...). Fica visualmente
+   subordinada ao material — letra menor e contorno mais discreto — pra não
+   competir com o menu principal. */
+.chips.tipos{padding-top:0;padding-bottom:.6rem}
+.chips.tipos button{padding:.3rem .85rem;font-size:.78rem;background:transparent;color:var(--texto3)}
+.chips.tipos button:hover{color:var(--texto2);border-color:var(--texto3)}
+.chips.tipos button.ativo{background:var(--painel3);border-color:var(--acento);color:var(--acento2);font-weight:600}
+/* faixa de apresentação da coleção escolhida */
+.col-banner{max-width:1400px;margin:0 auto;padding:0 1rem}
+.col-banner .faixa{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--borda);background:var(--painel)}
+.col-banner img{width:100%;height:auto;aspect-ratio:3/1;object-fit:cover;display:block}
+.col-banner .legenda{position:absolute;left:0;right:0;bottom:0;padding:1rem 1.2rem;
+  background:linear-gradient(180deg,transparent,rgba(0,0,0,.78))}
+.col-banner.sem-foto .faixa{background:linear-gradient(120deg,var(--painel2),var(--painel))}
+.col-banner.sem-foto .legenda{position:static;background:none;padding:1rem 1.2rem}
+.col-banner h2{margin:0;font-size:1.35rem;color:var(--acento2);letter-spacing:.3px}
+.col-banner p{margin:.2rem 0 0;font-size:.9rem;color:var(--texto2)}
+@media(max-width:699px){.col-banner{padding:0 .8rem}.col-banner h2{font-size:1.1rem}.col-banner p{font-size:.82rem}}
 /* ---- corpo: coleções na lateral ESQUERDA + grade de produtos ---- */
 .corpo-loja{display:flex;gap:1.2rem;max-width:1400px;margin:0 auto;padding:1rem 1rem 6rem;align-items:flex-start}
-.lateral{flex:none;width:190px;position:sticky;top:118px}
+.lateral{flex:none;width:190px;position:sticky;top:152px}
 .lateral h2{font-size:.76rem;text-transform:uppercase;letter-spacing:1px;color:var(--texto3);margin:0 0 .6rem;font-weight:600}
 .lateral button{display:flex;justify-content:space-between;align-items:center;gap:.4rem;width:100%;text-align:left;background:none;border:none;border-left:2px solid transparent;color:var(--texto2);padding:.45rem .6rem;font-size:.88rem;cursor:pointer;border-radius:0 6px 6px 0}
 .lateral button:hover{background:var(--painel);color:var(--texto)}
@@ -48,8 +70,8 @@ a{color:inherit}
 /* precisa ser mais específico que ".lateral button" acima, senão o display:flex
    daquela regra ganha e o botão de fechar aparece no desktop também */
 .lateral button.lateral-fechar{display:none}
-.grade{flex:1;display:grid;grid-template-columns:repeat(2,1fr);gap:.7rem;min-width:0}
-@media(min-width:700px){.grade{grid-template-columns:repeat(3,1fr)}}
+.grade{flex:1;display:grid;grid-template-columns:repeat(2,1fr);gap:1.1rem;min-width:0}
+@media(min-width:700px){.grade{grid-template-columns:repeat(3,1fr);gap:1.3rem}}
 @media(min-width:1050px){.grade{grid-template-columns:repeat(4,1fr)}}
 /* celular: a lateral virou gaveta (não cabe sidebar fixa em 375px) */
 @media(max-width:699px){
@@ -62,10 +84,16 @@ a{color:inherit}
   .fundo-lateral{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:55;display:none}
   .fundo-lateral.show{display:block}
 }
-.prodcard{background:var(--painel);border:1px solid var(--borda);border-radius:12px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;transition:border-color .15s}
-.prodcard:hover{border-color:var(--acento)}
+/* A vitrine é o que vende. Cartão limpo, foto grande e sem moldura pesada —
+   quem olha tem que ver a peça, não a interface. */
+.prodcard{background:var(--painel);border:1px solid var(--borda);border-radius:16px;overflow:hidden;cursor:pointer;
+  display:flex;flex-direction:column;
+  transition:transform .2s cubic-bezier(.2,.7,.3,1),box-shadow .2s ease,border-color .2s ease}
+.prodcard:hover{border-color:var(--acento);transform:translateY(-4px);box-shadow:0 14px 34px rgba(0,0,0,.45)}
 .prodcard .foto{width:100%;aspect-ratio:1/1;background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
-.prodcard .foto img{width:100%;height:100%;object-fit:cover}
+/* a foto aproxima de leve junto com o cartão: dá vida sem distrair */
+.prodcard .foto img{width:100%;height:100%;object-fit:cover;transition:transform .45s cubic-bezier(.2,.7,.3,1)}
+@media (hover:hover){.prodcard:hover .foto img{transform:scale(1.05)}}
 /* prévia: a 2ª foto fica por cima, invisível, e aparece ao passar o mouse.
    Só em telas que têm ponteiro de verdade — no celular hover "gruda" e a peça
    ficaria mostrando a segunda foto pra sempre depois de um toque. */
@@ -73,11 +101,14 @@ a{color:inherit}
 @media (hover:hover){.prodcard:hover .foto .previa{opacity:1}}
 .prodcard .semfoto{font-size:2rem;opacity:.3}
 .ribbon{position:absolute;top:.5rem;left:0;background:var(--vermelho);color:#fff;font-size:.68rem;padding:.15rem .6rem;border-radius:0 6px 6px 0;z-index:2}
-.prodcard .info{padding:.55rem .65rem .7rem}
-.prodcard .nome{font-size:.86rem;font-weight:600;line-height:1.25;margin-bottom:.15rem}
-.prodcard .cat{font-size:.7rem;color:var(--texto2)}
-.prodcard .cols{font-size:.66rem;color:var(--texto3);margin-top:.15rem}
-.prodcard .preco{font-size:.98rem;color:var(--acento2);font-weight:700;margin-top:.3rem}
+/* peça com vídeo: quem vê a marca abre o produto pra assistir */
+.selo-video{position:absolute;top:.5rem;right:.5rem;background:rgba(0,0,0,.65);color:#fff;
+  font-size:.66rem;padding:.15rem .45rem;border-radius:20px;z-index:2;letter-spacing:.3px}
+.prodcard .info{padding:.85rem .9rem 1rem}
+.prodcard .nome{font-size:.92rem;font-weight:600;line-height:1.35;margin-bottom:.25rem}
+.prodcard .cat{font-size:.7rem;color:var(--texto2);text-transform:uppercase;letter-spacing:.7px}
+.prodcard .cols{font-size:.68rem;color:var(--texto3);margin-top:.2rem}
+.prodcard .preco{font-size:1.18rem;color:var(--acento2);font-weight:800;margin-top:.5rem;letter-spacing:-.02em}
 .vazio{grid-column:1/-1;padding:3rem 1rem;text-align:center;color:var(--texto2)}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:flex-end;justify-content:center;z-index:100}
 .overlay.show{display:flex}
@@ -86,8 +117,10 @@ a{color:inherit}
 @media(min-width:640px){.modal{border-radius:16px}}
 .modal .fechar{position:sticky;top:.5rem;float:right;margin-right:.5rem;background:rgba(0,0,0,.5);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:1.1rem;cursor:pointer;z-index:5}
 .carrossel{width:100%;aspect-ratio:1/1;background:#000;position:relative;overflow:hidden;cursor:pointer}
-.carrossel img{width:100%;height:100%;object-fit:contain;position:absolute;inset:0;opacity:0;transition:opacity .2s}
-.carrossel img.show{opacity:1}
+.carrossel img,.carrossel video{width:100%;height:100%;object-fit:contain;position:absolute;inset:0;opacity:0;transition:opacity .2s;pointer-events:none}
+.carrossel img.show,.carrossel video.show{opacity:1}
+/* só o quadro visível recebe clique; o vídeo precisa dele pra tocar */
+.carrossel video.show{pointer-events:auto;background:#000}
 /* setas de navegação — sobre a foto, sempre legíveis porque a joia pode ser
    clara ou escura; por isso o fundo escuro fixo em vez de transparente */
 .carrossel .seta{position:absolute;top:50%;transform:translateY(-50%);z-index:3;
@@ -97,9 +130,13 @@ a{color:inherit}
 .carrossel .seta:hover{background:rgba(0,0,0,.85)}
 .carrossel .seta.ant{left:.4rem}
 .carrossel .seta.prox{right:.4rem}
-.dots{display:flex;gap:.3rem;justify-content:center;padding:.5rem}
-.dots span{width:6px;height:6px;border-radius:50%;background:var(--borda);cursor:pointer}
+.dots{display:flex;gap:.35rem;justify-content:center;align-items:center;padding:.5rem}
+.dots span{width:7px;height:7px;border-radius:50%;background:var(--borda);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:.5rem;color:var(--bg);line-height:1}
 .dots span.on{background:var(--acento)}
+/* o quadro do vídeo é maior e mostra o ▶: o cliente precisa saber que existe */
+.dots span[title="vídeo"]{width:16px;height:16px;border-radius:5px;font-size:.6rem;color:var(--texto2)}
+.dots span[title="vídeo"].on{color:var(--bg)}
 .modal .corpo{padding:.4rem 1.1rem 1.3rem}
 .modal .nome{font-size:1.1rem;font-weight:700;color:var(--texto);margin-bottom:.2rem}
 .modal .preco{font-size:1.3rem;color:var(--acento2);font-weight:700;margin-bottom:.6rem}
@@ -138,8 +175,10 @@ footer{text-align:center;padding:1.5rem 1rem 5rem;font-size:.75rem;color:var(--t
     <div class="busca-wrap"><input id="lgBusca" placeholder="🔎 Buscar..."></div>
   </div>
   <div class="chips" id="lgChips"></div>
+  <div class="chips tipos" id="lgTipos"></div>
 </div>
 <div class="fundo-lateral" id="lgFundoLat"></div>
+<div class="col-banner" id="lgBanner" hidden></div>
 <div class="corpo-loja">
   <aside class="lateral" id="lgLateral">
     <button class="lateral-fechar" id="lgFecharLat">✕ fechar</button>
@@ -204,7 +243,7 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
      banco. Se ficarem presas ao catálogo embutido, o site continua mostrando a
      lista antiga mesmo tendo baixado a nova — que foi exatamente o que
      aconteceu: 111 produtos em memória e 110 desenhados na tela. */
-  var loja, produtos, categorias, colecoes;
+  var loja, produtos, categorias, tipos, colecoes;
   function absorverCatalogo(){
     loja=CATALOGO.loja||{};
     produtos=(CATALOGO.produtos||[]).slice().sort(function(a,b){
@@ -212,6 +251,7 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
       return a.nome.localeCompare(b.nome,"pt-BR");
     });
     categorias=CATALOGO.categorias||[];
+    tipos=CATALOGO.tipos||[];
     colecoes=CATALOGO.colecoes||[];
   }
   absorverCatalogo();
@@ -221,7 +261,7 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
   var mt=$("lgThemeColor");
   if(mt)mt.setAttribute("content", loja.tema==="ouro"?"#16120d":"#0b0c0e");
 
-  var estado={busca:"",cat:"",col:""};
+  var estado={busca:"",cat:"",tipo:"",col:""};
   var atual=null,fotoIdx=0,tamSel="",qtd=1;
 
   var CHAVE_CARR="loja_carrinho_1001";
@@ -248,9 +288,52 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
     $("lgChips").innerHTML=h;
   }
 
+  /* 2ª fileira: o tipo da peça. Só aparece se houver mais de um tipo — com um
+     tipo só a fileira seria uma linha inteira sem escolha nenhuma. */
+  function renderTipos(){
+    var box=$("lgTipos");
+    if(tipos.length<2){box.innerHTML="";box.style.display="none";return;}
+    box.style.display="";
+    var h="<button class=\""+(estado.tipo===""?"ativo":"")+"\" data-tipo=\"\">Todos os tipos</button>";
+    for(var i=0;i<tipos.length;i++){
+      var t=tipos[i];
+      h+="<button class=\""+(estado.tipo===t?"ativo":"")+"\" data-tipo=\""+esc(t)+"\">"+esc(t)+"</button>";
+    }
+    box.innerHTML=h;
+  }
+
+  function acharColecao(nome){
+    for(var i=0;i<colecoes.length;i++)if(colecoes[i].nome===nome)return colecoes[i];
+    return null;
+  }
+  /* faixa de apresentação da coleção escolhida. Sem banner ela ainda aparece
+     como um bloco de texto: a frase é o que dá contexto, a imagem é enfeite. */
+  function renderBanner(){
+    var el=$("lgBanner"),c=estado.col?acharColecao(estado.col):null;
+    if(!c||(!c.banner&&!c.texto)){el.hidden=true;el.innerHTML="";return;}
+    el.hidden=false;
+    el.className="col-banner"+(c.banner?"":" sem-foto");
+    el.innerHTML="<div class=\"faixa\">"+
+      (c.banner?"<img src=\""+esc(c.banner)+"\" alt=\""+esc(c.nome)+"\">":"")+
+      "<div class=\"legenda\"><h2>"+esc(c.nome)+"</h2>"+
+      (c.texto?"<p>"+esc(c.texto)+"</p>":"")+"</div></div>";
+  }
+
+  function produtosFiltrados(){
+    var q=estado.busca.trim().toLowerCase();
+    return produtos.filter(function(p){
+      if(estado.cat&&p.cat!==estado.cat)return false;
+      if(estado.tipo&&p.tipo!==estado.tipo)return false;
+      if(estado.col&&(p.cols||[]).indexOf(estado.col)<0)return false;
+      if(q&&p.nome.toLowerCase().indexOf(q)<0)return false;
+      return true;
+    });
+  }
+
   function renderColecoes(){
     var lat=$("lgLateral");
     if(!colecoes.length){ if(lat)lat.style.display="none"; return; }
+    if(lat)lat.style.display="";
     var h="<button class=\""+(estado.col===""?"ativo":"")+"\" data-col=\"\">Ver tudo</button>";
     for(var i=0;i<colecoes.length;i++){
       var c=colecoes[i];
@@ -258,16 +341,6 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
          "<span>"+esc(c.nome)+"</span><i>"+c.n+"</i></button>";
     }
     $("lgColecoes").innerHTML=h;
-  }
-
-  function produtosFiltrados(){
-    var q=estado.busca.trim().toLowerCase();
-    return produtos.filter(function(p){
-      if(estado.cat&&p.cat!==estado.cat)return false;
-      if(estado.col&&(p.cols||[]).indexOf(estado.col)<0)return false;
-      if(q&&p.nome.toLowerCase().indexOf(q)<0)return false;
-      return true;
-    });
   }
 
   // gaveta das coleções (só no celular, onde não cabe a lateral fixa)
@@ -281,7 +354,7 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
       $("lgGrade").innerHTML="<div class=\"vazio\">Nada encontrado em "+oQue+".<br><br>"+
         "<button class=\"btgrande\" style=\"max-width:220px\" id=\"lgLimpar\">Ver todos os produtos</button></div>";
       var bl=$("lgLimpar");
-      if(bl)bl.addEventListener("click",function(){estado.cat="";estado.col="";estado.busca="";$("lgBusca").value="";render();});
+      if(bl)bl.addEventListener("click",function(){estado.cat="";estado.tipo="";estado.col="";estado.busca="";$("lgBusca").value="";render();});
       return;
     }
     var h="";
@@ -297,7 +370,8 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
         :"<div class=\"semfoto\">💍</div>";
       var cols=(p.cols&&p.cols.length)?("<div class=\"cols\">"+esc(p.cols.join(" · "))+"</div>"):"";
       h+="<div class=\"prodcard\" data-id=\""+esc(p.id)+"\">"+
-           "<div class=\"foto\">"+(p.esgotado?"<span class=\"ribbon\">Esgotado</span>":"")+foto+"</div>"+
+           "<div class=\"foto\">"+(p.esgotado?"<span class=\"ribbon\">Esgotado</span>":"")+
+             (p.video?"<span class=\"selo-video\">▶ vídeo</span>":"")+foto+"</div>"+
            "<div class=\"info\">"+
              "<div class=\"nome\">"+esc(p.nome)+"</div>"+
              "<div class=\"cat\">"+esc(p.cat||"")+(p.tipo?" · "+esc(p.tipo):"")+"</div>"+
@@ -308,11 +382,15 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
     $("lgGrade").innerHTML=h;
   }
 
-  function render(){renderChips();renderColecoes();renderGrade();}
+  function render(){renderChips();renderTipos();renderColecoes();renderBanner();renderGrade();}
 
   $("lgChips").addEventListener("click",function(e){
     var b=e.target.closest("button");if(!b)return;
     estado.cat=b.getAttribute("data-cat");render();
+  });
+  $("lgTipos").addEventListener("click",function(e){
+    var b=e.target.closest("button");if(!b)return;
+    estado.tipo=b.getAttribute("data-tipo");render();
   });
   $("lgColecoes").addEventListener("click",function(e){
     var b=e.target.closest("button");if(!b)return;
@@ -341,27 +419,43 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
   }
   function fecharModal(){$("lgOverlay").classList.remove("show");atual=null;}
 
+  /* O vídeo entra no mesmo carrossel das fotos, como último quadro. Antes ele
+     era gravado no produto e nunca chegava à loja — não havia nada aqui que
+     soubesse desenhá-lo. */
+  function midiasDe(p){
+    var m=[],i;
+    for(i=0;i<(p.fotos||[]).length;i++)m.push({tipo:"foto",src:p.fotos[i]});
+    if(p.video)m.push({tipo:"video",src:p.video});
+    return m;
+  }
   function renderModal(){
     var p=atual;
-    var fotos=p.fotos&&p.fotos.length?p.fotos:[];
+    var mds=midiasDe(p);
+    if(fotoIdx>=mds.length)fotoIdx=0;
     var ch="";
-    if(fotos.length){
-      for(var i=0;i<fotos.length;i++)ch+="<img src=\""+esc(fotos[i])+"\" class=\""+(i===fotoIdx?"show":"")+"\" alt=\"\">";
-      // setas só fazem sentido com mais de uma foto
-      if(fotos.length>1){
-        ch+="<button class=\"seta ant\" id=\"lgAnt\" aria-label=\"foto anterior\">‹</button>"+
-            "<button class=\"seta prox\" id=\"lgProx\" aria-label=\"próxima foto\">›</button>";
+    if(mds.length){
+      for(var i=0;i<mds.length;i++){
+        var m=mds[i],on=(i===fotoIdx?"show":"");
+        ch+=m.tipo==="video"
+          // preload none: o vídeo só é baixado se a pessoa chegar nele
+          ?"<video src=\""+esc(m.src)+"\" class=\""+on+"\" controls playsinline preload=\"none\"></video>"
+          :"<img src=\""+esc(m.src)+"\" class=\""+on+"\" alt=\"\">";
+      }
+      // setas só fazem sentido com mais de um quadro
+      if(mds.length>1){
+        ch+="<button class=\"seta ant\" id=\"lgAnt\" aria-label=\"anterior\">‹</button>"+
+            "<button class=\"seta prox\" id=\"lgProx\" aria-label=\"próximo\">›</button>";
       }
     }else{
       ch="<div style=\"display:flex;align-items:center;justify-content:center;height:100%;font-size:3rem;opacity:.3\">💍</div>";
     }
     $("lgCarrossel").innerHTML=ch;
-    if(fotos.length>1){
+    if(mds.length>1){
       $("lgAnt").addEventListener("click",function(e){e.stopPropagation();passarFoto(-1);});
       $("lgProx").addEventListener("click",function(e){e.stopPropagation();passarFoto(1);});
     }
     var dh="";
-    for(var j=0;j<fotos.length;j++)dh+="<span class=\""+(j===fotoIdx?"on":"")+"\" data-i=\""+j+"\"></span>";
+    for(var j=0;j<mds.length;j++)dh+="<span class=\""+(j===fotoIdx?"on":"")+"\" data-i=\""+j+"\" title=\""+(mds[j].tipo==="video"?"vídeo":"foto")+"\">"+(mds[j].tipo==="video"?"▶":"")+"</span>";
     $("lgDots").innerHTML=dh;
     $("lgMdNome").textContent=p.nome;
     $("lgMdPreco").textContent=fmtR(p.preco);
@@ -394,13 +488,18 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
   $("lgOverlay").addEventListener("click",function(e){if(e.target===this)fecharModal();});
   /* avança/volta circulando: da última vai pra primeira e vice-versa */
   function passarFoto(n){
-    if(!atual||!atual.fotos||atual.fotos.length<2)return;
-    var t=atual.fotos.length;
+    if(!atual)return;
+    var t=midiasDe(atual).length;
+    if(t<2)return;
     fotoIdx=(fotoIdx+n+t)%t;
     renderModal();
   }
-  // tocar na foto continua avançando (é o gesto natural no celular)
-  $("lgCarrossel").addEventListener("click",function(){passarFoto(1);});
+  // tocar na foto continua avançando (é o gesto natural no celular), mas tocar
+  // no vídeo é dar play — avançar ali tiraria a peça da tela no meio do toque
+  $("lgCarrossel").addEventListener("click",function(e){
+    if(e.target&&e.target.tagName==="VIDEO")return;
+    passarFoto(1);
+  });
   // e no computador as setas do teclado também funcionam
   document.addEventListener("keydown",function(e){
     if(!atual)return;
@@ -513,6 +612,7 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
         absorverCatalogo();   // sem isto, a tela continua com a lista antiga
         // um filtro escolhido antes pode não existir mais na vitrine nova
         if(estado.cat&&categorias.indexOf(estado.cat)<0)estado.cat="";
+        if(estado.tipo&&tipos.indexOf(estado.tipo)<0)estado.tipo="";
         if(estado.col&&!colecoes.some(function(c){return c.nome===estado.col;}))estado.col="";
         render();
       })
