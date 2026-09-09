@@ -76,7 +76,16 @@ nav button .cont{background:var(--vermelho);color:#fff;border-radius:9px;font-si
 
 .aviso{background:var(--aviso1);border-bottom:1px solid var(--aviso2);color:var(--avisoTx);padding:.5rem .9rem;font-size:.88rem;display:flex;gap:.8rem;align-items:center;flex-wrap:wrap}
 .aviso.info{background:#1d2f42;border-color:#2f4a6b;color:#bcd8f2}
+/* cobrança em atraso é a única tarja que pede ação hoje: cor própria pra não
+   se confundir com o lembrete de backup */
+.aviso.cobranca{background:#42201f;border-color:#7e3734;color:#ffb3af}
 .aviso button{margin-left:auto}
+.aviso button+button{margin-left:0}
+.cob-lista{display:flex;flex-direction:column;gap:.3rem}
+.cob-linha{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.35rem .1rem;border-bottom:1px solid var(--borda)}
+.cob-linha:last-child{border-bottom:none}
+.cob-linha .nm{flex:1;min-width:120px}
+.cob-linha .qdo{font-size:.76rem}
 
 main{padding:1.4rem 1.1rem;max-width:1240px;margin:0 auto}
 .tab{display:none}
@@ -230,6 +239,21 @@ dialog::backdrop{background:#000b}
 .tema-amostra i{width:15px;height:24px;display:block}
 .tema-ouro i:nth-child(1){background:#16120d}.tema-ouro i:nth-child(2){background:#d4a94b}.tema-ouro i:nth-child(3){background:#e8c877}
 .tema-prata i:nth-child(1){background:#0b0c0e}.tema-prata i:nth-child(2){background:#c3cad6}.tema-prata i:nth-child(3){background:#e9eef5}
+/* coleções: lista que abre e fecha, pra não ocupar meia tela com etiquetas */
+.multi{position:relative;margin-top:.3rem}
+.multi-bt{display:flex;align-items:center;gap:.4rem;width:100%;text-align:left;
+  background:var(--painel2);border:1px solid var(--borda);color:var(--texto);
+  border-radius:9px;padding:.45rem .6rem;font-size:.86rem;min-height:2.2rem}
+.multi-bt:hover{border-color:var(--acento)}
+.multi-bt>span{flex:1;display:flex;flex-wrap:wrap;gap:.25rem;align-items:center}
+.multi-bt>i{font-style:normal;color:var(--texto2);flex:none}
+.multi-pop{margin-top:.35rem;background:var(--painel2);border:1px solid var(--ouro);
+  border-radius:10px;padding:.45rem;max-height:230px;overflow-y:auto}
+.multi-pop .multi-busca{width:100%;margin-bottom:.35rem;font-size:.84rem;padding:.32rem .5rem}
+.multi-pop label{display:flex;align-items:center;gap:.5rem;padding:.3rem .45rem;
+  border-radius:7px;font-size:.87rem;cursor:pointer;color:var(--texto)}
+.multi-pop label:hover{background:var(--painel3)}
+.multi-pop input[type=checkbox]{accent-color:var(--acento);margin:0}
 /* coleções: etiquetas marcáveis no formulário do produto */
 .chk-tags{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.3rem}
 .chk-tags label{display:flex;align-items:center;gap:.35rem;background:var(--painel2);border:1px solid var(--borda);border-radius:20px;padding:.28rem .7rem;font-size:.84rem;cursor:pointer}
@@ -237,6 +261,13 @@ dialog::backdrop{background:#000b}
 .chk-tags input{margin:0;accent-color:var(--acento)}
 .chk-tags label:has(input:checked){border-color:var(--acento);color:var(--acento2)}
 .tag-col{display:inline-block;background:var(--painel3);border:1px solid var(--borda);border-radius:20px;padding:0 .5rem;font-size:.7rem;color:var(--texto2);margin-right:.2rem}
+/* banner da coleção: a proporção aqui é a mesma da faixa no catálogo, senão
+   quem escolhe a imagem não vê o corte que vai acontecer lá */
+.banner-prev{width:100%;aspect-ratio:3/1;border-radius:10px;background:var(--painel3);
+  border:1px dashed var(--borda);display:flex;align-items:center;justify-content:center;
+  color:var(--texto2);font-size:.82rem;overflow:hidden;margin-top:.3rem}
+.banner-prev img{width:100%;height:100%;object-fit:cover}
+.col-mini{width:64px;height:22px;border-radius:5px;object-fit:cover;border:1px solid var(--borda);vertical-align:middle}
 /* aviso de feriado / fim de semana no diálogo de venda */
 /* ---- tela de entrada (nuvem) ---- */
 .login-fundo{position:fixed;inset:0;z-index:9000;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:1rem}
@@ -282,6 +313,13 @@ dialog::backdrop{background:#000b}
 .parc-row .pv{width:110px;text-align:right}
 .parc-row .pd{width:150px}
 .parc-row.paga{opacity:.6}
+/* venda presa a um parcelamento do total: o bloco explica por que as parcelas
+   não são editáveis aqui, em vez de simplesmente sumir com os campos */
+.plano-aviso{background:var(--painel2);border:1px solid var(--ouro);border-left:3px solid var(--ouro);
+  border-radius:0 10px 10px 0;padding:.6rem .8rem;margin-bottom:.6rem;font-size:.85rem}
+.plano-parcelas{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.45rem}
+.plano-parcelas span{background:var(--painel3);border:1px solid var(--borda);border-radius:7px;padding:.12rem .5rem;font-size:.78rem}
+.plano-parcelas span.paga{color:var(--verde);border-color:var(--verde)}
 .linkok{color:var(--verde);font-weight:700}
 .linknovo{color:var(--laranja);font-size:.72rem}
 .sel-add{display:flex;gap:.3rem;align-items:stretch}
@@ -351,10 +389,122 @@ dialog::backdrop{background:#000b}
 .barra-armaz{height:8px;background:var(--painel3);border-radius:5px;overflow:hidden;margin:.3rem 0}
 .barra-armaz>i{display:block;height:100%;background:var(--ouro)}
 
-@media(max-width:640px){
+/* ============================================================
+   CELULAR
+   O painel nasceu para tela grande e no telefone virava uma sequência de
+   tabelas rolando pro lado. Aqui ele vira aplicativo: cabeçalho baixo, abas
+   numa faixa que desliza, cartões em vez de linhas de tabela e diálogos que
+   sobem de baixo como as folhas do próprio celular.
+   ============================================================ */
+@media(max-width:700px){
   html{font-size:14px}
-  main{padding:.6rem}
+  main{padding:.7rem .6rem 4.5rem}
   td,th{padding:.35rem .35rem}
+
+  /* Cabeçalho baixo: marca e estado da nuvem dividem a 1ª linha, as abas ficam
+     com a 2ª inteira. A 1ª linha PRECISA poder quebrar (flex-wrap:wrap), senão
+     o nav não desce e fica por cima do nome da loja. */
+  .topo{padding:.5rem .7rem 0;gap:.35rem .5rem;flex-wrap:wrap;align-items:center}
+  .topo .marca{flex:1 1 auto;min-width:0;gap:.5rem}
+  .topo .marca small{display:none}
+  .topo .marca h1{font-size:.98rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .logo{width:32px;height:32px;border-radius:9px;font-size:.66rem}
+  /* o estado da nuvem é texto corrido; no telefone ele quebra em duas linhas
+     curtas em vez de empurrar o nome da loja pra fora da tela */
+  .nuvem-chip{flex:0 1 auto;min-width:0;max-width:44%;font-size:.62rem;
+    justify-content:flex-end;text-align:right;white-space:normal;line-height:1.15}
+  /* as 7 abas numa faixa que desliza com o dedo, em vez de quebrar em 3 linhas
+     e empurrar o conteúdo pra fora da tela */
+  nav{order:3;flex:0 0 100%;flex-wrap:nowrap;overflow-x:auto;gap:.1rem;
+    margin:.45rem -.7rem 0;padding:0 .7rem;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  nav::-webkit-scrollbar{display:none}
+  nav button{flex:none;padding:.5rem .7rem;font-size:.85rem;white-space:nowrap}
+
+  /* dois cartões por linha: o resumo cabe numa olhada, sem rolar */
+  .cards{grid-template-columns:repeat(2,1fr);gap:.55rem;margin-bottom:.9rem}
+  .card{padding:.7rem .8rem;border-radius:5px 10px 10px 5px}
+  .card .rotulo{font-size:.64rem;letter-spacing:.5px}
+  .card .valor{font-size:1.25rem;margin-top:.25rem}
+  .card .extra{font-size:.7rem}
+  .mini-cards{grid-template-columns:repeat(2,1fr);gap:.5rem}
+  .painel{padding:.85rem .8rem;border-radius:11px;margin-bottom:.8rem}
+
+  /* Filtros dois a dois: um por linha empurraria a lista pra três telas
+     abaixo, e é a lista que a pessoa veio ver. A busca fica sozinha. */
+  .barra{gap:.4rem}
+  .barra>select{flex:1 1 calc(50% - .25rem);min-width:0;font-size:.86rem;padding:.5rem .4rem}
+  .barra>input:not([type=checkbox]):not([type=date]){flex:1 1 100%;min-width:0}
+  .barra>input[type=date]{flex:1 1 calc(50% - .25rem);min-width:0;font-size:.86rem}
+  .barra>.mut{flex:1 1 100%;margin-bottom:-.2rem}
+  /* 16px impede o zoom automático do iPhone ao tocar num campo */
+  input,select,textarea{font-size:16px;padding:.55rem .6rem}
+  .bt{padding:.55rem .9rem}
+  .bt.mini{padding:.32rem .6rem;font-size:.82rem}
+  td.acoes .bt.mini{padding:.4rem .55rem}
+
+  /* diálogos viram folha que sobe de baixo, como o resto do celular */
+  dialog,dialog.larga{width:100vw;max-width:100vw;max-height:92vh;margin:auto 0 0;
+    border-radius:16px 16px 0 0;padding:1rem .9rem 1.1rem;border-bottom:none}
+  dialog[open]{animation:sobeFolha .2s ease-out}
+  @keyframes sobeFolha{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}
+  .rodape{position:sticky;bottom:0;background:var(--painel);padding-top:.7rem;
+    margin:.8rem -.9rem -1.1rem;padding:.7rem .9rem 1rem;border-top:1px solid var(--borda)}
+  .rodape .bt{flex:1;text-align:center}
+  .parc-row .pv,.parc-row .pd{flex:1;min-width:0;width:auto}
+  .parc-row .lbl{width:100%}
+  .totais-venda{justify-content:space-between;gap:.5rem}
+  /* Itens da venda: em 375px as 5 colunas espremiam o nome do produto num
+     campo de 40px. Cada item vira um bloco — nome em cima, o resto embaixo
+     com o rótulo ao lado. */
+  #vItens,#vItens tbody,#vItens tr,#vItens td{display:block;width:auto}
+  #vItens thead{display:none}
+  #vItens tr{background:var(--painel2);border:1px solid var(--borda);border-radius:10px;
+    padding:.55rem .6rem .45rem;margin-bottom:.5rem}
+  #vItens td{padding:.18rem 0;display:flex;align-items:center;gap:.5rem}
+  #vItens td:first-child{display:block}
+  #vItens td:first-child input{width:100%}
+  #vItens td:nth-child(2)::before{content:"Qtd"}
+  #vItens td:nth-child(3)::before{content:"Preço un."}
+  #vItens td:nth-child(4)::before{content:"Subtotal"}
+  #vItens td:nth-child(-n+4)::before{color:var(--texto2);font-size:.72rem;
+    text-transform:uppercase;letter-spacing:.5px;flex:none;width:5.5rem}
+  #vItens td:first-child::before{content:none}
+  #vItens .qtd,#vItens .prc{width:100px;text-align:right}
+  #vItens td.acoes{justify-content:flex-end;flex-wrap:wrap;gap:.35rem;
+    margin-top:.35rem;padding-top:.4rem;border-top:1px solid var(--borda)}
+  #vItens .st-item{max-width:none;font-size:.8rem;padding:.25rem .3rem}
+
+  /* TABELA VIRA CARTÃO: sem isso, ler o estoque no telefone é arrastar a
+     página pro lado procurando a coluna. O rótulo de cada campo vem do
+     data-rot da célula. */
+  .cartoes table,.cartoes tbody,.cartoes tr,.cartoes td{display:block;width:auto}
+  .cartoes thead{display:none}
+  .cartoes tr{background:var(--painel2);border:1px solid var(--borda);border-radius:12px;
+    padding:.6rem .75rem;margin-bottom:.55rem;position:relative}
+  .cartoes tr:hover td{background:none}
+  .cartoes td{border:none;padding:.16rem 0;display:flex;align-items:center;
+    justify-content:space-between;gap:.7rem;text-align:right}
+  .cartoes td::before{content:attr(data-rot);color:var(--texto2);font-size:.7rem;
+    text-transform:uppercase;letter-spacing:.5px;flex:none;text-align:left}
+  /* a caixinha de marcar em massa é tarefa de computador; no cartão ela só
+     roubaria espaço da informação */
+  .cartoes td:empty,.cartoes td[data-rot=""]{display:none}
+  /* o nome do produto é o título do cartão: linha inteira, sem rótulo.
+     Espaço à direita reservado pra foto, que fica ancorada no canto. */
+  .cartoes td.titulo{display:block;text-align:left;font-weight:600;font-size:.95rem;
+    padding:0 46px .35rem 0;margin-bottom:.3rem;border-bottom:1px solid var(--borda);
+    min-height:44px}   /* altura da foto ancorada, pra ela não invadir a 1ª linha */
+  .cartoes td.titulo::before{content:none}
+  .cartoes td.acoes{justify-content:flex-end;gap:.4rem;padding-top:.5rem;text-align:right}
+  .cartoes td.acoes::before{content:none}
+  .cartoes .thumb,.cartoes .thumb-vazio{width:38px;height:38px}
+  /* display explícito: sem ele a regra do data-rot vazio, logo acima, esconde
+     também a foto — e o cartão fica sem a única pista visual da peça */
+  .cartoes td.capa{display:block;position:absolute;top:.55rem;right:.7rem;padding:0}
+  .cartoes td.capa::before{content:none}
+  .cartoes .rolagem{overflow-x:visible}
+  /* campo de busca ocupa a linha toda (a classe evita o style inline vencer) */
+  .barra>.busca-larga{flex:1 1 100%!important}
 }
 @media print{.topo nav,.barra,.acoes,.aviso,.rodape{display:none!important}body{background:#fff;color:#000}}
 </style>
@@ -417,6 +567,12 @@ dialog::backdrop{background:#000b}
   </nav>
   <div class="nuvem-chip" id="nuvemChip"></div>
 </header>
+<div id="avisoCobranca" class="aviso cobranca" hidden>
+  <span>🔔 <b id="avisoCobrancaTitulo"></b> <span id="avisoCobrancaTexto"></span></span>
+  <button class="bt mini" onclick="trocarTab('fiado')">Ver cobranças</button>
+  <button class="bt mini" onclick="mandarResumoCobranca()">📱 mandar no meu WhatsApp</button>
+  <button class="bt mini" onclick="dispensarAvisoCobranca()">Hoje não</button>
+</div>
 <div id="avisoBackup" class="aviso" hidden>
   <span>⚠️ <b>Faça um backup!</b> <span id="avisoBackupTexto"></span></span>
   <button class="bt mini" onclick="baixarBackup()">Baixar agora</button>
@@ -472,7 +628,16 @@ dialog::backdrop{background:#000b}
   <p id="vLucro" style="text-align:right;font-size:.8rem;margin:-.3rem 0 .2rem"></p>
   <div id="vFiadoBox" hidden>
     <h4 class="mt">Fiado</h4>
-    <div class="barra">
+    <!-- venda que já entrou num "parcelar o total": as parcelas são do plano
+         inteiro (podem envolver outras compras), então aqui elas só aparecem —
+         mexer nelas por esta tela desmontaria o plano sem a pessoa perceber -->
+    <div id="vPlanoBox" class="plano-aviso" hidden>
+      <b>🔗 Este fiado está dentro de um parcelamento do total.</b>
+      <div id="vPlanoResumo" class="mut"></div>
+      <div id="vPlanoParcelas" class="plano-parcelas"></div>
+      <div class="mut" style="font-size:.78rem;margin-top:.4rem">As parcelas continuam como estão — inclusive se você só corrigir a data da venda. Para mudá-las, use <b>Fiado → ✎ parcelas do parcelamento</b>.</div>
+    </div>
+    <div class="barra" id="vParcControles">
       <label class="campo" id="vVencUnicoBox">Quando vai pagar <input type="date" id="vVencUnico" onchange="vVencMudou()"><small class="aviso-dia" id="vVencAviso"></small></label>
       <label class="linha"><input type="checkbox" id="vDividir"> Dividir em parcelas</label>
     </div>
@@ -526,7 +691,7 @@ dialog::backdrop{background:#000b}
     <label class="linha span2"><input type="checkbox" id="pAvisarEstoque" checked> Avisar quando o estoque estiver baixo
       <span class="mut" style="font-size:.76rem">— desmarque para peças que você não repõe (não avisa nem com estoque 0)</span></label>
     <div class="campo span2" id="pColecoesBox">
-      <span>Coleções <span class="mut" style="font-size:.76rem">— pode marcar mais de uma; aparecem como filtro na loja</span></span>
+      <span>Coleções <span class="mut" style="font-size:.76rem">— clique para abrir a lista; pode marcar várias e criar uma nova ali mesmo</span></span>
       <div id="pColecoes" class="chk-tags"></div>
     </div>
     <div class="campo span2" id="pGradeBox" hidden>
@@ -657,7 +822,8 @@ dialog::backdrop{background:#000b}
 <!-- ====== CADASTRO RÁPIDO DE PRODUTO ====== -->
 <dialog id="dlgQuickProd">
 <form id="formQuickProd">
-  <h3>Cadastro rápido no estoque</h3>
+  <h3>Detalhes do produto novo</h3>
+  <p class="mut" style="font-size:.8rem;margin:-.5rem 0 .7rem">Ele só entra no estoque quando você salvar a venda — igual ao cliente novo.</p>
   <input type="hidden" id="qpIdx">
   <div class="fgrid">
     <label class="campo span2">Nome do produto <input id="qpNome" required></label>
@@ -670,7 +836,7 @@ dialog::backdrop{background:#000b}
     <label class="linha span2"><input type="checkbox" id="qpAvisarEstoque" checked> Avisar quando o estoque estiver baixo
       <span class="mut" style="font-size:.78rem">— desmarque para peças que você não repõe</span></label>
     <div class="campo span2" id="qpColecoesBox">
-      <span>Coleções (opcional)</span>
+      <span>Coleções <span class="mut" style="font-size:.76rem">(opcional — clique para abrir)</span></span>
       <div id="qpColecoes" class="chk-tags"></div>
     </div>
     <div class="campo span2">
@@ -682,7 +848,7 @@ dialog::backdrop{background:#000b}
   <p class="mut" style="font-size:.78rem">Depois você completa o resto (vídeo, estoque mínimo, descrição...) na aba Produtos.</p>
   <div class="rodape">
     <button type="button" class="bt" onclick="dlgQuickProd.close()">Cancelar</button>
-    <button type="submit" class="bt primario">Cadastrar e vincular</button>
+    <button type="submit" class="bt primario">Usar nesta venda</button>
   </div>
 </form>
 </dialog>
@@ -747,6 +913,32 @@ dialog::backdrop{background:#000b}
     <button class="bt" onclick="dlgFoto.close()">Cancelar</button>
     <button class="bt primario" onclick="confirmarEnquadrar()">Usar esta foto</button>
   </div>
+</dialog>
+<!-- vitrine da coleção: a frase e o banner que aparecem no catálogo -->
+<dialog id="dlgColecao">
+<form id="formColecao">
+  <h3>Coleção</h3>
+  <input type="hidden" id="colId">
+  <div class="fgrid">
+    <label class="campo span2">Nome <input id="colNome" required></label>
+    <label class="campo span2">Frase de apresentação <span class="mut" style="font-size:.76rem">— uma linha, aparece embaixo do nome no catálogo</span>
+      <input id="colTexto" maxlength="120" placeholder="ex.: peças pretas para quem gosta de discrição"></label>
+    <div class="campo span2">
+      <span>Banner <span class="mut" style="font-size:.76rem">— imagem larga, aparece no topo quando o cliente escolhe esta coleção</span></span>
+      <div id="colBannerPrev" class="banner-prev"></div>
+      <input type="file" id="colBannerInput" accept="image/*" hidden onchange="addBannerColecao(this)">
+      <div class="barra" style="margin-top:.4rem">
+        <button type="button" class="bt mini" onclick="document.getElementById('colBannerInput').click()">🖼️ escolher imagem</button>
+        <button type="button" class="bt mini perigo" id="colBannerRm" onclick="removerBannerColecao()" hidden>✕ remover banner</button>
+      </div>
+      <p class="mut" style="font-size:.74rem;margin-top:.3rem">💡 Use uma foto deitada (mais larga que alta). Ela é cortada numa faixa, então deixe o assunto no meio.</p>
+    </div>
+  </div>
+  <div class="rodape">
+    <button type="button" class="bt" onclick="dlgColecao.close()">Cancelar</button>
+    <button type="submit" class="bt primario">Salvar</button>
+  </div>
+</form>
 </dialog>
 <!-- de onde veio o número de uma linha do DRE / Fluxo de caixa -->
 <dialog id="dlgDetalhe">
@@ -913,6 +1105,12 @@ function attr(s){return encodeURIComponent(String(s==null?'':s));}
 function fmtData(iso){if(!iso)return '';const p=String(iso).split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:iso;}
 function hoje(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function toast(m){const t=$('toast');t.innerHTML=m;t.style.display='block';clearTimeout(toast._t);toast._t=setTimeout(()=>t.style.display='none',3200);}
+/* dias corridos entre duas datas ISO (meio-dia nas duas pontas, senão o
+   horário de verão faz a conta dar 0,96 dia e o arredondamento erra) */
+function diasEntre(a,b){
+  if(!a||!b)return 0;
+  return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/86400000);
+}
 function isoAddDias(iso,n){const d=new Date(iso+'T12:00:00');d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function noPeriodo(data,ini,fim){return (!ini||data>=ini)&&(!fim||data<=fim);}
 
@@ -1022,7 +1220,7 @@ function estruturaInicial(){
   const canalMaq={id:novoId(),nome:'Maquininha / celular',prazoDias:1,contaId:cxInfinity.id,padrao:true,bandeiras:bMaq.bandeiras,taxas:bMaq.taxas};
   const canalLink={id:novoId(),nome:'Link de pagamento',prazoDias:1,contaId:cxInfinity.id,padrao:false,bandeiras:bLink.bandeiras,taxas:bLink.taxas};
   return {
-    versao:18, criadoEm:hoje(), alteradoEm:null, ultimoBackup:null, nAlteracoes:0, seqCriacao:0,
+    versao:19, criadoEm:hoje(), alteradoEm:null, ultimoBackup:null, nAlteracoes:0, seqCriacao:0,
     config:{
       /* Nasce NEUTRA. Deixar aqui o WhatsApp e o Pix de alguém faria toda conta
          nova receber os pedidos e as cobranças no contato errado — e o dono da
@@ -1030,6 +1228,7 @@ function estruturaInicial(){
          preenchidos no cadastro e em Configurações → Geral / Loja. */
       loja:{nome:'Minha Loja', whatsapp:'', dominio:'', pix:'', logo:'', msgFiado:MSG_FIADO_PADRAO},
       fiscal:{diaInicio:11}, autoBaixaCartao:true, tema:'ouro',
+      avisos:{diasAntes:1, notificar:false, ultimoAviso:''},
       categorias:idfy([{nome:'Aço'},{nome:'Folheado'},{nome:'Biju'},{nome:'Prata'},{nome:'Acessórios'}]),
       colecoes:[],
       tipos:idfy([{nome:'Brinco'},{nome:'Colar'},{nome:'Anel'},{nome:'Pulseira'},{nome:'Bracelete'},{nome:'Conjunto'},{nome:'Choker'},{nome:'Pingente'},{nome:'Corrente'},{nome:'Tornozeleira'}]),
@@ -1243,6 +1442,38 @@ function migrar(d){
     v.receber.parcelas.forEach(p=>{if(p.desconto==null)p.desconto=0;});
   });
   d.versao=18;
+
+  /* ---- v19: data de cadastro do produto, banner/texto da coleção e vídeo na loja ---- */
+  /* Produtos antigos não guardavam quando foram cadastrados, e sem isso não dá
+     pra filtrar nem ordenar por data. A melhor aproximação que existe é a 1ª
+     movimentação de estoque da peça; sem nenhuma, fica a data do próprio
+     sistema. É estimativa, então quem não tem nada continua vazio de propósito. */
+  {
+    const primeiraMov={};
+    (d.movEstoque||[]).forEach(m=>{
+      if(!m.produtoId||!m.data)return;
+      if(!primeiraMov[m.produtoId]||m.data<primeiraMov[m.produtoId])primeiraMov[m.produtoId]=m.data;
+    });
+    const primeiraVenda={};
+    (d.vendas||[]).forEach(v=>{(v.itens||[]).forEach(i=>{
+      if(!i.produtoId||!v.data)return;
+      if(!primeiraVenda[i.produtoId]||v.data<primeiraVenda[i.produtoId])primeiraVenda[i.produtoId]=v.data;
+    });});
+    (d.produtos||[]).forEach(p=>{
+      if(p.criadoEm)return;
+      const cands=[primeiraMov[p.id],primeiraVenda[p.id]].filter(Boolean).sort();
+      p.criadoEm=cands[0]||d.criadoEm||'';
+    });
+  }
+  // coleção ganhou vitrine própria no catálogo: uma frase e um banner
+  (d.config.colecoes||[]).forEach(c=>{
+    if(c.texto==null)c.texto='';
+    if(c.banner==null)c.banner='';
+  });
+  // aviso de cobrança: 1 dia de antecedência é o padrão — dá tempo de mandar
+  // a mensagem na véspera sem encher a tela de coisa distante
+  if(!d.config.avisos)d.config.avisos={diasAntes:1,notificar:false,ultimoAviso:''};
+  d.versao=19;
   return d;
 }
 
@@ -1290,7 +1521,7 @@ const ui={tab:'resumo',
   r:{desloca:0,ini:null,fim:null},
   v:{per:'fiscal',ini:'',fim:'',busca:'',lim:200,dia:'',semOff:0,forn:'',tipo:'',cat:'',col:''},
   f:{busca:'',mostrarPagos:false,abertos:{},filtro:'todos',local:''},
-  p:{busca:'',cat:'',status:'',ord:'nome',lim:300,sel:{}},
+  p:{busca:'',cat:'',tipo:'',forn:'',col:'',status:'',estoque:'',ini:'',fim:'',ord:'nome',lim:300,sel:{}},
   l:{per:'fiscal',ini:'',fim:'',tipo:'',busca:'',lim:200},
   c:{busca:'',lim:300},
   cfgTab:'geral'
@@ -1325,6 +1556,7 @@ function aplicarIdentidade(){
 }
 function renderTudo(){
   aplicarIdentidade();renderNav();renderDatalists();avisoBackup();
+  if(typeof avisoCobranca==='function')avisoCobranca();
   ({resumo:renderResumo,vendas:renderVendas,fiado:renderFiado,produtos:renderProdutos,
     fin:renderFin,clientes:renderClientes,config:renderConfig})[ui.tab]();
 }
@@ -1369,6 +1601,17 @@ function renderConfig(){
       <textarea id="cfgMsg" style="width:100%;min-height:200px">${esc(cfg.loja.msgFiado||MSG_FIADO_PADRAO)}</textarea>
       <div class="rodape"><button class="bt" onclick="$('cfgMsg').value=MSG_FIADO_PADRAO">Restaurar modelo padrão</button><button class="bt primario" onclick="salvarGeral()">Salvar tudo</button></div>
     </div>
+    <div class="painel"><h3>🔔 Aviso de cobrança</h3>
+      <p class="mut" style="font-size:.82rem;margin-bottom:.7rem">Ao abrir o painel, ele avisa o que venceu e o que vence nos próximos dias — uma vez por dia, pra não virar ruído. O botão <b>📱 mandar no meu WhatsApp</b> abre a conversa <b>com você mesmo</b> já com a lista pronta.</p>
+      <div class="barra">
+        <label class="linha">Avisar com <input type="number" id="cfgDiasAviso" min="0" max="30" value="${+cfgAvisos().diasAntes||0}" style="width:64px" onchange="salvarDiasAviso(this.value)"> dia(s) de antecedência</label>
+        ${cfgAvisos().notificar
+          ?'<span class="bd ok">notificações ligadas</span><button class="bt mini" onclick="desligarNotificacoes()">desligar</button>'
+          :'<button class="bt" onclick="pedirNotificacoes()">🔔 Ligar notificação do celular/navegador</button>'}
+        <button class="bt mini" onclick="mandarResumoCobranca()">📱 mandar resumo agora</button>
+      </div>
+      <p class="mut" style="font-size:.78rem;margin-top:.5rem">⚠️ A notificação só chega com o painel <b>aberto</b> no aparelho (mesmo em segundo plano). Aviso por e-mail e mensagem automática mesmo com o painel fechado precisam de um servidor — dá pra fazer, é o próximo passo.</p>
+    </div>
     <div class="painel"><h3>🎨 Cores do sistema</h3>
       <p class="mut" style="font-size:.82rem;margin-bottom:.7rem">Muda na hora, aqui no painel <b>e</b> no site-catálogo que você gerar depois.</p>
       <div class="temas">${TEMAS.map(([id,rot])=>`
@@ -1388,6 +1631,14 @@ function renderConfig(){
     <div class="pill-tabs">${abas.map(a=>`<button class="${ui.cfgTab===a[0]?'ativo':''}" onclick="ui.cfgTab='${a[0]}';renderConfig()">${a[1]}</button>`).join('')}</div>
     ${corpo}`;
 }
+function salvarDiasAviso(v){
+  const n=Math.max(0,Math.min(30,parseInt(v)||0));
+  cfgAvisos().diasAntes=n;
+  // mudar a régua faz o aviso valer de novo hoje: quem aumentou o prazo quer
+  // justamente ver o que passou a entrar na lista
+  cfgAvisos().ultimoAviso='';
+  salvar();renderTudo();
+}
 function salvarGeral(){
   const cfg=C();cfg.loja.nome=$('cfgNome').value.trim();cfg.loja.whatsapp=$('cfgWpp').value.replace(/\D/g,'');
   cfg.loja.pix=$('cfgPix').value.trim();cfg.loja.dominio=$('cfgDom').value.trim();cfg.loja.msgFiado=$('cfgMsg').value;
@@ -1397,13 +1648,26 @@ function salvarGeral(){
 /* cadastro genérico de lista simples (categorias, tipos, locais) e especiais */
 function painelCadastro(qual){
   const cfg=C();
-  if(qual==='categorias'||qual==='tipos'||qual==='locais'||qual==='colecoes'){
-    const lista=cfg[qual]||[];const rot={categorias:'categoria',tipos:'tipo',locais:'local',colecoes:'coleção'}[qual];
-    const titulo={categorias:'Categorias',tipos:'Tipos',locais:'Locais',colecoes:'Coleções'}[qual];
-    const nUso=id=>(dados.produtos||[]).filter(p=>qual==='colecoes'?(p.colecaoIds||[]).indexOf(id)>=0:false).length;
+  if(qual==='colecoes'){
+    const lista=cfg.colecoes||[];
+    const nUso=id=>(dados.produtos||[]).filter(p=>(p.colecaoIds||[]).indexOf(id)>=0).length;
+    return `<div class="painel"><h3>Coleções</h3>
+      <p class="mut" style="font-size:.82rem;margin-bottom:.6rem">Agrupamentos que você inventa pra vender melhor — <b>Coleção Black</b>, <b>Coleção Rubi</b>, <b>Dia das Mães</b>... Um produto pode estar em <b>várias</b> ao mesmo tempo, e a coleção é independente do material (Aço, Folheado...). No catálogo elas viram um menu na lateral, e cada uma pode ter <b>uma frase e um banner</b> próprios.</p>
+      <ul class="cfg-lista">${lista.map(x=>`<li>
+        <span class="nm">${x.banner?`<img class="col-mini" src="${x.banner}" alt=""> `:''}<b>${esc(x.nome)}</b>
+          <span class="mut" style="font-size:.76rem">— ${nUso(x.id)} produto(s)</span>
+          ${x.texto?`<div class="mut" style="font-size:.78rem">“${esc(x.texto)}”</div>`:'<div class="mut" style="font-size:.76rem">sem frase de apresentação</div>'}</span>
+        <button class="bt mini" title="nome, frase e banner" onclick="abrirColecao('${x.id}')">✎ editar</button>
+        <button class="bt mini perigo" onclick="removerCadItem('colecoes','${x.id}')">✕</button></li>`).join('')||'<li class="mut">Nenhuma ainda.</li>'}</ul>
+      <div class="cfg-add"><input id="addNome" placeholder="Nova coleção..." onkeydown="if(event.key==='Enter'){addCadItem('colecoes');}"><button class="bt" onclick="addCadItem('colecoes')">Adicionar</button></div>
+      <p class="mut" style="font-size:.78rem;margin-top:.4rem">Criou pelo campo acima? Clique em <b>✎ editar</b> pra pôr a frase e o banner dela.</p>
+      <div class="rodape"><button class="bt primario" onclick="abrirColecao('')">+ Nova coleção com frase e banner</button></div></div>`;
+  }
+  if(qual==='categorias'||qual==='tipos'||qual==='locais'){
+    const lista=cfg[qual]||[];const rot={categorias:'categoria',tipos:'tipo',locais:'local'}[qual];
+    const titulo={categorias:'Categorias',tipos:'Tipos',locais:'Locais'}[qual];
     return `<div class="painel"><h3>${titulo}</h3>
-      ${qual==='colecoes'?`<p class="mut" style="font-size:.82rem;margin-bottom:.6rem">Agrupamentos que você inventa pra vender melhor — <b>Coleção Black</b>, <b>Coleção Rubi</b>, <b>Dia das Mães</b>... Um produto pode estar em <b>várias</b> ao mesmo tempo, e a coleção é independente do material (Aço, Folheado...). No site-catálogo elas viram um menu na <b>lateral esquerda</b>.</p>`:''}
-      <ul class="cfg-lista">${lista.map(x=>`<li><span class="nm">${esc(x.nome)}${qual==='colecoes'?` <span class="mut" style="font-size:.76rem">— ${nUso(x.id)} produto(s)</span>`:''}</span>
+      <ul class="cfg-lista">${lista.map(x=>`<li><span class="nm">${esc(x.nome)}</span>
         <button class="bt mini" onclick="editarCadItem('${qual}','${x.id}')">✎</button>
         <button class="bt mini perigo" onclick="removerCadItem('${qual}','${x.id}')">✕</button></li>`).join('')||'<li class="mut">Nenhum ainda.</li>'}</ul>
       <div class="cfg-add"><input id="addNome" placeholder="Nova ${rot}..." onkeydown="if(event.key==='Enter'){addCadItem('${qual}');}"><button class="bt primario" onclick="addCadItem('${qual}')">Adicionar</button></div></div>`;
@@ -1503,7 +1767,10 @@ function painelCadastro(qual){
 /* CRUD dos cadastros simples */
 function addCadItem(qual){
   const nm=$('addNome').value.trim();if(!nm)return;
-  C()[qual].push({id:novoId(),nome:nm});salvar();renderConfig();
+  const item={id:novoId(),nome:nm};
+  // coleção nasce com os campos da vitrine, mesmo criada pelo atalho
+  if(qual==='colecoes'){item.texto='';item.banner='';}
+  C()[qual].push(item);salvar();renderConfig();
 }
 function editarCadItem(qual,id){
   const it=acha(C()[qual],id);const nv=prompt('Editar:',it.nome);if(nv==null)return;
@@ -1922,21 +2189,127 @@ function colecoes(){return C().colecoes||[];}
 function colecaoNome(id){return nomeDe(colecoes(),id,'');}
 function colecoesDoProduto(p){return ((p&&p.colecaoIds)||[]).map(colecaoNome).filter(Boolean);}
 function produtoNaColecao(p,colId){return !!p&&((p.colecaoIds||[]).indexOf(colId)>=0);}
-/* desenha as etiquetas marcáveis; prefixo 'p' (produto) ou 'qp' (cadastro rápido) */
+/* Lista clicável em vez de uma parede de etiquetas: com 7+ coleções o
+   formulário do produto virava uma faixa de caixinhas que empurrava tudo pra
+   baixo. Agora fecha num botão só, abre quando precisa, tem busca e deixa
+   criar coleção nova sem sair daqui.
+   prefixo 'p' (produto) ou 'qp' (cadastro rápido).
+   As caixas de seleção continuam existindo dentro do container: é delas que
+   lerColecoesChecks() lê, e é assim que a seleção sobrevive à busca. */
 function renderColecoesChecks(prefixo,marcadas){
   const box=$(prefixo+'Colecoes'),wrap=$(prefixo+'ColecoesBox');if(!box)return;
   const cs=colecoes(),sel=marcadas||[];
-  if(!cs.length){
-    if(wrap)wrap.hidden=(prefixo==='qp'); // no cadastro rápido, some se não houver coleção
-    box.innerHTML='<span class="mut" style="font-size:.78rem">Nenhuma coleção criada ainda — crie em Configurações → Coleções.</span>';
-    return;
-  }
   if(wrap)wrap.hidden=false;
-  box.innerHTML=cs.map(c=>`<label><input type="checkbox" value="${c.id}"${sel.indexOf(c.id)>=0?' checked':''}> ${esc(c.nome)}</label>`).join('');
+  box.className='multi';
+  box.innerHTML=`<button type="button" class="multi-bt" onclick="abrirColecoes('${prefixo}')">
+      <span id="${prefixo}ColResumo"></span><i>▾</i></button>
+    <div class="multi-pop" id="${prefixo}ColPop" hidden>
+      ${cs.length>6?`<input class="multi-busca" placeholder="🔎 filtrar coleção..." oninput="filtrarColecoes('${prefixo}',this.value)">`:''}
+      <div id="${prefixo}ColLista">${cs.map(c=>linhaColecao(prefixo,c,sel.indexOf(c.id)>=0)).join('')
+        ||'<div class="mut" style="font-size:.8rem;padding:.3rem .45rem">Nenhuma coleção criada ainda.</div>'}</div>
+      <button type="button" class="bt mini mt" style="width:100%" onclick="novaColecaoInline('${prefixo}')">+ nova coleção</button>
+    </div>`;
+  resumoColecoes(prefixo);
+}
+function linhaColecao(prefixo,c,marcada){
+  return `<label data-nome="${esc(c.nome.toLowerCase())}"><input type="checkbox" value="${c.id}"${marcada?' checked':''}
+    onchange="resumoColecoes('${prefixo}')"> ${esc(c.nome)}</label>`;
+}
+function abrirColecoes(prefixo){
+  const pop=$(prefixo+'ColPop');if(pop)pop.hidden=!pop.hidden;
+}
+function filtrarColecoes(prefixo,q){
+  const t=(q||'').trim().toLowerCase();
+  Array.from($(prefixo+'ColLista').querySelectorAll('label')).forEach(l=>{
+    // uma coleção marcada nunca some do filtro: sumir daria a impressão de ter
+    // sido desmarcada, e ela seria perdida sem ninguém perceber
+    const casa=!t||(l.dataset.nome||'').indexOf(t)>=0||l.querySelector('input').checked;
+    l.hidden=!casa;
+  });
+}
+function resumoColecoes(prefixo){
+  const el=$(prefixo+'ColResumo');if(!el)return;
+  const nomes=lerColecoesChecks(prefixo).map(colecaoNome).filter(Boolean);
+  el.innerHTML=nomes.length
+    ?nomes.map(n=>`<span class="tag-col">${esc(n)}</span>`).join('')
+    :'<span class="mut">nenhuma coleção marcada</span>';
+}
+/* cria a coleção sem sair do cadastro do produto — já marcada */
+function novaColecaoInline(prefixo){
+  const nm=prompt('Nome da nova coleção:');
+  if(nm==null)return;
+  const nome=nm.trim();if(!nome)return;
+  const ja=colecoes().find(c=>c.nome.trim().toLowerCase()===nome.toLowerCase());
+  const sel=lerColecoesChecks(prefixo);
+  if(ja){
+    if(sel.indexOf(ja.id)<0)sel.push(ja.id);
+    renderColecoesChecks(prefixo,sel);
+    const pop=$(prefixo+'ColPop');if(pop)pop.hidden=false;
+    toast('"'+esc(nome)+'" já existia — deixei marcada ✓');return;
+  }
+  const c={id:novoId(),nome};
+  C().colecoes.push(c);salvar();
+  sel.push(c.id);
+  renderColecoesChecks(prefixo,sel);
+  const pop=$(prefixo+'ColPop');if(pop)pop.hidden=false;
+  toast('Coleção "'+esc(nome)+'" criada e marcada ✓');
 }
 function lerColecoesChecks(prefixo){
   const box=$(prefixo+'Colecoes');if(!box)return [];
   return Array.from(box.querySelectorAll('input[type=checkbox]')).filter(c=>c.checked).map(c=>c.value);
+}
+
+/* ---------- vitrine da coleção (frase + banner no catálogo) ----------
+   Fica na coleção e não no produto porque é apresentação do conjunto: trocar
+   a campanha de "Dia das Mães" é mexer num lugar só, não em 40 peças. */
+let colBanner='';
+function abrirColecao(id){
+  const c=id?acha(colecoes(),id):null;
+  $('formColecao').reset();
+  $('colId').value=id||'';
+  $('colNome').value=c?c.nome:'';
+  $('colTexto').value=(c&&c.texto)||'';
+  colBanner=(c&&c.banner)||'';
+  renderBannerColecao();
+  dlgColecao.showModal();
+}
+function renderBannerColecao(){
+  const box=$('colBannerPrev');if(!box)return;
+  box.innerHTML=colBanner?`<img src="${colBanner}" alt="">`:'sem banner — a coleção aparece só com o nome';
+  $('colBannerRm').hidden=!colBanner;
+}
+function addBannerColecao(inp){
+  const f=inp.files[0];inp.value='';if(!f)return;
+  comprimirBanner(f,d=>{
+    toast('Enviando banner...');
+    guardarMidiaOuAvisar(d,'colecoes',u=>{colBanner=u;renderBannerColecao();toast('Banner enviado ✓');});
+  });
+}
+function removerBannerColecao(){colBanner='';renderBannerColecao();}
+/* mais largo que a foto de produto: o banner ocupa a largura inteira da loja */
+function comprimirBanner(f,cb){
+  if(!f)return;
+  if(f.size>8*1024*1024){alert('Imagem muito grande (máx 8MB). Tente uma menor.');return;}
+  const r=new FileReader();
+  r.onload=()=>{const img=new Image();img.onload=()=>{
+    const max=1600,e=Math.min(1,max/Math.max(img.width,img.height));
+    const cv=document.createElement('canvas');cv.width=Math.round(img.width*e);cv.height=Math.round(img.height*e);
+    cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+    cb(cv.toDataURL('image/jpeg',0.84));
+  };img.onerror=()=>cb(r.result);img.src=r.result;};
+  r.readAsDataURL(f);
+}
+function salvarColecao(){
+  const nome=$('colNome').value.trim();
+  if(!nome){toast('Informe o nome da coleção.');return;}
+  const id=$('colId').value;
+  const dupe=colecoes().find(c=>c.id!==id&&c.nome.trim().toLowerCase()===nome.toLowerCase());
+  if(dupe){toast('Já existe uma coleção chamada "'+esc(nome)+'".');return;}
+  const dado={nome,texto:$('colTexto').value.trim(),banner:colBanner};
+  if(id){const c=acha(colecoes(),id);if(c)Object.assign(c,dado);}
+  else C().colecoes.push(Object.assign({id:novoId()},dado));
+  salvar();dlgColecao.close();renderConfig();
+  toast('Coleção salva ✓');
 }
 
 /* ---------- grade de tamanhos (variações) ---------- */
@@ -2007,14 +2380,53 @@ function renderProdutos(){
   </div>
   ${T.nProd===0&&dados.produtos.length?`<div class="painel" style="border-color:var(--laranja)"><b style="color:var(--laranja)">💡 Nenhum produto com saldo em estoque.</b> <span class="mut">Os totais acima só contam produtos com quantidade maior que zero. Clique em "±" em cada produto e informe quantas peças você tem — aí o painel passa a mostrar quanto está investido e quanto vale seu estoque.</span></div>`:''}
   ${neg?`<div class="painel" style="border-color:var(--vermelho)"><b class="neg">⚠️ ${neg} produto(s) com estoque negativo.</b> <span class="mut">Isso acontece quando a venda baixou mais do que havia cadastrado. Ajuste em "±" no produto.</span></div>`:''}
-  <div class="barra">
-    <input placeholder="🔎 nome do produto..." value="${esc(u.busca)}" oninput="ui.p.busca=this.value;renderProdutosTab()" style="flex:1;min-width:150px">
-    <select onchange="ui.p.cat=this.value;renderProdutosTab()"><option value="">Categoria: todas</option>${opcoes(C().categorias,u.cat)}</select>
-    <select onchange="ui.p.status=this.value;renderProdutosTab()"><option value="">Status: todos</option><option value="ativo"${u.status==='ativo'?' selected':''}>À venda</option><option value="esgotado"${u.status==='esgotado'?' selected':''}>Esgotado</option><option value="oculto"${u.status==='oculto'?' selected':''}>Oculto</option></select>
-    <select onchange="ui.p.ord=this.value;renderProdutosTab()"><option value="nome"${u.ord==='nome'?' selected':''}>Ordem: nome</option><option value="vendas"${u.ord==='vendas'?' selected':''}>Mais vendidos</option><option value="estoque"${u.ord==='estoque'?' selected':''}>Menor estoque</option></select>
-  </div><div id="produtosTabela"></div>`;
+  ${barraFiltrosProdutos()}<div id="produtosTabela"></div>`;
   renderProdutosTab();
 }
+/* Filtros da aba Produtos. Duas linhas: a primeira responde "qual peça?",
+   a segunda "em que situação?". A de estoque é a mais pedida — é ela que
+   responde "o que está aparecendo na loja agora". */
+function barraFiltrosProdutos(){
+  const u=ui.p;
+  const op=(v,rot)=>`<option value="${v}"${u.estoque===v?' selected':''}>${rot}</option>`;
+  return `<div class="barra">
+    <input class="busca-larga" placeholder="🔎 nome do produto..." value="${esc(u.busca)}" oninput="ui.p.busca=this.value;renderProdutosTab()" style="flex:1;min-width:150px">
+    <select onchange="ui.p.cat=this.value;renderProdutosTab()"><option value="">Material: todos</option>${opcoes(C().categorias,u.cat)}</select>
+    <select onchange="ui.p.tipo=this.value;renderProdutosTab()"><option value="">Tipo: todos</option>${opcoes(C().tipos,u.tipo)}</select>
+    ${colecoes().length?`<select onchange="ui.p.col=this.value;renderProdutosTab()"><option value="">Coleção: todas</option><option value="__sem"${u.col==='__sem'?' selected':''}>— sem coleção —</option>${opcoes(colecoes(),u.col)}</select>`:''}
+    <select onchange="ui.p.forn=this.value;renderProdutosTab()"><option value="">Fornecedor: todos</option>${opcoes(C().fornecedores,u.forn)}</select>
+  </div>
+  <div class="barra">
+    <select onchange="ui.p.estoque=this.value;renderProdutosTab()" title="a loja mostra só o que tem saldo; quem não controla estoque continua aparecendo">
+      ${op('','Estoque: todos')}${op('naLoja','✅ aparecendo na loja')}${op('foraLoja','🚫 fora da loja')}
+      ${op('comSaldo','com saldo (&gt; 0)')}${op('zerado','zerado ou negativo')}
+      ${op('semControle','sem controle (—)')}${op('baixo','⚠️ estoque baixo')}</select>
+    <select onchange="ui.p.status=this.value;renderProdutosTab()"><option value="">Status: todos</option><option value="ativo"${u.status==='ativo'?' selected':''}>À venda</option><option value="esgotado"${u.status==='esgotado'?' selected':''}>Esgotado</option><option value="oculto"${u.status==='oculto'?' selected':''}>Oculto</option></select>
+    <span class="mut" style="font-size:.8rem">Cadastrado entre</span>
+    <input type="date" value="${u.ini}" onchange="ui.p.ini=this.value;renderProdutosTab()" style="width:150px">
+    <input type="date" value="${u.fim}" onchange="ui.p.fim=this.value;renderProdutosTab()" style="width:150px">
+    <select onchange="ui.p.ord=this.value;renderProdutosTab()">
+      <option value="nome"${u.ord==='nome'?' selected':''}>Ordem: nome</option>
+      <option value="novos"${u.ord==='novos'?' selected':''}>Cadastrados: mais novos</option>
+      <option value="antigos"${u.ord==='antigos'?' selected':''}>Cadastrados: mais antigos</option>
+      <option value="vendas"${u.ord==='vendas'?' selected':''}>Mais vendidos</option>
+      <option value="estoque"${u.ord==='estoque'?' selected':''}>Menor estoque</option>
+      <option value="precoMaior"${u.ord==='precoMaior'?' selected':''}>Preço: maior primeiro</option>
+      <option value="precoMenor"${u.ord==='precoMenor'?' selected':''}>Preço: menor primeiro</option></select>
+    ${filtrosAtivosProdutos()?`<button class="bt mini" onclick="limparFiltrosProdutos()">limpar filtros</button>`:''}
+  </div>`;
+}
+function filtrosAtivosProdutos(){
+  const u=ui.p;
+  return !!(u.busca||u.cat||u.tipo||u.forn||u.col||u.status||u.estoque||u.ini||u.fim||u.ord!=='nome');
+}
+function limparFiltrosProdutos(){
+  Object.assign(ui.p,{busca:'',cat:'',tipo:'',forn:'',col:'',status:'',estoque:'',ini:'',fim:'',ord:'nome'});
+  renderProdutos();
+}
+/* data de cadastro: produtos antigos não tinham o campo, então a migração
+   preencheu com a 1ª movimentação de estoque conhecida */
+function cadastradoEm(p){return p.criadoEm||'';}
 function cabecalhoProdutos(){
   const al=alertasEstoque().length;
   return `<div class="barra"><h2 style="margin:0">Produtos</h2><span class="esp"></span>
@@ -2022,13 +2434,41 @@ function cabecalhoProdutos(){
     <button class="bt primario" onclick="abrirNovoProduto()">+ Novo produto</button></div>`;
 }
 function vendasDoProduto(id){return dados.vendas.reduce((n,v)=>n+v.itens.filter(i=>i.produtoId===id).reduce((s,i)=>s+(+i.qtd||0),0),0);}
+/* saldo comparável entre produto simples e produto com grade */
+function saldoProduto(p){return temGrade(p)?somaGrade(p):(p.estoque==null?null:+p.estoque);}
+function passaEstoque(p,filtro){
+  const s=saldoProduto(p);
+  switch(filtro){
+    case 'naLoja':      return naLoja(p);
+    case 'foraLoja':    return !naLoja(p);
+    case 'comSaldo':    return s!=null&&s>0;
+    case 'zerado':      return s!=null&&s<=0;
+    case 'semControle': return s==null;
+    case 'baixo':       return produtoAvisa(p)&&s!=null&&s<=(+p.minimo||0);
+    default:            return true;
+  }
+}
 function produtosFiltrados(){
   const u=ui.p,q=u.busca.trim().toLowerCase();
-  let ps=dados.produtos.filter(p=>(!q||p.nome.toLowerCase().includes(q))&&(!u.cat||p.catId===u.cat)&&(!u.status||p.status===u.status));
+  let ps=dados.produtos.filter(p=>
+    (!q||p.nome.toLowerCase().includes(q))&&
+    (!u.cat||p.catId===u.cat)&&
+    (!u.tipo||p.tipoId===u.tipo)&&
+    (!u.forn||p.fornId===u.forn)&&
+    (!u.col||(u.col==='__sem'?!((p.colecaoIds||[]).length):produtoNaColecao(p,u.col)))&&
+    (!u.status||p.status===u.status)&&
+    passaEstoque(p,u.estoque)&&
+    (!u.ini||(cadastradoEm(p)&&cadastradoEm(p)>=u.ini))&&
+    (!u.fim||(cadastradoEm(p)&&cadastradoEm(p)<=u.fim)));
   const nvend={};dados.produtos.forEach(p=>nvend[p.id]=vendasDoProduto(p.id));
   if(u.ord==='nome')ps.sort((a,b)=>a.nome.localeCompare(b.nome));
   if(u.ord==='vendas')ps.sort((a,b)=>(nvend[b.id]||0)-(nvend[a.id]||0));
   if(u.ord==='estoque')ps.sort((a,b)=>(a.estoque==null?1e9:a.estoque)-(b.estoque==null?1e9:b.estoque));
+  // sem data conhecida vai pro fim nos dois sentidos: é "não sei", não "é antigo"
+  if(u.ord==='novos')ps.sort((a,b)=>(cadastradoEm(b)||'').localeCompare(cadastradoEm(a)||''));
+  if(u.ord==='antigos')ps.sort((a,b)=>(cadastradoEm(a)||'9999').localeCompare(cadastradoEm(b)||'9999'));
+  if(u.ord==='precoMaior')ps.sort((a,b)=>(+b.preco||0)-(+a.preco||0));
+  if(u.ord==='precoMenor')ps.sort((a,b)=>(+a.preco||0)-(+b.preco||0));
   return ps;
 }
 function renderProdutosTab(){
@@ -2040,25 +2480,29 @@ function renderProdutosTab(){
     const capa=fotoCapa(p);
     const nMid=(p.fotos?p.fotos.length:0)+(p.video?1:0);
     const th=capa?`<img class="thumb" src="${capa}" alt="">${nMid>1?`<span class="mut" style="font-size:.66rem;display:block;text-align:center">${nMid} mídias</span>`:''}`:'<div class="thumb-vazio">📷</div>';
+    /* data-rot: no celular a tabela vira cartão e cada célula precisa dizer
+       de que campo ela é — o cabeçalho da tabela some lá (ver .cartoes) */
     return `<tr>
-      <td><input type="checkbox" ${ui.p.sel[p.id]?'checked':''} onchange="toggleProdSel('${p.id}',this.checked)"></td>
-      <td>${th}</td>
-      <td>${esc(p.nome)}${p.tipoId?` <span class="mut" style="font-size:.76rem">(${esc(tipoNome(p.tipoId))})</span>`:''}${cols.length?`<div style="margin-top:.15rem">${cols.map(n=>`<span class="tag-col">${esc(n)}</span>`).join('')}</div>`:''}${!produtoAvisa(p)?'<div class="mut" style="font-size:.68rem">🔕 sem aviso de estoque</div>':''}</td>
-      <td><span class="bd cat">${esc(catNome(p.catId))}</span></td>
-      <td class="num">${+p.preco>0?fmt(p.preco):'—'}</td>
-      <td class="num">${p.custo!=null?fmt(p.custo):'<span class="mut">—</span>'}</td>
-      <td class="num">${marg!=null?`<span class="${marg>=0?'pos':'neg'}">${pct(marg)}</span>`:'<span class="mut">—</span>'}</td>
-      <td class="num ${al?'alerta-estoque':''}">${p.estoque==null?'<span class="mut">—</span>':fmtN(p.estoque)+(al?' ⚠️':'')}${temGrade(p)?`<div class="grade-mini">${gradeResumo(p)}</div>`:''}</td>
-      <td>${statusBadge(p.status)}</td>
+      <td data-rot=""><input type="checkbox" ${ui.p.sel[p.id]?'checked':''} onchange="toggleProdSel('${p.id}',this.checked)"></td>
+      <td class="capa" data-rot="">${th}</td>
+      <td class="titulo" data-rot="Produto">${esc(p.nome)}${p.tipoId?` <span class="mut" style="font-size:.76rem">(${esc(tipoNome(p.tipoId))})</span>`:''}${cols.length?`<div style="margin-top:.15rem">${cols.map(n=>`<span class="tag-col">${esc(n)}</span>`).join('')}</div>`:''}${!produtoAvisa(p)?'<div class="mut" style="font-size:.68rem">🔕 sem aviso de estoque</div>':''}</td>
+      <td data-rot="Material"><span class="bd cat">${esc(catNome(p.catId))}</span></td>
+      <td class="num" data-rot="Preço">${+p.preco>0?fmt(p.preco):'—'}</td>
+      <td class="num" data-rot="Custo">${p.custo!=null?fmt(p.custo):'<span class="mut">—</span>'}</td>
+      <td class="num" data-rot="Margem">${marg!=null?`<span class="${marg>=0?'pos':'neg'}">${pct(marg)}</span>`:'<span class="mut">—</span>'}</td>
+      <td class="num ${al?'alerta-estoque':''}" data-rot="Estoque">${p.estoque==null?'<span class="mut">—</span>':fmtN(p.estoque)+(al?' ⚠️':'')}${temGrade(p)?`<div class="grade-mini">${gradeResumo(p)}</div>`:''}</td>
+      <td class="num mut" style="font-size:.78rem" data-rot="Cadastro">${cadastradoEm(p)?fmtData(cadastradoEm(p)):'—'}</td>
+      <td data-rot="Status">${statusBadge(p.status)}${naLoja(p)?' <span class="bd ok" title="aparecendo no catálogo agora">🛍️</span>':''}</td>
       <td class="acoes">
         <button class="bt mini" title="Estoque" onclick="abrirMov('${p.id}')">±</button>
         <button class="bt mini" title="Editar" onclick="editarProduto('${p.id}')">✎</button>
         <button class="bt mini perigo" title="Excluir" onclick="excluirProduto('${p.id}')">✕</button>
       </td></tr>`;
   }).join('');
-  $('produtosTabela').innerHTML=`<div class="painel"><div class="rolagem"><table>
-    <tr><th title="marque p/ ver os totais só deles">✓</th><th></th><th>Produto</th><th>Categoria</th><th class="num">Preço</th><th class="num">Custo</th><th class="num">Margem</th><th class="num">Estoque</th><th>Status</th><th></th></tr>
-    ${linhas||'<tr><td colspan="10" class="centro">Nenhum produto encontrado.</td></tr>'}</table></div>
+  $('produtosTabela').innerHTML=`<div class="painel cartoes"><div class="rolagem"><table>
+    <thead><tr><th title="marque p/ ver os totais só deles">✓</th><th></th><th>Produto</th><th>Categoria</th><th class="num">Preço</th><th class="num">Custo</th><th class="num">Margem</th><th class="num">Estoque</th><th class="num">Cadastro</th><th>Status</th><th></th></tr></thead>
+    ${linhas||`<tr><td colspan="11" class="centro">Nenhum produto encontrado.${filtrosAtivosProdutos()?' <button class="bt mini" onclick="limparFiltrosProdutos()">limpar filtros</button>':''}</td></tr>`}</table></div>
+    <div class="mut" style="font-size:.8rem;padding:.3rem .2rem">${ps.length} de ${dados.produtos.length} produto(s)${u.estoque||u.cat||u.tipo||u.forn||u.col||u.status||u.ini||u.fim?' — filtrado':''}</div>
     ${ps.length>u.lim?`<div class="centro"><button class="bt" onclick="ui.p.lim+=300;renderProdutosTab()">Mostrar mais</button></div>`:''}</div>`;
 }
 
@@ -2411,13 +2855,23 @@ function abrirQuickProd(idx){
   $('qpCat').innerHTML=opcoes(C().categorias);
   $('qpTipo').innerHTML='<option value="">—</option>'+opcoes(C().tipos);
   $('qpForn').innerHTML='<option value="">—</option>'+opcoes(C().fornecedores);
-  const it=itensVenda[idx]||{};
-  $('qpNome').value=it.nome||'';$('qpPreco').value=it.preco>0?it.preco:'';
-  $('qpAvisarEstoque').checked=true;
-  renderColecoesChecks('qp',[]);
-  qpFotos=[];renderMidiaQuick();
+  const it=itensVenda[idx]||{},np=it.novoProd;
+  $('qpNome').value=(np&&np.nome)||it.nome||'';
+  $('qpPreco').value=(np&&np.preco>0)?np.preco:(it.preco>0?it.preco:'');
+  if(np){
+    if(np.catId)$('qpCat').value=np.catId;
+    $('qpTipo').value=np.tipoId||'';$('qpForn').value=np.fornId||'';
+    $('qpCusto').value=np.custo!=null?np.custo:'';
+    $('qpEstoque').value=np.estoque!=null?np.estoque:'';
+  }
+  $('qpAvisarEstoque').checked=np?np.avisarEstoque!==false:true;
+  renderColecoesChecks('qp',(np&&np.colecaoIds)||[]);
+  qpFotos=(np&&np.fotos)?np.fotos.slice():[];renderMidiaQuick();
   dlgQuickProd.showModal();
 }
+/* O produto NÃO vai pro estoque aqui — fica preso ao item da venda e só é
+   cadastrado quando a venda é salva, igual ao cliente novo. Antes ele era
+   gravado na hora e sobrava no estoque quando a venda era cancelada. */
 function salvarQuickProd(){
   const nome=$('qpNome').value.trim();if(!nome){toast('Informe o nome.');return;}
   const est=$('qpEstoque').value;
@@ -2425,11 +2879,14 @@ function salvarQuickProd(){
     status:'ativo',preco:r2($('qpPreco').value)||0,custo:$('qpCusto').value===''?null:r2($('qpCusto').value),
     estoque:est===''?null:r2(est),minimo:0,descricao:'',avisarEstoque:$('qpAvisarEstoque').checked,colecaoIds:lerColecoesChecks('qp'),
     fotos:qpFotos.slice(),video:'',variacoes:[]};
-  dados.produtos.push(p);
   const idx=+$('qpIdx').value,it=itensVenda[idx];
-  if(it){it.produtoId=p.id;it.custo=p.custo!=null?+p.custo:0;if(p.preco>0&&!(+it.preco>0))it.preco=+p.preco;}
-  salvar();dlgQuickProd.close();renderItensVenda();renderDatalists();
-  toast('"'+esc(nome)+'" cadastrado no estoque e vinculado ✓');
+  if(it){
+    it.novoProd=p;it.produtoId=null;it.nome=nome;
+    it.custo=p.custo!=null?+p.custo:0;
+    if(p.preco>0&&!(+it.preco>0))it.preco=+p.preco;
+  }
+  dlgQuickProd.close();renderItensVenda();
+  toast('"'+esc(nome)+'" preenchido — entra no estoque quando você salvar a venda');
 }
 
 /* ---------- movimento de estoque ---------- */
@@ -2712,6 +3169,16 @@ function ajustarSomaParcelas(parc,total){const soma=r2(parc.reduce((s,p)=>s+(+p.
 
 /* ---------- dialog de venda ---------- */
 let itensVenda=[],parcelasVenda=[];
+/* Plano ("parcelar o total") a que a venda aberta pertence.
+   Corrigir a DATA de uma venda não pode desmanchar o parcelamento: as parcelas
+   do plano são do cliente inteiro, muitas vezes atravessando várias compras.
+   Enquanto isto está preenchido, a tela de venda não recria as parcelas — ela
+   devolve exatamente as que já existiam. */
+let vendaPlanoAtual=null;
+function planoDaVenda(v){
+  const p=recParcelas(v).find(x=>x.planoId);
+  return p?p.planoId:null;
+}
 function preencherSelectsVenda(){
   $('vLocal').innerHTML='<option value="">—</option>'+opcoes(C().locais);
   $('vForma').innerHTML=opcoes(C().formas);
@@ -2756,6 +3223,7 @@ function abrirNovaVenda(){
   $('dlgVendaTitulo').textContent='Nova venda';$('vId').value='';$('vData').value=hoje();$('vDesconto').value=0;
   $('vAjuste').value=0;$('vAjusteTipo').value='valor';
   itensVenda=[{nome:'',produtoId:null,qtd:1,preco:0,custo:0}];parcelasVenda=[];
+  vendaPlanoAtual=null;pintarPlanoVenda(null);
   $('vDividir').checked=false;$('vParcBox').hidden=true;$('vVencUnicoBox').style.display='';
   $('vVencUnico').value='';$('vNparc').value=2;$('vTaxaManual').value='';acFechar();
   pintarAvisoDia('vData','vDataAviso');pintarAvisoDia('vVencUnico','vVencAviso');
@@ -2780,7 +3248,8 @@ function editarVenda(id){
   const parc=recParcelas(v);
   parcelasVenda=parc.map(p=>Object.assign({},p));
   $('vObsFiado').value=(v.receber&&v.receber.obs)||'';
-  const dividido=parc.length>1;
+  vendaPlanoAtual=planoDaVenda(v);
+  const dividido=!vendaPlanoAtual&&parc.length>1;
   $('vDividir').checked=dividido;
   $('vVencUnico').value=dividido?'':((parc[0]||{}).venc||'');
   $('vNparc').value=dividido?parc.length:2;acFechar();
@@ -2788,8 +3257,21 @@ function editarVenda(id){
   $('vFiadoBox').hidden=!formaAtualFiado();
   $('vParcBox').hidden=!dividido;$('vVencUnicoBox').style.display=dividido?'none':'';
   if(dividido)renderParcelasVenda();
+  pintarPlanoVenda(vendaPlanoAtual?v:null);
   pintarAvisoDia('vData','vDataAviso');pintarAvisoDia('vVencUnico','vVencAviso');
   recalcVenda();dlgVenda.showModal();
+}
+/* mostra (sem deixar editar) as parcelas herdadas do parcelamento do total */
+function pintarPlanoVenda(v){
+  const box=$('vPlanoBox');if(!box)return;
+  if(!v){box.hidden=true;$('vParcControles').hidden=false;return;}
+  box.hidden=false;$('vParcControles').hidden=true;
+  const parc=recParcelas(v),info=infoPlano(planoDaVenda(v))||{};
+  $('vPlanoResumo').textContent=(info.clienteNome||v.clienteNome||'')
+    +(info.criadoEm?' — parcelado em '+fmtData(info.criadoEm):'')
+    +(info.n?' em '+info.n+'x':'');
+  $('vPlanoParcelas').innerHTML=parc.map((p,i)=>
+    `<span class="${parcPago(p)?'paga':''}">${i+1}ª ${fmt(p.valor)}${p.venc?' · '+fmtData(p.venc):''}${parcPago(p)?' ✓':''}</span>`).join('');
 }
 function itemAcoesHTML(i){
   const it=itensVenda[i];
@@ -2798,7 +3280,10 @@ function itemAcoesHTML(i){
     s+='<span class="linkok" title="vinculado ao estoque">✓</span> ';
     s+=`<button type="button" class="bt mini" title="editar este produto no estoque (custo, preço, estoque...)" onclick="editarProdutoDaVenda(${i})">✎</button> `;
   } else if(it.nome.trim()){
-    s+=`<button type="button" class="bt mini" title="cadastrar no estoque" onclick="abrirQuickProd(${i})">＋ estoque</button> `;
+    /* opcional: o produto entra no estoque sozinho ao salvar a venda (igual ao
+       cliente novo). Este botão só serve pra quem quer informar custo, foto ou
+       quantidade AGORA, antes de fechar a venda. */
+    s+=`<button type="button" class="bt mini${it.novoProd?' verde':''}" title="opcional — informar já o custo, o estoque e a foto (sem isso, ele entra no estoque ao salvar a venda, com o nome e o preço digitados)" onclick="abrirQuickProd(${i})">${it.novoProd?'✓ detalhado':'✎ detalhar'}</button> `;
   }
   s+=`<select class="st-item" title="situação do item — defeito/devolvido não são cobrados do cliente" onchange="itemVenda(${i},'status',this.value)">
       <option value="ok"${(it.status||'ok')==='ok'?' selected':''}>✓ ok</option>
@@ -2886,9 +3371,16 @@ function gradeSelHTML(i){
   const it=itensVenda[i];if(!it.produtoId)return '';const p=prodPorId(it.produtoId);if(!temGrade(p))return '';
   return `<select class="grade-sel" onchange="itemVenda(${i},'variacao',this.value)">${p.variacoes.map(v=>`<option value="${v.id}" ${v.id===it.variacaoId?'selected':''}>Tam ${esc(v.rotulo)} (${fmtN(v.estoque)})</option>`).join('')}</select>`;
 }
+/* produto que ainda não existe no estoque: o texto é o mesmo do cliente novo,
+   porque o comportamento passou a ser o mesmo — só entra ao salvar a venda */
+function dicaItemNovo(it){
+  return it.novoProd
+    ? '<span class="linknovo">＋ novo produto (detalhado) — será cadastrado ao salvar</span>'
+    : '<span class="linknovo">＋ novo produto — será cadastrado ao salvar</span>';
+}
 function renderItensVenda(){
   $('vItensBody').innerHTML=itensVenda.map((it,i)=>`<tr>
-    <td><input value="${esc(it.nome)}" placeholder="produto" autocomplete="off" oninput="itemVenda(${i},'nome',this.value);acAbrir(${i},this)" onfocus="acAbrir(${i},this)" onkeydown="acTeclas(event,${i},this)" onblur="acBlur()">${it.produtoId?'':(it.nome.trim()?'<span class="linknovo">produto novo — clique em ＋ estoque</span>':'')}${gradeSelHTML(i)}</td>
+    <td><input value="${esc(it.nome)}" placeholder="produto" autocomplete="off" oninput="itemVenda(${i},'nome',this.value);acAbrir(${i},this)" onfocus="acAbrir(${i},this)" onkeydown="acTeclas(event,${i},this)" onblur="acBlur()">${it.produtoId?'':(it.nome.trim()?dicaItemNovo(it):'')}${gradeSelHTML(i)}</td>
     <td><input class="qtd" type="number" min="0" step="any" value="${it.qtd}" oninput="itemVenda(${i},'qtd',this.value)"></td>
     <td><input class="prc" type="number" min="0" step="0.01" value="${it.preco}" oninput="itemVenda(${i},'preco',this.value)"></td>
     <td class="num">${itemCobra(it)?fmt((+it.qtd||0)*(+it.preco||0)):'<span class="riscado">'+fmt((+it.qtd||0)*(+it.preco||0))+'</span><div class="st-aviso">'+esc(ROT_STATUS[it.status]||'')+'</div>'}</td>
@@ -2903,12 +3395,14 @@ function itemVenda(i,campo,val){
     // só vincula sozinho se houver UM produto com esse nome (nomes repetidos exigem escolher na lista)
     const iguais=dados.produtos.filter(x=>x.nome.toLowerCase()===val.trim().toLowerCase());
     const p=iguais.length===1?iguais[0]:null;
-    if(p){it.produtoId=p.id;it.custo=p.custo!=null?+p.custo:0;if(!(+it.preco>0)&&+p.preco>0){it.preco=+p.preco;if(row)row.querySelector('.prc').value=it.preco;}}
+    if(p){it.produtoId=p.id;it.novoProd=null;it.custo=p.custo!=null?+p.custo:0;if(!(+it.preco>0)&&+p.preco>0){it.preco=+p.preco;if(row)row.querySelector('.prc').value=it.preco;}}
     else it.produtoId=null;
+    // o rascunho do "✎ detalhar" só vale enquanto o nome continuar o mesmo
+    if(it.novoProd&&it.novoProd.nome.trim().toLowerCase()!==val.trim().toLowerCase())it.novoProd=null;
     if(row){const cell=row.children[0];
       row.children[3].textContent=fmt((+it.qtd||0)*(+it.preco||0));row.children[4].innerHTML=itemAcoesHTML(i);
       const hint=cell.querySelector('.linknovo');if(hint)hint.remove();
-      if(!it.produtoId&&it.nome.trim())cell.insertAdjacentHTML('beforeend','<span class="linknovo">produto novo — clique em ＋ estoque</span>');
+      if(!it.produtoId&&it.nome.trim())cell.insertAdjacentHTML('beforeend',dicaItemNovo(it));
       // grade: injeta/remove seletor de tamanho
       const pg=it.produtoId?prodPorId(it.produtoId):null,sel=cell.querySelector('.grade-sel');
       if(pg&&temGrade(pg)){if(!it.variacaoId||!pg.variacoes.find(x=>x.id===it.variacaoId))it.variacaoId=(pg.variacoes[0]||{}).id||'';const h=gradeSelHTML(i);if(sel)sel.outerHTML=h;else cell.insertAdjacentHTML('beforeend',h);}
@@ -3226,6 +3720,10 @@ function salvarVenda(){
   const criados=[];
   for(const it of itensVenda){
     if(it.produtoId&&prodPorId(it.produtoId))continue;
+    /* rascunho vindo do "✎ detalhar": vira produto de verdade só agora */
+    if(it.novoProd&&it.novoProd.nome.trim().toLowerCase()===it.nome.trim().toLowerCase()){
+      const np=it.novoProd;dados.produtos.push(np);it.produtoId=np.id;it.novoProd=null;criados.push(np.nome);continue;
+    }
     const iguais=dados.produtos.filter(x=>x.nome.trim().toLowerCase()===it.nome.trim().toLowerCase());
     if(iguais.length>1){
       toast('Existem '+iguais.length+' produtos chamados "'+esc(it.nome.trim())+'" (categorias diferentes). Clique no campo e escolha na lista qual é.');
@@ -3254,8 +3752,33 @@ function salvarVenda(){
     total,custoTotal:r2(itensVenda.filter(i=>!itemVoltaEstoque(i)).reduce((s,i)=>s+(+i.qtd||0)*(+i.custo||0),0)),
     custoInsumos:custoInsumosDaVenda(itensVenda),taxaValor:0,obs:$('vObs').value.trim()};
   if(!dv.data){toast('Informe a data.');return;}
+  const id=$('vId').value;
   let receber=null;
-  if(forma.ehFiado){
+  /* Venda dentro de um parcelamento do total: as parcelas voltam INTACTAS.
+     Sem isto, salvar a venda só para trocar a data recriava as parcelas do
+     zero e o parcelamento se desfazia sozinho — foi o bug relatado. */
+  const vAntes=id?vendaPorId(id):null;
+  const noPlano=!!(vAntes&&forma.ehFiado&&vendaPlanoAtual&&planoDaVenda(vAntes)===vendaPlanoAtual);
+  if(vAntes&&vendaPlanoAtual&&!forma.ehFiado&&
+     !confirm('Esta venda faz parte de um parcelamento do total.\n\nTrocar a forma de pagamento para "'+forma.nome+'" tira a venda do parcelamento e as parcelas dela somem.\n\nContinuar?'))return;
+  if(forma.ehFiado&&noPlano){
+    const mant=recParcelas(vAntes).map(p=>Object.assign({},p));
+    // o total pode ter mudado (item com defeito, desconto...): a diferença vai
+    // para a última parcela ainda em aberto, sem mexer no que já foi quitado
+    const dif=r2(total-r2(mant.reduce((s,p)=>s+(+p.valor||0),0)));
+    if(Math.abs(dif)>=0.01){
+      const abertas=mant.filter(p=>!parcTocada(p));
+      if(abertas.length){
+        const ult=abertas[abertas.length-1];
+        ult.valor=r2(Math.max(0,(+ult.valor||0)+dif));
+        sincParc(ult);
+        const inf=infoPlano(vendaPlanoAtual);
+        if(inf)inf.total=r2((+inf.total||0)+dif);
+      }
+    }
+    receber={parcelas:mant,obs:$('vObsFiado').value.trim()};
+  }
+  else if(forma.ehFiado){
     let parc;
     if($('vDividir').checked&&parcelasVenda.length>1)
       parc=parcelasVenda.map(p=>({id:p.id||novoId(),valor:r2(p.valor),venc:p.venc||'',recebido:0,desconto:0,pago:false,pagoEm:null,formaRecebId:null,lancId:null}));
@@ -3264,7 +3787,6 @@ function salvarVenda(){
     ajustarSomaParcelas(parc,total);parc.forEach(sincParc);
     receber={parcelas:parc,obs:$('vObsFiado').value.trim()};
   }
-  const id=$('vId').value;
   if(id){
     const v=vendaPorId(id);if(!v)return;
     const totalAntigo=r2(v.total),tinhaLanc=!!v.lancId;
@@ -3334,7 +3856,7 @@ function renderVendas(){
       <option value="tudo"${u.per==='tudo'?' selected':''}>Tudo</option>
       <option value="custom"${u.per==='custom'?' selected':''}>Período…</option></select>
     <span ${u.per==='custom'?'':'hidden'}><input type="date" value="${u.ini}" onchange="ui.v.ini=this.value;renderVendasTab()"><input type="date" value="${u.fim}" onchange="ui.v.fim=this.value;renderVendasTab()"></span>
-    <input placeholder="🔎 cliente ou produto..." value="${esc(u.busca)}" oninput="ui.v.busca=this.value;renderVendasTab()" style="flex:1;min-width:140px">
+    <input class="busca-larga" placeholder="🔎 cliente ou produto..." value="${esc(u.busca)}" oninput="ui.v.busca=this.value;renderVendasTab()" style="flex:1;min-width:140px">
   </div>
   <div class="barra">
     <span class="mut" style="font-size:.8rem">Filtrar pelas peças vendidas:</span>
@@ -3414,17 +3936,18 @@ function vendasFiltradas(){
 }
 function renderVendasTab(){
   const vs=vendasFiltradas(),tot=r2(vs.reduce((s,v)=>s+(+v.total||0),0));
+  // data-rot alimenta o layout de cartão do celular (ver .cartoes no CSS)
   const linhas=vs.slice(0,ui.v.lim).map(v=>`<tr>
-    <td>${fmtData(v.data)}</td>
-    <td>${esc(v.clienteNome)||'<span class="mut">—</span>'}${v.localId?`<div class="mut" style="font-size:.72rem">📍${esc(localNome(v.localId))}</div>`:''}</td>
-    <td>${esc(resumoItens(v))}${v.desconto>0?` <span class="mut" style="font-size:.72rem">(desc. ${fmt(v.desconto)})</span>`:''}${v.ajuste?` <span class="mut" style="font-size:.72rem">(${v.ajuste>0?'+':'−'}${fmt(Math.abs(v.ajuste))} ajuste)</span>`:''}${v.obs?`<div class="mut" style="font-size:.74rem">${esc(v.obs)}</div>`:''}</td>
-    <td class="num"><b>${fmt(v.total)}</b></td>
-    <td>${statusVendaBadge(v)}</td>
+    <td class="titulo" data-rot="Cliente">${esc(v.clienteNome)||'<span class="mut">sem cliente</span>'}${v.localId?`<div class="mut" style="font-size:.72rem">📍${esc(localNome(v.localId))}</div>`:''}</td>
+    <td data-rot="Data">${fmtData(v.data)}</td>
+    <td data-rot="Itens">${esc(resumoItens(v))}${v.desconto>0?` <span class="mut" style="font-size:.72rem">(desc. ${fmt(v.desconto)})</span>`:''}${v.ajuste?` <span class="mut" style="font-size:.72rem">(${v.ajuste>0?'+':'−'}${fmt(Math.abs(v.ajuste))} ajuste)</span>`:''}${v.obs?`<div class="mut" style="font-size:.74rem">${esc(v.obs)}</div>`:''}</td>
+    <td class="num" data-rot="Valor"><b>${fmt(v.total)}</b></td>
+    <td data-rot="Situação">${statusVendaBadge(v)}</td>
     <td class="acoes"><button class="bt mini" onclick="editarVenda('${v.id}')">✎</button><button class="bt mini perigo" onclick="excluirVenda('${v.id}')">✕</button></td>
   </tr>`).join('');
   const totFiltro=totalItensFiltrados(vs);
-  $('vendasTabela').innerHTML=`<div class="painel"><div class="barra" style="margin-bottom:.4rem"><b>${vs.length}</b>&nbsp;venda(s) — total&nbsp;<b class="pos">${fmt(tot)}</b>${totFiltro!=null?`<span class="mut" style="font-size:.82rem">· só as peças do filtro:&nbsp;<b class="pos">${fmt(totFiltro)}</b></span>`:''}</div>
-    <div class="rolagem"><table><tr><th>Data</th><th>Cliente</th><th>Itens</th><th class="num">Valor</th><th>Situação</th><th></th></tr>
+  $('vendasTabela').innerHTML=`<div class="painel cartoes"><div class="barra" style="margin-bottom:.4rem"><b>${vs.length}</b>&nbsp;venda(s) — total&nbsp;<b class="pos">${fmt(tot)}</b>${totFiltro!=null?`<span class="mut" style="font-size:.82rem">· só as peças do filtro:&nbsp;<b class="pos">${fmt(totFiltro)}</b></span>`:''}</div>
+    <div class="rolagem"><table><thead><tr><th>Cliente</th><th>Data</th><th>Itens</th><th class="num">Valor</th><th>Situação</th><th></th></tr></thead>
     ${linhas||'<tr><td colspan="6" class="centro">Nenhuma venda.</td></tr>'}</table></div>
     ${vs.length>ui.v.lim?`<div class="centro"><button class="bt" onclick="ui.v.lim+=300;renderVendasTab()">Mostrar mais</button></div>`:''}</div>`;
 }
@@ -3449,8 +3972,135 @@ function localDaVenda(v){
   return c?c.localId:null;
 }
 function somaGrupoFiado(itens){return r2(itens.reduce((s,v)=>s+recAberto(v),0));}
+/* ============================================================
+   AVISO DE COBRANÇA
+   O painel não consegue mandar e-mail sozinho (isso precisa de servidor),
+   mas consegue não deixar passar: ao abrir, ele já diz o que venceu e o que
+   vence hoje, e monta o resumo pronto pra mandar no seu próprio WhatsApp.
+   ============================================================ */
+function cfgAvisos(){
+  const c=C();
+  if(!c.avisos)c.avisos={diasAntes:1,notificar:false,ultimoAviso:''};
+  return c.avisos;
+}
+/* toda parcela em aberto com vencimento até hoje+dias, mais antiga primeiro */
+function parcelasACobrar(dias){
+  const lim=isoAddDias(hoje(),dias==null?(+cfgAvisos().diasAntes||0):dias);
+  const out=[];
+  fiadosPendentes().forEach(v=>{
+    recParcelas(v).forEach(p=>{
+      if(parcPago(p)||!p.venc||p.venc>lim)return;
+      out.push({v,p,venc:p.venc,valor:parcAberto(p),
+        cliente:v.clienteNome||'(sem nome)',
+        atraso:p.venc<hoje()?diasEntre(p.venc,hoje()):0});
+    });
+  });
+  return out.sort((a,b)=>a.venc.localeCompare(b.venc));
+}
+function resumoCobranca(){
+  const lista=parcelasACobrar();
+  const h=hoje();
+  const vencidas=lista.filter(x=>x.venc<h),hj=lista.filter(x=>x.venc===h),proximas=lista.filter(x=>x.venc>h);
+  return {lista,vencidas,hj,proximas,
+    total:r2(lista.reduce((s,x)=>s+x.valor,0)),
+    totalVencido:r2(vencidas.reduce((s,x)=>s+x.valor,0))};
+}
+/* uma vez por dia: reaparecer a cada troca de aba viraria ruído e a pessoa
+   passaria a ignorar justamente o aviso que importa */
+function avisoCobranca(){
+  const el=$('avisoCobranca');if(!el)return;
+  const r=resumoCobranca();
+  if(!r.lista.length||cfgAvisos().ultimoAviso===hoje()){el.hidden=true;return;}
+  const partes=[];
+  if(r.vencidas.length)partes.push(r.vencidas.length+' vencida(s) — '+fmt(r.totalVencido));
+  if(r.hj.length)partes.push(r.hj.length+' vence(m) hoje');
+  if(r.proximas.length)partes.push(r.proximas.length+' vence(m) em breve');
+  $('avisoCobrancaTitulo').textContent=r.vencidas.length?'Você tem fiado vencido.':'Tem fiado pra cobrar.';
+  $('avisoCobrancaTexto').textContent=partes.join(' · ')+' — total '+fmt(r.total)+'.';
+  el.hidden=false;
+  notificarCobranca(r);
+}
+function dispensarAvisoCobranca(){
+  cfgAvisos().ultimoAviso=hoje();salvar();
+  $('avisoCobranca').hidden=true;
+}
+/* notificação do sistema: só depois de a pessoa autorizar, e só uma vez por
+   dia (o mesmo carimbo do aviso da tarja) */
+function notificarCobranca(r){
+  if(!cfgAvisos().notificar)return;
+  if(typeof Notification==='undefined'||Notification.permission!=='granted')return;
+  if(notificarCobranca._dia===hoje())return;
+  notificarCobranca._dia=hoje();
+  try{
+    new Notification((C().loja.nome||'Caderneta')+' — cobrança',
+      {body:(r.vencidas.length?r.vencidas.length+' fiado(s) vencido(s). ':'')
+        +(r.hj.length?r.hj.length+' vence(m) hoje. ':'')+'Total '+fmt(r.total)+'.'});
+  }catch(e){}
+}
+function pedirNotificacoes(){
+  if(typeof Notification==='undefined'){alert('Este navegador não tem notificações.');return;}
+  Notification.requestPermission().then(p=>{
+    cfgAvisos().notificar=(p==='granted');salvar();renderConfig();
+    toast(p==='granted'?'Avisos ligados ✓':'O navegador não deixou. Autorize as notificações deste site nas configurações dele.');
+  });
+}
+function desligarNotificacoes(){cfgAvisos().notificar=false;salvar();renderConfig();toast('Avisos desligados');}
+/* Resumo pronto pro SEU WhatsApp (não o do cliente): abre a conversa consigo
+   mesmo com a lista do dia, e você repassa de lá se quiser. */
+function textoResumoCobranca(){
+  const r=resumoCobranca();
+  if(!r.lista.length)return '';
+  const l=['*Cobranças de '+fmtData(hoje())+'*',''];
+  const bloco=(tit,arr)=>{
+    if(!arr.length)return;
+    l.push(tit);
+    arr.forEach(x=>l.push('• '+x.cliente+' — '+fmt(x.valor)+' ('+fmtData(x.venc)+
+      (x.atraso>0?', '+x.atraso+' dia(s) de atraso':'')+')'));
+    l.push('');
+  };
+  bloco('*Vencidas*',r.vencidas);
+  bloco('*Vencem hoje*',r.hj);
+  bloco('*Próximas*',r.proximas);
+  l.push('Total: '+fmt(r.total));
+  return l.join('\n');
+}
+function mandarResumoCobranca(){
+  const txt=textoResumoCobranca();
+  if(!txt){toast('Nada a cobrar por enquanto 🎉');return;}
+  const meu=(C().loja.whatsapp||'').replace(/\D/g,'');
+  if(!meu){
+    alert('Cadastre o seu WhatsApp em Configurações → Geral / Loja para receber o resumo.');
+    return;
+  }
+  window.open('https://wa.me/'+meu+'?text='+encodeURIComponent(txt),'_blank');
+  dispensarAvisoCobranca();
+}
+/* bloco no topo da aba Fiado: o que cobrar hoje, com o botão de cada cliente */
+function painelCobrancas(){
+  const r=resumoCobranca();
+  if(!r.lista.length)return '';
+  const linha=x=>{
+    const c=dados.clientes.find(y=>y.nome===x.cliente),tel=c?(c.tel||'').replace(/\D/g,''):'';
+    const atraso=x.atraso>0?`<span class="bd fiadoV">${x.atraso} dia(s) de atraso</span>`
+      :(x.venc===hoje()?'<span class="bd fiadoP">vence hoje</span>':`<span class="mut qdo">${fmtData(x.venc)}</span>`);
+    return `<div class="cob-linha"><span class="nm">${esc(x.cliente)}</span>${atraso}
+      <b class="neg">${fmt(x.valor)}</b>
+      ${tel?`<a class="bt mini" href="https://wa.me/${tel}" target="_blank">📱</a>`:''}</div>`;
+  };
+  return `<div class="painel" style="border-color:${r.vencidas.length?'var(--vermelho)':'var(--ouro)'}">
+    <h3 style="margin-top:0">🔔 Cobranças ${r.vencidas.length?'<span class="bd fiadoV">'+r.vencidas.length+' vencida(s)</span>':''}</h3>
+    <div class="cob-lista">${r.lista.slice(0,12).map(linha).join('')}</div>
+    ${r.lista.length>12?`<p class="mut" style="font-size:.8rem;margin-top:.4rem">e mais ${r.lista.length-12}…</p>`:''}
+    <div class="barra" style="margin:.7rem 0 0">
+      <b>Total a cobrar: <span class="neg">${fmt(r.total)}</span></b><span class="esp"></span>
+      <button class="bt mini" onclick="mandarResumoCobranca()">📱 mandar resumo no meu WhatsApp</button>
+    </div>
+    <p class="mut" style="font-size:.76rem;margin-top:.4rem">Aparece o que vence até ${cfgAvisos().diasAntes>0?`daqui a ${cfgAvisos().diasAntes} dia(s)`:'hoje'} — ajuste em Configurações → Geral.</p>
+  </div>`;
+}
+
 function renderFiado(){
-  $('tab-fiado').innerHTML=cabFiado()+`<div id="fiadoCorpo"></div>`;
+  $('tab-fiado').innerHTML=cabFiado()+painelCobrancas()+`<div id="fiadoCorpo"></div>`;
   renderFiadoCorpo();
 }
 function cabFiado(){
@@ -4329,7 +4979,14 @@ function painelContas(){
 function abrirAjusteSaldo(contaId){
   const c=acha(C().contas,contaId);if(!c)return;
   const atual=saldoConta(c.id,hoje());
-  const txt=prompt('Quanto tem HOJE em "'+c.nome+'"?\n\nO sistema calculou '+fmt(atual)+'.\nDigite o valor real que está lá — a diferença entra como ajuste (não conta como lucro nem despesa).',
+  /* Conta de aplicação rende sozinha: o ajuste ali é só acertar o saldo com o
+     extrato, não é dinheiro entrando no negócio. Por isso ele fica de fora do
+     DRE (grupo ajuste_saldo, dre:false) E do Fluxo de Caixa (que só soma conta
+     do tipo caixa/banco). Dizer isso no próprio aviso evita a dúvida. */
+  const aplic=c.tipo==='aplicacao';
+  const txt=prompt('Quanto tem HOJE em "'+c.nome+'"?\n\nO sistema calculou '+fmt(atual)+'.\n'
+    +'Digite o valor real que está lá — a diferença entra como ajuste (não conta como lucro nem despesa).'
+    +(aplic?'\n\nComo esta é uma conta de dinheiro guardado, o ajuste também NÃO entra no Fluxo de Caixa: ele só acerta o valor guardado (rendimento). Pode ajustar quantas vezes quiser.':''),
     String(atual).replace('.',','));
   if(txt==null)return;
   const real=parseFloat(String(txt).replace(/\s/g,'').replace('.','').replace(',','.'));
@@ -4927,6 +5584,7 @@ function iniciar(){
   $('formLanc').onsubmit=e=>{e.preventDefault();salvarLanc();};
   $('formCliente').onsubmit=e=>{e.preventDefault();salvarCliente();};
   $('formQuickProd').onsubmit=e=>{e.preventDefault();salvarQuickProd();};
+  $('formColecao').onsubmit=e=>{e.preventDefault();salvarColecao();};
   $('formFiadoEdit').onsubmit=e=>{e.preventDefault();salvarFiadoEdit();};
   $('formFechar').onsubmit=e=>{e.preventDefault();salvarFechamento();};
   $('formPlano').onsubmit=e=>{e.preventDefault();salvarPlano();};
@@ -5040,17 +5698,25 @@ function catalogoLoja(embutir){
        Só as que ainda estão guardadas no navegador viram arquivo em fotos/. */
     const fotos=(p.fotos||[]).map((f,i)=>
       (typeof ehEnderecoNuvem==='function'&&ehEnderecoNuvem(f))?f:(embutir?f:('fotos/'+p.id+'_'+i+'.jpg')));
+    /* o vídeo seguia o mesmo caminho das fotos no cadastro, mas nunca chegava a
+       ser copiado pra cá — por isso ele não aparecia na loja */
+    const video=p.video
+      ?((typeof ehEnderecoNuvem==='function'&&ehEnderecoNuvem(p.video))?p.video:(embutir?p.video:('videos/'+p.id+'.mp4')))
+      :'';
     const variacoes=temGrade(p)?(p.variacoes||[]).filter(v=>+v.estoque>0).map(v=>v.rotulo):[];
     return {id:p.id,nome:p.nome,cat:nomeDe(cfg.categorias,p.catId,''),tipo:p.tipoId?nomeDe(cfg.tipos,p.tipoId,''):'',
       cols:colecoesDoProduto(p),
-      preco:p.preco,esgotado:esgotado,descricao:p.descricao||'',fotos:fotos,variacoes:variacoes};
+      preco:p.preco,esgotado:esgotado,descricao:p.descricao||'',fotos:fotos,video:video,variacoes:variacoes};
   });
   const cats=[...new Set(prods.map(p=>p.cat).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  // tipo da peça (Anel, Colar, Bracelete...): vira a 2ª fileira de filtros
+  const tps=[...new Set(prods.map(p=>p.tipo).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
   // só coleções que têm produto visível — não faz sentido mostrar filtro que dá lista vazia
   const usadas={};prods.forEach(p=>p.cols.forEach(c=>{usadas[c]=(usadas[c]||0)+1;}));
-  const cols=(cfg.colecoes||[]).map(c=>c.nome).filter(n=>usadas[n]).map(n=>({nome:n,n:usadas[n]}));
+  const cols=(cfg.colecoes||[]).filter(c=>usadas[c.nome])
+    .map(c=>({nome:c.nome,n:usadas[c.nome],texto:c.texto||'',banner:c.banner||''}));
   return {loja:{nome:cfg.loja.nome||'Loja',logo:cfg.loja.logo||'',whatsapp:cfg.loja.whatsapp||'',pix:cfg.loja.pix||'',tema:temaAtual()},
-    categorias:cats,colecoes:cols,produtos:prods,geradoEm:new Date().toISOString()};
+    categorias:cats,tipos:tps,colecoes:cols,produtos:prods,geradoEm:new Date().toISOString()};
 }
 
 /* ---- o site em si: HTML+CSS+JS autocontido, sem dependências externas ----
@@ -5103,9 +5769,27 @@ a{color:inherit}
 /* o material escolhido fica preenchido, não só contornado: some a dúvida de
    qual filtro está valendo */
 .chips button.ativo{background:var(--acento);border-color:var(--acento);color:#1a1206;font-weight:700}
+/* 2ª fileira: o tipo da peça (Anel, Colar, Bracelete...). Fica visualmente
+   subordinada ao material — letra menor e contorno mais discreto — pra não
+   competir com o menu principal. */
+.chips.tipos{padding-top:0;padding-bottom:.6rem}
+.chips.tipos button{padding:.3rem .85rem;font-size:.78rem;background:transparent;color:var(--texto3)}
+.chips.tipos button:hover{color:var(--texto2);border-color:var(--texto3)}
+.chips.tipos button.ativo{background:var(--painel3);border-color:var(--acento);color:var(--acento2);font-weight:600}
+/* faixa de apresentação da coleção escolhida */
+.col-banner{max-width:1400px;margin:0 auto;padding:0 1rem}
+.col-banner .faixa{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--borda);background:var(--painel)}
+.col-banner img{width:100%;height:auto;aspect-ratio:3/1;object-fit:cover;display:block}
+.col-banner .legenda{position:absolute;left:0;right:0;bottom:0;padding:1rem 1.2rem;
+  background:linear-gradient(180deg,transparent,rgba(0,0,0,.78))}
+.col-banner.sem-foto .faixa{background:linear-gradient(120deg,var(--painel2),var(--painel))}
+.col-banner.sem-foto .legenda{position:static;background:none;padding:1rem 1.2rem}
+.col-banner h2{margin:0;font-size:1.35rem;color:var(--acento2);letter-spacing:.3px}
+.col-banner p{margin:.2rem 0 0;font-size:.9rem;color:var(--texto2)}
+@media(max-width:699px){.col-banner{padding:0 .8rem}.col-banner h2{font-size:1.1rem}.col-banner p{font-size:.82rem}}
 /* ---- corpo: coleções na lateral ESQUERDA + grade de produtos ---- */
 .corpo-loja{display:flex;gap:1.2rem;max-width:1400px;margin:0 auto;padding:1rem 1rem 6rem;align-items:flex-start}
-.lateral{flex:none;width:190px;position:sticky;top:118px}
+.lateral{flex:none;width:190px;position:sticky;top:152px}
 .lateral h2{font-size:.76rem;text-transform:uppercase;letter-spacing:1px;color:var(--texto3);margin:0 0 .6rem;font-weight:600}
 .lateral button{display:flex;justify-content:space-between;align-items:center;gap:.4rem;width:100%;text-align:left;background:none;border:none;border-left:2px solid transparent;color:var(--texto2);padding:.45rem .6rem;font-size:.88rem;cursor:pointer;border-radius:0 6px 6px 0}
 .lateral button:hover{background:var(--painel);color:var(--texto)}
@@ -5145,6 +5829,9 @@ a{color:inherit}
 @media (hover:hover){.prodcard:hover .foto .previa{opacity:1}}
 .prodcard .semfoto{font-size:2rem;opacity:.3}
 .ribbon{position:absolute;top:.5rem;left:0;background:var(--vermelho);color:#fff;font-size:.68rem;padding:.15rem .6rem;border-radius:0 6px 6px 0;z-index:2}
+/* peça com vídeo: quem vê a marca abre o produto pra assistir */
+.selo-video{position:absolute;top:.5rem;right:.5rem;background:rgba(0,0,0,.65);color:#fff;
+  font-size:.66rem;padding:.15rem .45rem;border-radius:20px;z-index:2;letter-spacing:.3px}
 .prodcard .info{padding:.85rem .9rem 1rem}
 .prodcard .nome{font-size:.92rem;font-weight:600;line-height:1.35;margin-bottom:.25rem}
 .prodcard .cat{font-size:.7rem;color:var(--texto2);text-transform:uppercase;letter-spacing:.7px}
@@ -5158,8 +5845,10 @@ a{color:inherit}
 @media(min-width:640px){.modal{border-radius:16px}}
 .modal .fechar{position:sticky;top:.5rem;float:right;margin-right:.5rem;background:rgba(0,0,0,.5);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:1.1rem;cursor:pointer;z-index:5}
 .carrossel{width:100%;aspect-ratio:1/1;background:#000;position:relative;overflow:hidden;cursor:pointer}
-.carrossel img{width:100%;height:100%;object-fit:contain;position:absolute;inset:0;opacity:0;transition:opacity .2s}
-.carrossel img.show{opacity:1}
+.carrossel img,.carrossel video{width:100%;height:100%;object-fit:contain;position:absolute;inset:0;opacity:0;transition:opacity .2s;pointer-events:none}
+.carrossel img.show,.carrossel video.show{opacity:1}
+/* só o quadro visível recebe clique; o vídeo precisa dele pra tocar */
+.carrossel video.show{pointer-events:auto;background:#000}
 /* setas de navegação — sobre a foto, sempre legíveis porque a joia pode ser
    clara ou escura; por isso o fundo escuro fixo em vez de transparente */
 .carrossel .seta{position:absolute;top:50%;transform:translateY(-50%);z-index:3;
@@ -5169,9 +5858,13 @@ a{color:inherit}
 .carrossel .seta:hover{background:rgba(0,0,0,.85)}
 .carrossel .seta.ant{left:.4rem}
 .carrossel .seta.prox{right:.4rem}
-.dots{display:flex;gap:.3rem;justify-content:center;padding:.5rem}
-.dots span{width:6px;height:6px;border-radius:50%;background:var(--borda);cursor:pointer}
+.dots{display:flex;gap:.35rem;justify-content:center;align-items:center;padding:.5rem}
+.dots span{width:7px;height:7px;border-radius:50%;background:var(--borda);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:.5rem;color:var(--bg);line-height:1}
 .dots span.on{background:var(--acento)}
+/* o quadro do vídeo é maior e mostra o ▶: o cliente precisa saber que existe */
+.dots span[title="vídeo"]{width:16px;height:16px;border-radius:5px;font-size:.6rem;color:var(--texto2)}
+.dots span[title="vídeo"].on{color:var(--bg)}
 .modal .corpo{padding:.4rem 1.1rem 1.3rem}
 .modal .nome{font-size:1.1rem;font-weight:700;color:var(--texto);margin-bottom:.2rem}
 .modal .preco{font-size:1.3rem;color:var(--acento2);font-weight:700;margin-bottom:.6rem}
@@ -5210,8 +5903,10 @@ footer{text-align:center;padding:1.5rem 1rem 5rem;font-size:.75rem;color:var(--t
     <div class="busca-wrap"><input id="lgBusca" placeholder="🔎 Buscar..."></div>
   </div>
   <div class="chips" id="lgChips"></div>
+  <div class="chips tipos" id="lgTipos"></div>
 </div>
 <div class="fundo-lateral" id="lgFundoLat"></div>
+<div class="col-banner" id="lgBanner" hidden></div>
 <div class="corpo-loja">
   <aside class="lateral" id="lgLateral">
     <button class="lateral-fechar" id="lgFecharLat">✕ fechar</button>
@@ -5276,7 +5971,7 @@ var CATALOGO = __CATALOGO_JSON__;
      banco. Se ficarem presas ao catálogo embutido, o site continua mostrando a
      lista antiga mesmo tendo baixado a nova — que foi exatamente o que
      aconteceu: 111 produtos em memória e 110 desenhados na tela. */
-  var loja, produtos, categorias, colecoes;
+  var loja, produtos, categorias, tipos, colecoes;
   function absorverCatalogo(){
     loja=CATALOGO.loja||{};
     produtos=(CATALOGO.produtos||[]).slice().sort(function(a,b){
@@ -5284,6 +5979,7 @@ var CATALOGO = __CATALOGO_JSON__;
       return a.nome.localeCompare(b.nome,"pt-BR");
     });
     categorias=CATALOGO.categorias||[];
+    tipos=CATALOGO.tipos||[];
     colecoes=CATALOGO.colecoes||[];
   }
   absorverCatalogo();
@@ -5293,7 +5989,7 @@ var CATALOGO = __CATALOGO_JSON__;
   var mt=$("lgThemeColor");
   if(mt)mt.setAttribute("content", loja.tema==="ouro"?"#16120d":"#0b0c0e");
 
-  var estado={busca:"",cat:"",col:""};
+  var estado={busca:"",cat:"",tipo:"",col:""};
   var atual=null,fotoIdx=0,tamSel="",qtd=1;
 
   var CHAVE_CARR="loja_carrinho_1001";
@@ -5320,9 +6016,52 @@ var CATALOGO = __CATALOGO_JSON__;
     $("lgChips").innerHTML=h;
   }
 
+  /* 2ª fileira: o tipo da peça. Só aparece se houver mais de um tipo — com um
+     tipo só a fileira seria uma linha inteira sem escolha nenhuma. */
+  function renderTipos(){
+    var box=$("lgTipos");
+    if(tipos.length<2){box.innerHTML="";box.style.display="none";return;}
+    box.style.display="";
+    var h="<button class=\\""+(estado.tipo===""?"ativo":"")+"\\" data-tipo=\\"\\">Todos os tipos</button>";
+    for(var i=0;i<tipos.length;i++){
+      var t=tipos[i];
+      h+="<button class=\\""+(estado.tipo===t?"ativo":"")+"\\" data-tipo=\\""+esc(t)+"\\">"+esc(t)+"</button>";
+    }
+    box.innerHTML=h;
+  }
+
+  function acharColecao(nome){
+    for(var i=0;i<colecoes.length;i++)if(colecoes[i].nome===nome)return colecoes[i];
+    return null;
+  }
+  /* faixa de apresentação da coleção escolhida. Sem banner ela ainda aparece
+     como um bloco de texto: a frase é o que dá contexto, a imagem é enfeite. */
+  function renderBanner(){
+    var el=$("lgBanner"),c=estado.col?acharColecao(estado.col):null;
+    if(!c||(!c.banner&&!c.texto)){el.hidden=true;el.innerHTML="";return;}
+    el.hidden=false;
+    el.className="col-banner"+(c.banner?"":" sem-foto");
+    el.innerHTML="<div class=\\"faixa\\">"+
+      (c.banner?"<img src=\\""+esc(c.banner)+"\\" alt=\\""+esc(c.nome)+"\\">":"")+
+      "<div class=\\"legenda\\"><h2>"+esc(c.nome)+"</h2>"+
+      (c.texto?"<p>"+esc(c.texto)+"</p>":"")+"</div></div>";
+  }
+
+  function produtosFiltrados(){
+    var q=estado.busca.trim().toLowerCase();
+    return produtos.filter(function(p){
+      if(estado.cat&&p.cat!==estado.cat)return false;
+      if(estado.tipo&&p.tipo!==estado.tipo)return false;
+      if(estado.col&&(p.cols||[]).indexOf(estado.col)<0)return false;
+      if(q&&p.nome.toLowerCase().indexOf(q)<0)return false;
+      return true;
+    });
+  }
+
   function renderColecoes(){
     var lat=$("lgLateral");
     if(!colecoes.length){ if(lat)lat.style.display="none"; return; }
+    if(lat)lat.style.display="";
     var h="<button class=\\""+(estado.col===""?"ativo":"")+"\\" data-col=\\"\\">Ver tudo</button>";
     for(var i=0;i<colecoes.length;i++){
       var c=colecoes[i];
@@ -5330,16 +6069,6 @@ var CATALOGO = __CATALOGO_JSON__;
          "<span>"+esc(c.nome)+"</span><i>"+c.n+"</i></button>";
     }
     $("lgColecoes").innerHTML=h;
-  }
-
-  function produtosFiltrados(){
-    var q=estado.busca.trim().toLowerCase();
-    return produtos.filter(function(p){
-      if(estado.cat&&p.cat!==estado.cat)return false;
-      if(estado.col&&(p.cols||[]).indexOf(estado.col)<0)return false;
-      if(q&&p.nome.toLowerCase().indexOf(q)<0)return false;
-      return true;
-    });
   }
 
   // gaveta das coleções (só no celular, onde não cabe a lateral fixa)
@@ -5353,7 +6082,7 @@ var CATALOGO = __CATALOGO_JSON__;
       $("lgGrade").innerHTML="<div class=\\"vazio\\">Nada encontrado em "+oQue+".<br><br>"+
         "<button class=\\"btgrande\\" style=\\"max-width:220px\\" id=\\"lgLimpar\\">Ver todos os produtos</button></div>";
       var bl=$("lgLimpar");
-      if(bl)bl.addEventListener("click",function(){estado.cat="";estado.col="";estado.busca="";$("lgBusca").value="";render();});
+      if(bl)bl.addEventListener("click",function(){estado.cat="";estado.tipo="";estado.col="";estado.busca="";$("lgBusca").value="";render();});
       return;
     }
     var h="";
@@ -5369,7 +6098,8 @@ var CATALOGO = __CATALOGO_JSON__;
         :"<div class=\\"semfoto\\">💍</div>";
       var cols=(p.cols&&p.cols.length)?("<div class=\\"cols\\">"+esc(p.cols.join(" · "))+"</div>"):"";
       h+="<div class=\\"prodcard\\" data-id=\\""+esc(p.id)+"\\">"+
-           "<div class=\\"foto\\">"+(p.esgotado?"<span class=\\"ribbon\\">Esgotado</span>":"")+foto+"</div>"+
+           "<div class=\\"foto\\">"+(p.esgotado?"<span class=\\"ribbon\\">Esgotado</span>":"")+
+             (p.video?"<span class=\\"selo-video\\">▶ vídeo</span>":"")+foto+"</div>"+
            "<div class=\\"info\\">"+
              "<div class=\\"nome\\">"+esc(p.nome)+"</div>"+
              "<div class=\\"cat\\">"+esc(p.cat||"")+(p.tipo?" · "+esc(p.tipo):"")+"</div>"+
@@ -5380,11 +6110,15 @@ var CATALOGO = __CATALOGO_JSON__;
     $("lgGrade").innerHTML=h;
   }
 
-  function render(){renderChips();renderColecoes();renderGrade();}
+  function render(){renderChips();renderTipos();renderColecoes();renderBanner();renderGrade();}
 
   $("lgChips").addEventListener("click",function(e){
     var b=e.target.closest("button");if(!b)return;
     estado.cat=b.getAttribute("data-cat");render();
+  });
+  $("lgTipos").addEventListener("click",function(e){
+    var b=e.target.closest("button");if(!b)return;
+    estado.tipo=b.getAttribute("data-tipo");render();
   });
   $("lgColecoes").addEventListener("click",function(e){
     var b=e.target.closest("button");if(!b)return;
@@ -5413,27 +6147,43 @@ var CATALOGO = __CATALOGO_JSON__;
   }
   function fecharModal(){$("lgOverlay").classList.remove("show");atual=null;}
 
+  /* O vídeo entra no mesmo carrossel das fotos, como último quadro. Antes ele
+     era gravado no produto e nunca chegava à loja — não havia nada aqui que
+     soubesse desenhá-lo. */
+  function midiasDe(p){
+    var m=[],i;
+    for(i=0;i<(p.fotos||[]).length;i++)m.push({tipo:"foto",src:p.fotos[i]});
+    if(p.video)m.push({tipo:"video",src:p.video});
+    return m;
+  }
   function renderModal(){
     var p=atual;
-    var fotos=p.fotos&&p.fotos.length?p.fotos:[];
+    var mds=midiasDe(p);
+    if(fotoIdx>=mds.length)fotoIdx=0;
     var ch="";
-    if(fotos.length){
-      for(var i=0;i<fotos.length;i++)ch+="<img src=\\""+esc(fotos[i])+"\\" class=\\""+(i===fotoIdx?"show":"")+"\\" alt=\\"\\">";
-      // setas só fazem sentido com mais de uma foto
-      if(fotos.length>1){
-        ch+="<button class=\\"seta ant\\" id=\\"lgAnt\\" aria-label=\\"foto anterior\\">‹</button>"+
-            "<button class=\\"seta prox\\" id=\\"lgProx\\" aria-label=\\"próxima foto\\">›</button>";
+    if(mds.length){
+      for(var i=0;i<mds.length;i++){
+        var m=mds[i],on=(i===fotoIdx?"show":"");
+        ch+=m.tipo==="video"
+          // preload none: o vídeo só é baixado se a pessoa chegar nele
+          ?"<video src=\\""+esc(m.src)+"\\" class=\\""+on+"\\" controls playsinline preload=\\"none\\"></video>"
+          :"<img src=\\""+esc(m.src)+"\\" class=\\""+on+"\\" alt=\\"\\">";
+      }
+      // setas só fazem sentido com mais de um quadro
+      if(mds.length>1){
+        ch+="<button class=\\"seta ant\\" id=\\"lgAnt\\" aria-label=\\"anterior\\">‹</button>"+
+            "<button class=\\"seta prox\\" id=\\"lgProx\\" aria-label=\\"próximo\\">›</button>";
       }
     }else{
       ch="<div style=\\"display:flex;align-items:center;justify-content:center;height:100%;font-size:3rem;opacity:.3\\">💍</div>";
     }
     $("lgCarrossel").innerHTML=ch;
-    if(fotos.length>1){
+    if(mds.length>1){
       $("lgAnt").addEventListener("click",function(e){e.stopPropagation();passarFoto(-1);});
       $("lgProx").addEventListener("click",function(e){e.stopPropagation();passarFoto(1);});
     }
     var dh="";
-    for(var j=0;j<fotos.length;j++)dh+="<span class=\\""+(j===fotoIdx?"on":"")+"\\" data-i=\\""+j+"\\"></span>";
+    for(var j=0;j<mds.length;j++)dh+="<span class=\\""+(j===fotoIdx?"on":"")+"\\" data-i=\\""+j+"\\" title=\\""+(mds[j].tipo==="video"?"vídeo":"foto")+"\\">"+(mds[j].tipo==="video"?"▶":"")+"</span>";
     $("lgDots").innerHTML=dh;
     $("lgMdNome").textContent=p.nome;
     $("lgMdPreco").textContent=fmtR(p.preco);
@@ -5466,13 +6216,18 @@ var CATALOGO = __CATALOGO_JSON__;
   $("lgOverlay").addEventListener("click",function(e){if(e.target===this)fecharModal();});
   /* avança/volta circulando: da última vai pra primeira e vice-versa */
   function passarFoto(n){
-    if(!atual||!atual.fotos||atual.fotos.length<2)return;
-    var t=atual.fotos.length;
+    if(!atual)return;
+    var t=midiasDe(atual).length;
+    if(t<2)return;
     fotoIdx=(fotoIdx+n+t)%t;
     renderModal();
   }
-  // tocar na foto continua avançando (é o gesto natural no celular)
-  $("lgCarrossel").addEventListener("click",function(){passarFoto(1);});
+  // tocar na foto continua avançando (é o gesto natural no celular), mas tocar
+  // no vídeo é dar play — avançar ali tiraria a peça da tela no meio do toque
+  $("lgCarrossel").addEventListener("click",function(e){
+    if(e.target&&e.target.tagName==="VIDEO")return;
+    passarFoto(1);
+  });
   // e no computador as setas do teclado também funcionam
   document.addEventListener("keydown",function(e){
     if(!atual)return;
@@ -5585,6 +6340,7 @@ var CATALOGO = __CATALOGO_JSON__;
         absorverCatalogo();   // sem isto, a tela continua com a lista antiga
         // um filtro escolhido antes pode não existir mais na vitrine nova
         if(estado.cat&&categorias.indexOf(estado.cat)<0)estado.cat="";
+        if(estado.tipo&&tipos.indexOf(estado.tipo)<0)estado.tipo="";
         if(estado.col&&!colecoes.some(function(c){return c.nome===estado.col;}))estado.col="";
         render();
       })
@@ -5656,6 +6412,9 @@ function gerarSiteLoja(){
       if(typeof ehEnderecoNuvem==='function'&&ehEnderecoNuvem(f))return;
       try{arquivos.push({nome:'fotos/'+p.id+'_'+i+'.jpg',dados:dataUrlBytesLoja(f)});}catch(e){}
     });
+    if(p.video&&!(typeof ehEnderecoNuvem==='function'&&ehEnderecoNuvem(p.video))){
+      try{arquivos.push({nome:'videos/'+p.id+'.mp4',dados:dataUrlBytesLoja(p.video)});}catch(e){}
+    }
   });
   arquivos.push({nome:'LEIA-ME.txt',dados:LEIA_ME_LOJA});
   const blob=criarZipLoja(arquivos);
@@ -5767,7 +6526,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-08-28 13:52';
+const VERSAO_APP='2026-09-08 22:16';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
