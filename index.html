@@ -58,6 +58,12 @@ a{color:inherit}
 .col-banner.sem-foto .legenda{position:static;background:none;padding:1rem 1.2rem}
 .col-banner h2{margin:0;font-size:1.35rem;color:var(--acento2);letter-spacing:.3px}
 .col-banner p{margin:.2rem 0 0;font-size:.9rem;color:var(--texto2)}
+/* a capa é a boas-vindas da loja: mais alta que o banner de coleção e com a
+   frase maior, porque ali não há nome de coleção competindo */
+.col-banner.capa{margin-bottom:.9rem}
+.col-banner.capa img{aspect-ratio:16/5}
+.col-banner.capa p{font-size:1.05rem;color:var(--texto);letter-spacing:.2px}
+.col-banner.capa.sem-foto .faixa{padding:.2rem 0}
 @media(max-width:699px){.col-banner{padding:0 .8rem}.col-banner h2{font-size:1.1rem}.col-banner p{font-size:.82rem}}
 /* ---- corpo: coleções na lateral ESQUERDA + grade de produtos ---- */
 .corpo-loja{display:flex;gap:1.2rem;max-width:1400px;margin:0 auto;padding:1rem 1rem 6rem;align-items:flex-start}
@@ -178,6 +184,7 @@ footer{text-align:center;padding:1.5rem 1rem 5rem;font-size:.75rem;color:var(--t
   <div class="chips tipos" id="lgTipos"></div>
 </div>
 <div class="fundo-lateral" id="lgFundoLat"></div>
+<div class="col-banner capa" id="lgCapa" hidden></div>
 <div class="col-banner" id="lgBanner" hidden></div>
 <div class="corpo-loja">
   <aside class="lateral" id="lgLateral">
@@ -308,6 +315,20 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
   }
   /* faixa de apresentação da coleção escolhida. Sem banner ela ainda aparece
      como um bloco de texto: a frase é o que dá contexto, a imagem é enfeite. */
+  /* Capa da loja: só na tela cheia. Assim que o cliente escolhe uma coleção,
+     quem manda é o banner dela — duas faixas empilhadas empurrariam os
+     produtos pra fora da primeira tela. */
+  function renderCapa(){
+    var el=$("lgCapa");
+    if(estado.col||(!loja.capaBanner&&!loja.capaTexto)){el.hidden=true;el.innerHTML="";return;}
+    el.hidden=false;
+    el.className="col-banner capa"+(loja.capaBanner?"":" sem-foto");
+    el.innerHTML="<div class=\"faixa\">"+
+      (loja.capaBanner?"<img src=\""+esc(loja.capaBanner)+"\" alt=\""+esc(loja.nome||"")+"\">":"")+
+      (loja.capaTexto?"<div class=\"legenda\"><p>"+esc(loja.capaTexto)+"</p></div>":"")+
+      "</div>";
+  }
+
   function renderBanner(){
     var el=$("lgBanner"),c=estado.col?acharColecao(estado.col):null;
     if(!c||(!c.banner&&!c.texto)){el.hidden=true;el.innerHTML="";return;}
@@ -382,7 +403,7 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
     $("lgGrade").innerHTML=h;
   }
 
-  function render(){renderChips();renderTipos();renderColecoes();renderBanner();renderGrade();}
+  function render(){renderChips();renderTipos();renderColecoes();renderCapa();renderBanner();renderGrade();}
 
   $("lgChips").addEventListener("click",function(e){
     var b=e.target.closest("button");if(!b)return;
