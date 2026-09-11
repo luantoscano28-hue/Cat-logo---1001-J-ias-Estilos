@@ -674,22 +674,31 @@ dialog::backdrop{background:#000b}
     <label class="campo">Status <select id="pStatus"><option value="ativo">À venda</option><option value="esgotado">Esgotado</option><option value="oculto">Oculto na loja</option></select></label>
     <label class="campo">Preço de venda (R$) <input type="number" id="pPreco" min="0" step="0.01"></label>
     <label class="campo">Custo unitário (R$) <input type="number" id="pCusto" min="0" step="0.01" placeholder="quanto você pagou" oninput="renderInsumosProduto()"></label>
-    <label class="linha span2"><input type="checkbox" id="pInsProprios" onchange="pInsumosMudou()"> Esta peça tem <b>embalagem/insumo próprio</b>
-      <span class="mut" style="font-size:.76rem">— desmarcado, usa o padrão de Configurações</span></label>
-    <div class="campo span2" id="pInsBox" hidden>
-      <span>Embalagem e insumos desta peça <span class="mut" style="font-size:.76rem">— caixinha, saquinho, cartão... somam ao custo de cada unidade vendida</span></span>
-      <div id="pInsRows" style="margin-top:.3rem"></div>
-      <div class="barra" style="margin-top:.3rem">
-        <button type="button" class="bt mini" onclick="addInsumoRow()">+ insumo</button>
-        <button type="button" class="bt mini" onclick="copiarInsumosPadrao()" title="traz os insumos por peça cadastrados em Configurações">⧉ copiar do padrão</button>
+    <!-- Embalagem/insumo POR PEÇA fica escondido: confundia quem estava só
+         cadastrando uma joia, e o padrão de Configurações já cobre 99% dos
+         casos. Só aparece em peça que já tem embalagem própria cadastrada,
+         pra ela nunca ficar sem lugar de editar. -->
+    <div class="campo span2" id="pInsWrap" hidden>
+      <label class="linha"><input type="checkbox" id="pInsProprios" onchange="pInsumosMudou()"> Esta peça tem <b>embalagem/insumo próprio</b>
+        <span class="mut" style="font-size:.76rem">— desmarcado, usa o padrão de Configurações</span></label>
+      <div id="pInsBox" hidden style="margin-top:.4rem">
+        <span class="mut" style="font-size:.8rem">Embalagem e insumos desta peça — caixinha, saquinho, cartão... somam ao custo de cada unidade vendida</span>
+        <div id="pInsRows" style="margin-top:.3rem"></div>
+        <div class="barra" style="margin-top:.3rem">
+          <button type="button" class="bt mini" onclick="addInsumoRow()">+ insumo</button>
+          <button type="button" class="bt mini" onclick="copiarInsumosPadrao()" title="traz os insumos por peça cadastrados em Configurações">⧉ copiar do padrão</button>
+        </div>
       </div>
     </div>
     <div class="campo span2" id="pCustoResumo"></div>
     <label class="linha span2" id="pGradeToggleBox"><input type="checkbox" id="pTemGrade" onchange="pGradeMudou()"> Controlar estoque por tamanho (grade) — ideal p/ anel e aliança</label>
     <label class="campo" id="pEstoqueBox">Estoque atual <input type="number" id="pEstoque" step="any" placeholder="vazio = não controlar"></label>
-    <label class="campo">Estoque mínimo <input type="number" id="pMinimo" step="any" value="0"></label>
-    <label class="linha span2"><input type="checkbox" id="pAvisarEstoque" checked> Avisar quando o estoque estiver baixo
-      <span class="mut" style="font-size:.76rem">— desmarque para peças que você não repõe (não avisa nem com estoque 0)</span></label>
+    <label class="linha span2"><input type="checkbox" id="pAvisarEstoque" onchange="pAvisarMudou()"> Avisar quando o estoque estiver baixo
+      <span class="mut" style="font-size:.76rem">— marque só nas peças que você repõe</span></label>
+    <!-- "Estoque mínimo" só faz sentido com o aviso ligado; solto, era
+         preenchido como se fosse a quantidade em estoque -->
+    <label class="campo" id="pMinimoBox" hidden>Avisar quando sobrar <input type="number" id="pMinimo" step="any" value="0">
+      <small class="mut" style="font-size:.74rem">peça(s) ou menos</small></label>
     <div class="campo span2" id="pColecoesBox">
       <span>Coleções <span class="mut" style="font-size:.76rem">— clique para abrir a lista; pode marcar várias e criar uma nova ali mesmo</span></span>
       <div id="pColecoes" class="chk-tags"></div>
@@ -831,10 +840,17 @@ dialog::backdrop{background:#000b}
     <label class="campo">Tipo <span class="sel-add"><select id="qpTipo"></select><button type="button" class="bt mini" title="novo tipo" onclick="novoCadInline('tipos','qpTipo')">+</button></span></label>
     <label class="campo">Preço de venda (R$) <input type="number" id="qpPreco" min="0" step="0.01"></label>
     <label class="campo">Custo unitário (R$) <input type="number" id="qpCusto" min="0" step="0.01" placeholder="opcional"></label>
-    <label class="campo">Estoque atual <input type="number" id="qpEstoque" step="any" placeholder="opcional"></label>
+    <label class="linha span2"><input type="checkbox" id="qpTemGrade" onchange="qpGradeMudou()"> Controlar estoque por tamanho (grade) — ideal p/ anel e aliança</label>
+    <label class="campo" id="qpEstoqueBox">Estoque atual <input type="number" id="qpEstoque" step="any" placeholder="opcional"></label>
     <label class="campo">Fornecedor <span class="sel-add"><select id="qpForn"></select><button type="button" class="bt mini" title="novo fornecedor" onclick="novoCadInline('fornecedores','qpForn')">+</button></span></label>
-    <label class="linha span2"><input type="checkbox" id="qpAvisarEstoque" checked> Avisar quando o estoque estiver baixo
-      <span class="mut" style="font-size:.78rem">— desmarque para peças que você não repõe</span></label>
+    <div class="campo span2" id="qpGradeBox" hidden>
+      <span>Grade de tamanhos (informe quantas peças de cada tamanho)</span>
+      <div id="qpGradeRows" style="margin-top:.3rem"></div>
+      <button type="button" class="bt mini" onclick="addQpGradeRow()">+ tamanho</button>
+      <span class="grade-mini" id="qpGradeTotal"></span>
+    </div>
+    <label class="linha span2"><input type="checkbox" id="qpAvisarEstoque"> Avisar quando o estoque estiver baixo
+      <span class="mut" style="font-size:.78rem">— marque só nas peças que você repõe</span></label>
     <div class="campo span2" id="qpColecoesBox">
       <span>Coleções <span class="mut" style="font-size:.76rem">(opcional — clique para abrir)</span></span>
       <div id="qpColecoes" class="chk-tags"></div>
@@ -1220,13 +1236,13 @@ function estruturaInicial(){
   const canalMaq={id:novoId(),nome:'Maquininha / celular',prazoDias:1,contaId:cxInfinity.id,padrao:true,bandeiras:bMaq.bandeiras,taxas:bMaq.taxas};
   const canalLink={id:novoId(),nome:'Link de pagamento',prazoDias:1,contaId:cxInfinity.id,padrao:false,bandeiras:bLink.bandeiras,taxas:bLink.taxas};
   return {
-    versao:19, criadoEm:hoje(), alteradoEm:null, ultimoBackup:null, nAlteracoes:0, seqCriacao:0,
+    versao:20, criadoEm:hoje(), alteradoEm:null, ultimoBackup:null, nAlteracoes:0, seqCriacao:0,
     config:{
       /* Nasce NEUTRA. Deixar aqui o WhatsApp e o Pix de alguém faria toda conta
          nova receber os pedidos e as cobranças no contato errado — e o dono da
          conta só descobriria pelo cliente reclamando. Estes campos são
          preenchidos no cadastro e em Configurações → Geral / Loja. */
-      loja:{nome:'Minha Loja', whatsapp:'', dominio:'', pix:'', logo:'', msgFiado:MSG_FIADO_PADRAO},
+      loja:{nome:'Minha Loja', whatsapp:'', dominio:'', pix:'', logo:'', capa:{banner:'',texto:''}, msgFiado:MSG_FIADO_PADRAO},
       fiscal:{diaInicio:11}, autoBaixaCartao:true, tema:'ouro',
       avisos:{diasAntes:1, notificar:false, ultimoAviso:''},
       categorias:idfy([{nome:'Aço'},{nome:'Folheado'},{nome:'Biju'},{nome:'Prata'},{nome:'Acessórios'}]),
@@ -1474,6 +1490,13 @@ function migrar(d){
   // a mensagem na véspera sem encher a tela de coisa distante
   if(!d.config.avisos)d.config.avisos={diasAntes:1,notificar:false,ultimoAviso:''};
   d.versao=19;
+
+  /* ---- v20: capa do catálogo (banner e chamada da loja) ---- */
+  /* A personalização da loja saiu de Configurações → Coleções, que é estrutura
+     do painel, e ganhou lugar próprio em "Site da loja". A capa é a primeira
+     coisa que o cliente vê e não existia. */
+  if(!d.config.loja.capa)d.config.loja.capa={banner:'',texto:''};
+  d.versao=20;
   return d;
 }
 
@@ -1521,7 +1544,7 @@ const ui={tab:'resumo',
   r:{desloca:0,ini:null,fim:null},
   v:{per:'fiscal',ini:'',fim:'',busca:'',lim:200,dia:'',semOff:0,forn:'',tipo:'',cat:'',col:''},
   f:{busca:'',mostrarPagos:false,abertos:{},filtro:'todos',local:''},
-  p:{busca:'',cat:'',tipo:'',forn:'',col:'',status:'',estoque:'',ini:'',fim:'',ord:'nome',lim:300,sel:{}},
+  p:{busca:'',cat:'',tipo:'',forn:'',col:'',status:'',estoque:'',ini:'',fim:'',ord:'nome',lim:300,sel:{},dups:false},
   l:{per:'fiscal',ini:'',fim:'',tipo:'',busca:'',lim:200},
   c:{busca:'',lim:300},
   cfgTab:'geral'
@@ -1651,17 +1674,18 @@ function painelCadastro(qual){
   if(qual==='colecoes'){
     const lista=cfg.colecoes||[];
     const nUso=id=>(dados.produtos||[]).filter(p=>(p.colecaoIds||[]).indexOf(id)>=0).length;
+    const comCara=lista.filter(x=>x.texto||x.banner).length;
     return `<div class="painel"><h3>Coleções</h3>
-      <p class="mut" style="font-size:.82rem;margin-bottom:.6rem">Agrupamentos que você inventa pra vender melhor — <b>Coleção Black</b>, <b>Coleção Rubi</b>, <b>Dia das Mães</b>... Um produto pode estar em <b>várias</b> ao mesmo tempo, e a coleção é independente do material (Aço, Folheado...). No catálogo elas viram um menu na lateral, e cada uma pode ter <b>uma frase e um banner</b> próprios.</p>
+      <p class="mut" style="font-size:.82rem;margin-bottom:.6rem">Agrupamentos que você inventa pra vender melhor — <b>Coleção Black</b>, <b>Coleção Rubi</b>, <b>Dia das Mães</b>... Um produto pode estar em <b>várias</b> ao mesmo tempo, e a coleção é independente do material (Aço, Folheado...).</p>
       <ul class="cfg-lista">${lista.map(x=>`<li>
-        <span class="nm">${x.banner?`<img class="col-mini" src="${x.banner}" alt=""> `:''}<b>${esc(x.nome)}</b>
-          <span class="mut" style="font-size:.76rem">— ${nUso(x.id)} produto(s)</span>
-          ${x.texto?`<div class="mut" style="font-size:.78rem">“${esc(x.texto)}”</div>`:'<div class="mut" style="font-size:.76rem">sem frase de apresentação</div>'}</span>
-        <button class="bt mini" title="nome, frase e banner" onclick="abrirColecao('${x.id}')">✎ editar</button>
+        <span class="nm"><b>${esc(x.nome)}</b>
+          <span class="mut" style="font-size:.76rem">— ${nUso(x.id)} produto(s)${(x.texto||x.banner)?' · 🎨 personalizada na loja':''}</span></span>
+        <button class="bt mini" onclick="abrirColecao('${x.id}')">✎ editar</button>
         <button class="bt mini perigo" onclick="removerCadItem('colecoes','${x.id}')">✕</button></li>`).join('')||'<li class="mut">Nenhuma ainda.</li>'}</ul>
-      <div class="cfg-add"><input id="addNome" placeholder="Nova coleção..." onkeydown="if(event.key==='Enter'){addCadItem('colecoes');}"><button class="bt" onclick="addCadItem('colecoes')">Adicionar</button></div>
-      <p class="mut" style="font-size:.78rem;margin-top:.4rem">Criou pelo campo acima? Clique em <b>✎ editar</b> pra pôr a frase e o banner dela.</p>
-      <div class="rodape"><button class="bt primario" onclick="abrirColecao('')">+ Nova coleção com frase e banner</button></div></div>`;
+      <div class="cfg-add"><input id="addNome" placeholder="Nova coleção..." onkeydown="if(event.key==='Enter'){addCadItem('colecoes');}"><button class="bt primario" onclick="addCadItem('colecoes')">Adicionar</button></div>
+      <p class="mut" style="font-size:.8rem;margin-top:.7rem">🎨 A <b>cara</b> de cada coleção na loja — frase e banner — fica em
+        <b><a href="#" onclick="event.preventDefault();ui.cfgTab='lojaSite';renderConfig()">Site da loja → Personalizar o catálogo</a></b>${comCara?` (${comCara} já ${comCara>1?'personalizadas':'personalizada'})`:''}.</p>
+      </div>`;
   }
   if(qual==='categorias'||qual==='tipos'||qual==='locais'){
     const lista=cfg[qual]||[];const rot={categorias:'categoria',tipos:'tipo',locais:'local'}[qual];
@@ -2365,6 +2389,7 @@ function renderProdutos(){
       <div class="mt"><button class="bt primario" onclick="abrirNovoProduto()">+ Cadastrar primeiro produto</button></div></div>`;
     return;
   }
+  if(ui.p.dups){$('tab-produtos').innerHTML=cabecalhoProdutos()+painelDuplicados();return;}
   const sel=selProdIds(),T=totaisEstoque(sel),neg=estoqueNegativo().length;
   const escopo=sel.length?`<span class="bd cat">seleção: ${sel.length} produto(s)</span> <button class="bt mini" onclick="limparProdSel()">mostrar todos</button>`:'<span class="mut">mostrando todo o estoque</span>';
   $('tab-produtos').innerHTML=cabecalhoProdutos()+`
@@ -2428,12 +2453,123 @@ function limparFiltrosProdutos(){
    preencheu com a 1ª movimentação de estoque conhecida */
 function cadastradoEm(p){return p.criadoEm||'';}
 function cabecalhoProdutos(){
-  const al=alertasEstoque().length;
+  const al=alertasEstoque().length,dup=gruposDuplicados().length;
   return `<div class="barra"><h2 style="margin:0">Produtos</h2><span class="esp"></span>
     ${al?`<span class="bd fiadoP">⚠️ ${al} com estoque baixo</span>`:''}
+    ${dup?`<button class="bt" style="color:var(--laranja)" onclick="ui.p.dups=true;renderProdutos()" title="cadastros que parecem ser a mesma peça">🔀 ${dup} repetido(s)</button>`:''}
     <button class="bt primario" onclick="abrirNovoProduto()">+ Novo produto</button></div>`;
 }
 function vendasDoProduto(id){return dados.vendas.reduce((n,v)=>n+v.itens.filter(i=>i.produtoId===id).reduce((s,i)=>s+(+i.qtd||0),0),0);}
+
+/* ============================================================
+   PRODUTOS REPETIDOS
+   "Brinco Trio de Pérolas" e "Trio de Brincos Pérolas" são a mesma peça
+   cadastrada duas vezes — acontece quando se cadastra correndo, no meio de
+   uma venda. Exigir um código em toda venda resolveria, mas cobraria o preço
+   em TODA venda por um problema que aparece de vez em quando. Então o sistema
+   faz duas coisas mais baratas: avisa na hora de criar, e junta depois.
+
+   A chave ignora o que varia sem mudar a peça: maiúscula, acento, pontuação,
+   ordem das palavras, plural e palavrinhas de ligação. */
+const LIGACAO_NOME=['de','da','do','das','dos','e','com','em','no','na','a','o','as','os','para','pra'];
+function chaveNome(s){
+  return String(s||'').toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/[^a-z0-9]+/g,' ')
+    .split(' ').filter(Boolean)
+    .filter(w=>LIGACAO_NOME.indexOf(w)<0)
+    .map(w=>(w.length>3&&w.slice(-1)==='s')?w.slice(0,-1):w)   // plural
+    .sort().join(' ');
+}
+/* produtos que provavelmente são a mesma peça que este */
+function parecidosCom(nome,ignorarId){
+  const k=chaveNome(nome);
+  if(!k)return [];
+  return dados.produtos.filter(p=>p.id!==ignorarId&&chaveNome(p.nome)===k);
+}
+/* grupos de 2+ produtos com a mesma chave */
+function gruposDuplicados(){
+  const por={};
+  dados.produtos.forEach(p=>{
+    const k=chaveNome(p.nome);if(!k)return;
+    (por[k]=por[k]||[]).push(p);
+  });
+  return Object.keys(por).filter(k=>por[k].length>1)
+    .map(k=>por[k].slice().sort((a,b)=>vendasDoProduto(b.id)-vendasDoProduto(a.id)));
+}
+/* aviso na hora de criar; devolve false se a pessoa desistir */
+function confirmarNomeRepetido(nome,ignorarId){
+  const iguais=parecidosCom(nome,ignorarId);
+  if(!iguais.length)return true;
+  const lista=iguais.slice(0,4).map(p=>'• '+p.nome+' ('+catNome(p.catId)
+    +(p.estoque!=null?', '+fmtN(p.estoque)+' em estoque':'')+')').join('\n');
+  return confirm('Já existe peça com praticamente esse nome:\n\n'+lista
+    +'\n\nSe for a MESMA peça, cancele e use a que já existe — assim o estoque e o histórico'
+    +' ficam num lugar só.\n\nOK = cadastrar assim mesmo (são peças diferentes)');
+}
+/* Junta dois cadastros num só: vendas, movimentações e estoque vão para o que
+   fica. O que some não deixa buraco no histórico — as vendas antigas passam a
+   apontar para o sobrevivente. */
+function juntarProdutos(idFica,idSai){
+  const fica=prodPorId(idFica),sai=prodPorId(idSai);
+  if(!fica||!sai||fica===sai)return false;
+  if(temGrade(fica)||temGrade(sai)){
+    alert('Um deles controla estoque por tamanho (grade). Junte à mão: passe as quantidades'
+      +' para o cadastro que vai ficar e depois exclua o outro.');
+    return false;
+  }
+  const nVendas=dados.vendas.reduce((n,v)=>n+v.itens.filter(i=>i.produtoId===idSai).length,0);
+  const nMov=(dados.movEstoque||[]).filter(m=>m.produtoId===idSai).length;
+  const somaEst=(fica.estoque==null&&sai.estoque==null)?null:r2((+fica.estoque||0)+(+sai.estoque||0));
+  if(!confirm('Juntar "'+sai.nome+'" dentro de "'+fica.nome+'"?\n\n'
+    +'• '+nVendas+' item(ns) de venda passam para "'+fica.nome+'"\n'
+    +'• '+nMov+' movimentação(ões) de estoque também\n'
+    +'• Estoque final: '+(somaEst==null?'—':fmtN(somaEst))+'\n\n'
+    +'"'+sai.nome+'" deixa de existir. Não dá pra desfazer.'))return false;
+
+  dados.vendas.forEach(v=>(v.itens||[]).forEach(i=>{if(i.produtoId===idSai)i.produtoId=idFica;}));
+  (dados.movEstoque||[]).forEach(m=>{if(m.produtoId===idSai)m.produtoId=idFica;});
+  fica.estoque=somaEst;
+  // o que estiver em branco no sobrevivente é preenchido pelo que sai
+  if(fica.custo==null&&sai.custo!=null)fica.custo=sai.custo;
+  if(!(+fica.preco>0)&&+sai.preco>0)fica.preco=+sai.preco;
+  if(!fica.catId&&sai.catId)fica.catId=sai.catId;
+  if(!fica.tipoId&&sai.tipoId)fica.tipoId=sai.tipoId;
+  if(!fica.fornId&&sai.fornId)fica.fornId=sai.fornId;
+  if(!fica.descricao&&sai.descricao)fica.descricao=sai.descricao;
+  if(!fica.video&&sai.video)fica.video=sai.video;
+  fica.fotos=(fica.fotos||[]).concat(sai.fotos||[]).slice(0,3);
+  fica.colecaoIds=[...new Set((fica.colecaoIds||[]).concat(sai.colecaoIds||[]))];
+  if(sai.criadoEm&&(!fica.criadoEm||sai.criadoEm<fica.criadoEm))fica.criadoEm=sai.criadoEm;
+  dados.produtos=dados.produtos.filter(p=>p.id!==idSai);
+  delete ui.p.sel[idSai];
+  salvar();renderTudo();
+  toast('Juntado em "'+esc(fica.nome)+'" ✓');
+  return true;
+}
+function painelDuplicados(){
+  const gs=gruposDuplicados();
+  if(!gs.length)return `<div class="painel"><h3 style="margin-top:0">🔀 Produtos repetidos</h3>
+    <p class="mut">Nenhum nome repetido encontrado — seu cadastro está limpo.</p>
+    <div class="rodape"><button class="bt" onclick="ui.p.dups=false;renderProdutos()">Fechar</button></div></div>`;
+  return `<div class="painel" style="border-color:var(--laranja)">
+    <h3 style="margin-top:0">🔀 Produtos repetidos <span class="bd fiadoP">${gs.length} grupo(s)</span></h3>
+    <p class="mut" style="font-size:.84rem;margin-bottom:.8rem">Estes cadastros parecem ser a mesma peça escrita de jeitos diferentes. Escolha qual fica — as vendas, o histórico e o estoque do outro passam para ele.</p>
+    ${gs.map(g=>`<div class="painel" style="background:var(--painel2);padding:.7rem .8rem;margin-bottom:.6rem">
+      ${g.map(p=>`<div class="conta-linha">
+        <span class="nm"><b>${esc(p.nome)}</b>
+          <span class="mut" style="font-size:.78rem">— ${esc(catNome(p.catId))}${p.tipoId?' · '+esc(tipoNome(p.tipoId)):''}
+          · ${p.estoque==null?'estoque —':fmtN(p.estoque)+' em estoque'}
+          · ${fmtN(vendasDoProduto(p.id))} vendida(s)${p.criadoEm?' · de '+fmtData(p.criadoEm):''}</span></span>
+        <button class="bt mini" onclick="manterEJuntar('${p.id}',${JSON.stringify(g.filter(x=>x.id!==p.id).map(x=>x.id)).replace(/"/g,'&quot;')})">manter este</button>
+      </div>`).join('')}
+    </div>`).join('')}
+    <div class="rodape"><button class="bt" onclick="ui.p.dups=false;renderProdutos()">Fechar</button></div></div>`;
+}
+function manterEJuntar(idFica,idsSaem){
+  (idsSaem||[]).forEach(id=>juntarProdutos(idFica,id));
+  renderProdutos();
+}
 /* saldo comparável entre produto simples e produto com grade */
 function saldoProduto(p){return temGrade(p)?somaGrade(p):(p.estoque==null?null:+p.estoque);}
 function passaEstoque(p,filtro){
@@ -2760,21 +2896,33 @@ function renderInsumosProduto(soResumo){
   const proprio=$('pInsProprios').checked;
   const ins=proprio?somaInsRows():insumosPadraoPorPeca();
   const porVenda=insumosPorVenda();
-  if(compra<=0&&ins<=0){res.innerHTML='';return;}
+  /* Só aparece quando a embalagem REALMENTE muda o custo. Sem isso a linha
+     dizia "R$ 10,00 de compra = R$ 10,00", que não informa nada e ainda
+     fazia a tela parecer mais complicada do que é. */
+  if(ins<=0){res.innerHTML='';return;}
   res.innerHTML=`<div class="painel" style="padding:.5rem .7rem;font-size:.84rem">
-    Custo real por peça: <b>${fmt(compra)}</b> de compra ${ins>0?`+ <b>${fmt(ins)}</b> de embalagem/insumo`:''}
-    = <b class="${compra+ins>0?'neg':''}">${fmt(r2(compra+ins))}</b>
-    <span class="mut">${proprio?' (embalagem própria desta peça)':' (padrão de Configurações)'}</span>
+    Custo real por peça: <b>${fmt(compra)}</b> de compra + <b>${fmt(ins)}</b> de embalagem
+    = <b class="neg">${fmt(r2(compra+ins))}</b>
+    <span class="mut">${proprio?' (embalagem própria desta peça)':' (padrão de Configurações → Embalagem / insumos)'}</span>
     ${porVenda>0?`<br><span class="mut">+ ${fmt(porVenda)} por venda (sacola do pedido), cobrado 1× e não por peça.</span>`:''}
   </div>`;
 }
 
+/* "Estoque mínimo" só existe pra alimentar o aviso — sem o aviso ligado ele
+   é um campo órfão, que já foi preenchido como se fosse a quantidade real */
+function pAvisarMudou(){
+  const on=$('pAvisarEstoque').checked;
+  $('pMinimoBox').hidden=!on;
+  if(!on)$('pMinimo').value=0;
+  else if(!(+$('pMinimo').value>0))$('pMinimo').value=1;
+}
 function abrirNovoProduto(){
   $('formProduto').reset();preencherSelectsProduto();
   $('dlgProdutoTitulo').textContent='Novo produto';$('pId').value='';$('pStatus').value='ativo';$('pMinimo').value=0;
   $('pTemGrade').checked=false;gradeRows=[];$('pGradeBox').hidden=true;$('pEstoqueBox').style.display='';
-  $('pAvisarEstoque').checked=true;renderColecoesChecks('p',[]);
-  $('pInsProprios').checked=false;$('pInsBox').hidden=true;insRows=[];renderInsumosProduto();
+  // desmarcado por padrão: a maioria das peças é compra única e não se repõe
+  $('pAvisarEstoque').checked=false;pAvisarMudou();renderColecoesChecks('p',[]);
+  $('pInsProprios').checked=false;$('pInsBox').hidden=true;$('pInsWrap').hidden=true;insRows=[];renderInsumosProduto();
   prodFotos=[];prodVideo='';renderMidiaProduto();dlgProduto.showModal();
 }
 function editarProduto(id){
@@ -2785,9 +2933,13 @@ function editarProduto(id){
   $('pForn').value=p.fornId||'';$('pStatus').value=p.status||'ativo';
   $('pPreco').value=+p.preco>0?p.preco:'';$('pCusto').value=p.custo!=null?p.custo:'';
   $('pEstoque').value=p.estoque!=null?p.estoque:'';$('pMinimo').value=p.minimo||0;$('pDesc').value=p.descricao||'';
-  $('pAvisarEstoque').checked=p.avisarEstoque!==false;renderColecoesChecks('p',p.colecaoIds||[]);
+  $('pAvisarEstoque').checked=p.avisarEstoque!==false;pAvisarMudou();
+  $('pMinimo').value=p.minimo||0;   // pAvisarMudou pode ter sugerido 1; o valor gravado manda
+  renderColecoesChecks('p',p.colecaoIds||[]);
   $('pInsProprios').checked=temInsumosProprios(p);
   insRows=(p.insumos||[]).map(x=>Object.assign({},x));
+  // o bloco só reaparece pra quem já usa embalagem própria — senão fica fora do caminho
+  $('pInsWrap').hidden=!temInsumosProprios(p);
   $('pInsBox').hidden=!temInsumosProprios(p);renderInsumosProduto();
   const grade=temGrade(p);
   $('pTemGrade').checked=grade;gradeRows=grade?p.variacoes.map(v=>Object.assign({},v)):[];
@@ -2812,6 +2964,7 @@ function salvarProduto(){
       .map(x=>({id:x.id||novoId(),nome:String(x.nome||'').trim()||'insumo',valor:r2(x.valor)||0})):[],
     fotos:prodFotos.slice(),video:prodVideo,variacoes};
   if(!o.nome){toast('Informe o nome.');return;}
+  if(!confirmarNomeRepetido(o.nome,id||null))return;
   if(id){
     const p=prodPorId(id);if(!p)return;
     if(p.estoque!==o.estoque)dados.movEstoque.push({id:novoId(),data:hoje(),produtoId:id,tipo:'ajuste',qtde:o.estoque,obs:'ajuste na edição'});
@@ -2850,6 +3003,33 @@ function addFotoQuick(inp){
   }));
 }
 function removerFotoQuick(i){qpFotos.splice(i,1);renderMidiaQuick();}
+/* ---- grade de tamanhos no cadastro rápido ----
+   Espelha a do cadastro completo, mas com estado próprio: os dois diálogos
+   podem estar abertos ao mesmo tempo (o rápido abre por cima da venda). */
+let qpGradeRows=[];
+function qpGradeMudou(){
+  const on=$('qpTemGrade').checked;
+  $('qpGradeBox').hidden=!on;$('qpEstoqueBox').style.display=on?'none':'';
+  if(on&&!qpGradeRows.length){qpGradeRows=[{id:novoId(),rotulo:'',estoque:0}];}
+  if(on)renderQpGradeRows();
+}
+function renderQpGradeRows(){
+  $('qpGradeRows').innerHTML=qpGradeRows.map((g,i)=>`<div class="grade-row">
+    <input class="gr-rot" placeholder="tamanho (ex.: 18)" value="${esc(g.rotulo)}" oninput="qpGradeSet(${i},'rotulo',this.value)">
+    <input class="gr-qt" type="number" step="any" placeholder="qtd" value="${g.estoque}" oninput="qpGradeSet(${i},'estoque',this.value)">
+    <button type="button" class="bt mini perigo" onclick="removerQpGradeRow(${i})">✕</button></div>`).join('');
+  $('qpGradeTotal').textContent='Total na grade: '+fmtN(qpGradeRows.reduce((s,g)=>s+(+g.estoque||0),0))+' peça(s)';
+}
+function qpGradeSet(i,campo,val){
+  qpGradeRows[i][campo]=campo==='estoque'?(+val||0):val;
+  $('qpGradeTotal').textContent='Total na grade: '+fmtN(qpGradeRows.reduce((s,g)=>s+(+g.estoque||0),0))+' peça(s)';
+}
+function addQpGradeRow(){qpGradeRows.push({id:novoId(),rotulo:'',estoque:0});renderQpGradeRows();}
+function removerQpGradeRow(i){
+  qpGradeRows.splice(i,1);
+  if(!qpGradeRows.length){$('qpTemGrade').checked=false;qpGradeMudou();}
+  else renderQpGradeRows();
+}
 function abrirQuickProd(idx){
   $('formQuickProd').reset();$('qpIdx').value=idx;
   $('qpCat').innerHTML=opcoes(C().categorias);
@@ -2864,7 +3044,12 @@ function abrirQuickProd(idx){
     $('qpCusto').value=np.custo!=null?np.custo:'';
     $('qpEstoque').value=np.estoque!=null?np.estoque:'';
   }
-  $('qpAvisarEstoque').checked=np?np.avisarEstoque!==false:true;
+  const comGrade=!!(np&&np.variacoes&&np.variacoes.length);
+  $('qpTemGrade').checked=comGrade;
+  qpGradeRows=comGrade?np.variacoes.map(v=>Object.assign({},v)):[];
+  $('qpGradeBox').hidden=!comGrade;$('qpEstoqueBox').style.display=comGrade?'none':'';
+  if(comGrade)renderQpGradeRows();
+  $('qpAvisarEstoque').checked=np?np.avisarEstoque===true:false;
   renderColecoesChecks('qp',(np&&np.colecaoIds)||[]);
   qpFotos=(np&&np.fotos)?np.fotos.slice():[];renderMidiaQuick();
   dlgQuickProd.showModal();
@@ -2874,16 +3059,27 @@ function abrirQuickProd(idx){
    gravado na hora e sobrava no estoque quando a venda era cancelada. */
 function salvarQuickProd(){
   const nome=$('qpNome').value.trim();if(!nome){toast('Informe o nome.');return;}
+  if(!confirmarNomeRepetido(nome,null))return;
   const est=$('qpEstoque').value;
+  let variacoes=[],estoqueFinal;
+  if($('qpTemGrade').checked){
+    variacoes=qpGradeRows.filter(g=>String(g.rotulo).trim()!=='')
+      .map(g=>({id:g.id||novoId(),rotulo:String(g.rotulo).trim(),estoque:r2(g.estoque)}));
+    if(!variacoes.length){toast('Adicione ao menos um tamanho na grade.');return;}
+    estoqueFinal=r2(variacoes.reduce((s,v)=>s+(+v.estoque||0),0));
+  }else{estoqueFinal=est===''?null:r2(est);}
   const p={id:novoId(),criadoEm:hoje(),nome,catId:$('qpCat').value,tipoId:$('qpTipo').value||null,fornId:$('qpForn').value||null,
     status:'ativo',preco:r2($('qpPreco').value)||0,custo:$('qpCusto').value===''?null:r2($('qpCusto').value),
-    estoque:est===''?null:r2(est),minimo:0,descricao:'',avisarEstoque:$('qpAvisarEstoque').checked,colecaoIds:lerColecoesChecks('qp'),
-    fotos:qpFotos.slice(),video:'',variacoes:[]};
+    estoque:estoqueFinal,minimo:0,descricao:'',avisarEstoque:$('qpAvisarEstoque').checked,colecaoIds:lerColecoesChecks('qp'),
+    fotos:qpFotos.slice(),video:'',variacoes};
   const idx=+$('qpIdx').value,it=itensVenda[idx];
   if(it){
     it.novoProd=p;it.produtoId=null;it.nome=nome;
     it.custo=p.custo!=null?+p.custo:0;
     if(p.preco>0&&!(+it.preco>0))it.preco=+p.preco;
+    // com grade, já deixa o 1º tamanho escolhido pra o seletor abrir preenchido
+    it.variacaoId=variacoes.length?variacoes[0].id:null;
+    it.tamanho=variacoes.length?variacoes[0].rotulo:'';
   }
   dlgQuickProd.close();renderItensVenda();
   toast('"'+esc(nome)+'" preenchido — entra no estoque quando você salvar a venda');
@@ -3368,7 +3564,11 @@ function acTeclas(e,i,el){
   } else if(e.key==='Escape'){ if(pop){e.stopPropagation();acFechar();} }
 }
 function gradeSelHTML(i){
-  const it=itensVenda[i];if(!it.produtoId)return '';const p=prodPorId(it.produtoId);if(!temGrade(p))return '';
+  const it=itensVenda[i];
+  /* também vale pro rascunho com grade: o produto ainda não existe, mas os
+     tamanhos já foram digitados e a pessoa precisa escolher qual está vendendo */
+  const p=it.produtoId?prodPorId(it.produtoId):it.novoProd;
+  if(!temGrade(p))return '';
   return `<select class="grade-sel" onchange="itemVenda(${i},'variacao',this.value)">${p.variacoes.map(v=>`<option value="${v.id}" ${v.id===it.variacaoId?'selected':''}>Tam ${esc(v.rotulo)} (${fmtN(v.estoque)})</option>`).join('')}</select>`;
 }
 /* produto que ainda não existe no estoque: o texto é o mesmo do cliente novo,
@@ -3730,7 +3930,7 @@ function salvarVenda(){
       return;
     }
     if(iguais.length===1){const p=iguais[0];it.produtoId=p.id;it.custo=p.custo!=null?+p.custo:0;}
-    else{const np={id:novoId(),criadoEm:hoje(),nome:it.nome.trim(),catId:null,tipoId:null,fornId:null,status:'ativo',preco:r2(it.preco),custo:null,estoque:null,minimo:0,descricao:'',avisarEstoque:true,colecaoIds:[],fotos:[],video:'',variacoes:[]};dados.produtos.push(np);it.produtoId=np.id;criados.push(np.nome);}
+    else{const np={id:novoId(),criadoEm:hoje(),nome:it.nome.trim(),catId:null,tipoId:null,fornId:null,status:'ativo',preco:r2(it.preco),custo:null,estoque:null,minimo:0,descricao:'',avisarEstoque:false,colecaoIds:[],fotos:[],video:'',variacoes:[]};dados.produtos.push(np);it.produtoId=np.id;criados.push(np.nome);}
   }
   // grade: exige tamanho e grava o rótulo
   for(const it of itensVenda){
@@ -5223,8 +5423,14 @@ function painelDRE(d){
     ${d.taxas>0?L('taxas','Taxas de cartão <span class="desc">o que a maquininha ficou</span>',d.taxas,'neg','(−)'):''}
     ${L('fixa','Despesas fixas',d.fixa,'neg','(−)')}
     ${L('mkt','Marketing',d.mkt,'neg','(−)')}
-    ${L('pro','Pró-labore',d.pro,'neg','(−)')}
     ${d.outra?L('outra','Outras despesas',d.outra,'neg','(−)'):''}
+    ${/* O pró-labore é o SEU salário. Somado junto com as outras despesas, ele
+         escondia o número que mais importa pra quem toca o negócio sozinho:
+         quanto a operação gerou ANTES de te pagar. Sem esta linha, um mês que
+         pagou R$1.248 ao dono e ainda sobrou R$127 aparecia como "lucro de
+         R$51" e parecia fracasso. */''}
+    ${d.pro>0.005?`<tr class="sub"><td class="sinal">=</td><td>Sobra antes do seu pró-labore <span class="desc">o que a operação gerou para pagar você</span></td><td class="num ${(d.resultOper+d.pro)>=0?'pos':'neg'}">${fmt(r2(d.resultOper+d.pro))}</td></tr>`:''}
+    ${L('pro','Pró-labore <span class="desc">o que você tirou para si</span>',d.pro,'neg','(−)')}
     <tr class="sub"><td class="sinal">=</td><td>Resultado operacional</td><td class="num ${d.resultOper>=0?'pos':'neg'}">${fmt(d.resultOper)}</td></tr>
     ${d.outrasRec?L('outrasRec','Outras receitas'+(d.acresFiado>0.005?` <span class="desc">inclui ${fmt(d.acresFiado)} de acréscimo no fiado</span>`:''),d.outrasRec,'pos','(+)'):''}
     ${d.descFiado>0.005?L('descFiado','Descontos dados no fiado <span class="desc">dívida perdoada, sem dinheiro entrando</span>',d.descFiado,'neg','(−)'):''}
@@ -5715,7 +5921,9 @@ function catalogoLoja(embutir){
   const usadas={};prods.forEach(p=>p.cols.forEach(c=>{usadas[c]=(usadas[c]||0)+1;}));
   const cols=(cfg.colecoes||[]).filter(c=>usadas[c.nome])
     .map(c=>({nome:c.nome,n:usadas[c.nome],texto:c.texto||'',banner:c.banner||''}));
-  return {loja:{nome:cfg.loja.nome||'Loja',logo:cfg.loja.logo||'',whatsapp:cfg.loja.whatsapp||'',pix:cfg.loja.pix||'',tema:temaAtual()},
+  const capa=cfg.loja.capa||{banner:'',texto:''};
+  return {loja:{nome:cfg.loja.nome||'Loja',logo:cfg.loja.logo||'',whatsapp:cfg.loja.whatsapp||'',pix:cfg.loja.pix||'',
+      tema:temaAtual(),capaBanner:capa.banner||'',capaTexto:capa.texto||''},
     categorias:cats,tipos:tps,colecoes:cols,produtos:prods,geradoEm:new Date().toISOString()};
 }
 
@@ -5786,6 +5994,12 @@ a{color:inherit}
 .col-banner.sem-foto .legenda{position:static;background:none;padding:1rem 1.2rem}
 .col-banner h2{margin:0;font-size:1.35rem;color:var(--acento2);letter-spacing:.3px}
 .col-banner p{margin:.2rem 0 0;font-size:.9rem;color:var(--texto2)}
+/* a capa é a boas-vindas da loja: mais alta que o banner de coleção e com a
+   frase maior, porque ali não há nome de coleção competindo */
+.col-banner.capa{margin-bottom:.9rem}
+.col-banner.capa img{aspect-ratio:16/5}
+.col-banner.capa p{font-size:1.05rem;color:var(--texto);letter-spacing:.2px}
+.col-banner.capa.sem-foto .faixa{padding:.2rem 0}
 @media(max-width:699px){.col-banner{padding:0 .8rem}.col-banner h2{font-size:1.1rem}.col-banner p{font-size:.82rem}}
 /* ---- corpo: coleções na lateral ESQUERDA + grade de produtos ---- */
 .corpo-loja{display:flex;gap:1.2rem;max-width:1400px;margin:0 auto;padding:1rem 1rem 6rem;align-items:flex-start}
@@ -5906,6 +6120,7 @@ footer{text-align:center;padding:1.5rem 1rem 5rem;font-size:.75rem;color:var(--t
   <div class="chips tipos" id="lgTipos"></div>
 </div>
 <div class="fundo-lateral" id="lgFundoLat"></div>
+<div class="col-banner capa" id="lgCapa" hidden></div>
 <div class="col-banner" id="lgBanner" hidden></div>
 <div class="corpo-loja">
   <aside class="lateral" id="lgLateral">
@@ -6036,6 +6251,20 @@ var CATALOGO = __CATALOGO_JSON__;
   }
   /* faixa de apresentação da coleção escolhida. Sem banner ela ainda aparece
      como um bloco de texto: a frase é o que dá contexto, a imagem é enfeite. */
+  /* Capa da loja: só na tela cheia. Assim que o cliente escolhe uma coleção,
+     quem manda é o banner dela — duas faixas empilhadas empurrariam os
+     produtos pra fora da primeira tela. */
+  function renderCapa(){
+    var el=$("lgCapa");
+    if(estado.col||(!loja.capaBanner&&!loja.capaTexto)){el.hidden=true;el.innerHTML="";return;}
+    el.hidden=false;
+    el.className="col-banner capa"+(loja.capaBanner?"":" sem-foto");
+    el.innerHTML="<div class=\\"faixa\\">"+
+      (loja.capaBanner?"<img src=\\""+esc(loja.capaBanner)+"\\" alt=\\""+esc(loja.nome||"")+"\\">":"")+
+      (loja.capaTexto?"<div class=\\"legenda\\"><p>"+esc(loja.capaTexto)+"</p></div>":"")+
+      "</div>";
+  }
+
   function renderBanner(){
     var el=$("lgBanner"),c=estado.col?acharColecao(estado.col):null;
     if(!c||(!c.banner&&!c.texto)){el.hidden=true;el.innerHTML="";return;}
@@ -6110,7 +6339,7 @@ var CATALOGO = __CATALOGO_JSON__;
     $("lgGrade").innerHTML=h;
   }
 
-  function render(){renderChips();renderTipos();renderColecoes();renderBanner();renderGrade();}
+  function render(){renderChips();renderTipos();renderColecoes();renderCapa();renderBanner();renderGrade();}
 
   $("lgChips").addEventListener("click",function(e){
     var b=e.target.closest("button");if(!b)return;
@@ -6452,6 +6681,64 @@ function painelLojaBloqueada(){
     <div class="barra"><button class="bt primario" onclick="falarSobreAssinatura()">Quero incluir o catálogo</button></div>
   </div>`;
 }
+/* ============================================================
+   PERSONALIZAR O CATÁLOGO
+   Fica aqui, e não em Configurações → Coleções, porque isto é a VITRINE:
+   o que o cliente vê. Coleções continuam sendo estrutura do painel (quais
+   existem); a cara delas na loja se decide neste lugar, junto com a capa.
+   ============================================================ */
+function capaLoja(){
+  const l=C().loja;
+  if(!l.capa)l.capa={banner:'',texto:''};
+  return l.capa;
+}
+function painelPersonalizarCatalogo(){
+  const capa=capaLoja(),cs=colecoes();
+  const usadas={};(catalogoLoja(true).produtos||[]).forEach(p=>(p.cols||[]).forEach(c=>{usadas[c]=(usadas[c]||0)+1;}));
+  return `<div class="painel">
+    <h3>🎨 Personalizar o catálogo</h3>
+    <p class="mut" style="font-size:.85rem;margin-bottom:.9rem">Tudo que muda a <b>cara da loja</b> para quem entra. Nada aqui mexe no painel — é só vitrine.</p>
+
+    <h4>Capa da loja</h4>
+    <p class="mut" style="font-size:.82rem;margin-bottom:.5rem">Primeira coisa que o cliente vê ao abrir o catálogo, antes dos produtos.</p>
+    <div class="banner-prev" id="capaPrev">${capa.banner?`<img src="${capa.banner}" alt="">`:'sem capa — a loja começa direto nos produtos'}</div>
+    <input type="file" id="capaInput" accept="image/*" hidden onchange="addCapaLoja(this)">
+    <div class="barra" style="margin-top:.4rem">
+      <button class="bt mini" onclick="document.getElementById('capaInput').click()">🖼️ escolher imagem</button>
+      ${capa.banner?`<button class="bt mini perigo" onclick="removerCapaLoja()">✕ remover</button>`:''}
+    </div>
+    <label class="campo mt">Chamada da loja <span class="mut" style="font-size:.76rem">— uma linha, aparece sobre a capa</span>
+      <input id="capaTexto" maxlength="120" value="${esc(capa.texto||'')}" placeholder="ex.: peças que combinam com o seu dia">
+    </label>
+    <div class="rodape"><button class="bt primario" onclick="salvarCapaLoja()">Salvar capa</button></div>
+
+    <h4 class="mt">Vitrine das coleções</h4>
+    <p class="mut" style="font-size:.82rem;margin-bottom:.5rem">Cada coleção pode ter uma frase e um banner próprios, que aparecem quando o cliente a escolhe no menu lateral.</p>
+    ${cs.length?`<ul class="cfg-lista">${cs.map(c=>`<li>
+      <span class="nm">${c.banner?`<img class="col-mini" src="${c.banner}" alt=""> `:''}<b>${esc(c.nome)}</b>
+        <span class="mut" style="font-size:.76rem">— ${usadas[c.nome]||0} peça(s) na loja</span>
+        ${c.texto?`<div class="mut" style="font-size:.78rem">“${esc(c.texto)}”</div>`
+          :'<div class="mut" style="font-size:.76rem">sem frase nem banner</div>'}</span>
+      <button class="bt mini" onclick="abrirColecao('${c.id}')">✎ personalizar</button></li>`).join('')}</ul>`
+      :'<p class="mut">Nenhuma coleção criada ainda. Crie em <b>Configurações → Coleções</b> e volte aqui para dar cara a cada uma.</p>'}
+    <p class="mut" style="font-size:.78rem;margin-top:.6rem">Criar, renomear ou apagar coleção continua em <b>Configurações → Coleções</b> — lá é a estrutura, aqui é a aparência.</p>
+  </div>`;
+}
+function addCapaLoja(inp){
+  const f=inp.files[0];inp.value='';if(!f)return;
+  comprimirBanner(f,d=>{
+    toast('Enviando capa...');
+    guardarMidiaOuAvisar(d,'loja',u=>{capaLoja().banner=u;salvar();renderConfig();toast('Capa enviada ✓');});
+  });
+}
+function removerCapaLoja(){
+  if(!confirm('Remover a capa da loja?'))return;
+  capaLoja().banner='';salvar();renderConfig();toast('Capa removida');
+}
+function salvarCapaLoja(){
+  capaLoja().texto=$('capaTexto').value.trim();
+  salvar();renderConfig();toast('Capa salva ✓');
+}
 function painelLojaSite(){
   const cfg=C();
   if(typeof temCatalogo==='function'&&!temCatalogo())return painelLojaBloqueada();
@@ -6483,6 +6770,7 @@ function painelLojaSite(){
     </div>
     <p class="mut" style="font-size:.78rem;margin-top:.6rem">Produtos com status <b>Oculto</b> não aparecem na loja. <b>Esgotado</b> aparece, mas marcado como indisponível.</p>
   </div>
+  ${painelPersonalizarCatalogo()}
   <div class="painel">
     <h3>${dinamico?'✅ O site se atualiza sozinho':'Como publicar (uma vez só)'}</h3>
     ${dinamico?`
@@ -6526,7 +6814,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-09-08 22:16';
+const VERSAO_APP='2026-09-10 22:43';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
