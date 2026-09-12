@@ -261,6 +261,21 @@ dialog::backdrop{background:#000b}
 .chk-tags input{margin:0;accent-color:var(--acento)}
 .chk-tags label:has(input:checked){border-color:var(--acento);color:var(--acento2)}
 .tag-col{display:inline-block;background:var(--painel3);border:1px solid var(--borda);border-radius:20px;padding:0 .5rem;font-size:.7rem;color:var(--texto2);margin-right:.2rem}
+/* cabeçalho de grupo na tabela de produtos (com estoque / sem estoque) */
+tr.grupo td{background:var(--painel2);padding:.55rem .7rem;border-bottom:1px solid var(--borda)}
+tr.grupo:hover td{background:var(--painel2)}
+.grupo-cab{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.grupo-cab b{font-size:.84rem;letter-spacing:.3px}
+.grupo-cab .mut{font-size:.78rem}
+.grupo-cab .bt{margin-left:auto}
+/* vendidos: visíveis quando abertos, mas um passo atrás do que está à venda */
+tr.zerado td{opacity:.72}
+tr.zerado:hover td{opacity:1}
+/* repetidos: o que MUDA entre os cadastros do grupo salta aos olhos */
+.dup-tab .difere{color:var(--laranja);font-weight:600}
+.dup-grupo{background:var(--painel2);border:1px solid var(--borda);border-radius:10px;margin-bottom:.7rem;overflow:hidden}
+.dup-grupo table{font-size:.84rem}
+.dup-grupo td,.dup-grupo th{padding:.45rem .55rem}
 /* banner da coleção: a proporção aqui é a mesma da faixa no catálogo, senão
    quem escolhe a imagem não vê o corte que vai acontecer lá */
 .banner-prev{width:100%;aspect-ratio:3/1;border-radius:10px;background:var(--painel3);
@@ -503,6 +518,11 @@ dialog::backdrop{background:#000b}
   .cartoes td.capa{display:block;position:absolute;top:.55rem;right:.7rem;padding:0}
   .cartoes td.capa::before{content:none}
   .cartoes .rolagem{overflow-x:visible}
+  /* cabeçalho de grupo não é cartão: é um título entre os cartões */
+  .cartoes tr.grupo{background:none;border:none;padding:0;margin:1rem 0 .5rem}
+  .cartoes tr.grupo td{display:block;padding:0;background:none;text-align:left}
+  .cartoes tr.grupo td::before{content:none}
+  .cartoes tr.zerado td{opacity:.8}
   /* campo de busca ocupa a linha toda (a classe evita o style inline vencer) */
   .barra>.busca-larga{flex:1 1 100%!important}
 }
@@ -1544,7 +1564,7 @@ const ui={tab:'resumo',
   r:{desloca:0,ini:null,fim:null},
   v:{per:'fiscal',ini:'',fim:'',busca:'',lim:200,dia:'',semOff:0,forn:'',tipo:'',cat:'',col:''},
   f:{busca:'',mostrarPagos:false,abertos:{},filtro:'todos',local:''},
-  p:{busca:'',cat:'',tipo:'',forn:'',col:'',status:'',estoque:'',ini:'',fim:'',ord:'nome',lim:300,sel:{},dups:false},
+  p:{busca:'',cat:'',tipo:'',forn:'',col:'',status:'',estoque:'',ini:'',fim:'',ord:'nome',lim:300,sel:{},dups:false,verZerados:false},
   l:{per:'fiscal',ini:'',fim:'',tipo:'',busca:'',lim:200},
   c:{busca:'',lim:300},
   cfgTab:'geral'
@@ -2042,7 +2062,9 @@ function totaisEstoque(ids){
 function selProdIds(){return Object.keys(ui.p.sel).filter(id=>ui.p.sel[id]);}
 function toggleProdSel(id,on){ui.p.sel[id]=on;renderProdutos();}
 function limparProdSel(){ui.p.sel={};renderProdutos();}
-function selecionarFiltrados(){produtosFiltrados().forEach(p=>ui.p.sel[p.id]=true);renderProdutos();}
+/* só o que está na tela: com o bloco dos vendidos recolhido, marcar "os
+   listados" não pode pegar 200 peças escondidas numa edição em massa */
+function selecionarFiltrados(){produtosVisiveis().forEach(p=>ui.p.sel[p.id]=true);renderProdutos();}
 /* seleciona quem tem estoque "—" (null = nunca foi contado). São justamente os
    que continuam aparecendo na loja mesmo sem ninguém saber se existem. */
 function selecionarSemControle(){
@@ -2554,17 +2576,47 @@ function painelDuplicados(){
     <div class="rodape"><button class="bt" onclick="ui.p.dups=false;renderProdutos()">Fechar</button></div></div>`;
   return `<div class="painel" style="border-color:var(--laranja)">
     <h3 style="margin-top:0">🔀 Produtos repetidos <span class="bd fiadoP">${gs.length} grupo(s)</span></h3>
-    <p class="mut" style="font-size:.84rem;margin-bottom:.8rem">Estes cadastros parecem ser a mesma peça escrita de jeitos diferentes. Escolha qual fica — as vendas, o histórico e o estoque do outro passam para ele.</p>
-    ${gs.map(g=>`<div class="painel" style="background:var(--painel2);padding:.7rem .8rem;margin-bottom:.6rem">
-      ${g.map(p=>`<div class="conta-linha">
-        <span class="nm"><b>${esc(p.nome)}</b>
-          <span class="mut" style="font-size:.78rem">— ${esc(catNome(p.catId))}${p.tipoId?' · '+esc(tipoNome(p.tipoId)):''}
-          · ${p.estoque==null?'estoque —':fmtN(p.estoque)+' em estoque'}
-          · ${fmtN(vendasDoProduto(p.id))} vendida(s)${p.criadoEm?' · de '+fmtData(p.criadoEm):''}</span></span>
-        <button class="bt mini" onclick="manterEJuntar('${p.id}',${JSON.stringify(g.filter(x=>x.id!==p.id).map(x=>x.id)).replace(/"/g,'&quot;')})">manter este</button>
-      </div>`).join('')}
-    </div>`).join('')}
+    <p class="mut" style="font-size:.84rem;margin-bottom:.4rem">Estes cadastros têm nomes equivalentes. Compare os detalhes — o que está <b style="color:var(--laranja)">em laranja</b> é diferente entre eles.</p>
+    <p class="mut" style="font-size:.84rem;margin-bottom:.9rem">• É a <b>mesma peça</b>? Clique em <b>manter este</b> no cadastro certo: vendas, histórico e estoque dos outros passam para ele.<br>
+      • São <b>peças diferentes</b>? Clique em <b>✎ editar</b> e ajuste o nome (ex.: acrescente a cor ou o tamanho). Ao salvar, ela sai desta lista sozinha.</p>
+    ${gs.map(grupoDuplicado).join('')}
     <div class="rodape"><button class="bt" onclick="ui.p.dups=false;renderProdutos()">Fechar</button></div></div>`;
+}
+/* Um grupo de repetidos em tabela. A comparação lado a lado é o que permite
+   decidir: dois "Brinco Trio de Pérolas" com fornecedor e custo diferentes
+   quase sempre são peças diferentes; com tudo igual, quase sempre é a mesma. */
+function grupoDuplicado(g){
+  const campos={
+    cat:p=>catNome(p.catId)+(p.tipoId?' · '+tipoNome(p.tipoId):''),
+    forn:p=>p.fornId?nomeDe(C().fornecedores,p.fornId,''):'',
+    preco:p=>+p.preco>0?r2(p.preco):null,
+    custo:p=>p.custo!=null?r2(p.custo):null,
+    est:p=>saldoProduto(p)
+  };
+  const difere={};
+  Object.keys(campos).forEach(k=>{
+    const vals=g.map(p=>JSON.stringify(campos[k](p)));
+    difere[k]=vals.some(v=>v!==vals[0]);
+  });
+  const cl=k=>difere[k]?' difere':'';
+  const outros=p=>JSON.stringify(g.filter(x=>x.id!==p.id).map(x=>x.id)).replace(/"/g,'&quot;');
+  return `<div class="dup-grupo cartoes"><div class="rolagem"><table class="dup-tab">
+    <thead><tr><th></th><th>Produto</th><th>Fornecedor</th><th class="num">Preço</th><th class="num">Custo</th><th class="num">Estoque</th><th class="num">Vendidas</th><th class="num">Cadastro</th><th></th></tr></thead>
+    <tbody>${g.map(p=>{
+      const capa=fotoCapa(p);
+      return `<tr>
+      <td class="capa" data-rot="">${capa?`<img class="thumb" src="${capa}" alt="">`:'<div class="thumb-vazio">📷</div>'}</td>
+      <td class="titulo" data-rot="Produto"><b>${esc(p.nome)}</b><div class="mut${cl('cat')}" style="font-size:.76rem">${esc(campos.cat(p))}</div></td>
+      <td class="${cl('forn').trim()}" data-rot="Fornecedor">${campos.forn(p)?esc(campos.forn(p)):'<span class="mut">—</span>'}</td>
+      <td class="num${cl('preco')}" data-rot="Preço">${campos.preco(p)!=null?fmt(p.preco):'—'}</td>
+      <td class="num${cl('custo')}" data-rot="Custo">${campos.custo(p)!=null?fmt(p.custo):'—'}</td>
+      <td class="num${cl('est')}" data-rot="Estoque">${campos.est(p)==null?'—':fmtN(campos.est(p))}</td>
+      <td class="num" data-rot="Vendidas">${fmtN(vendasDoProduto(p.id))}</td>
+      <td class="num mut" data-rot="Cadastro">${p.criadoEm?fmtData(p.criadoEm):'—'}</td>
+      <td class="acoes">
+        <button class="bt mini" title="editar nome, preço, fornecedor..." onclick="editarProduto('${p.id}')">✎ editar</button>
+        <button class="bt mini" title="junta os outros cadastros deste grupo neste" onclick="manterEJuntar('${p.id}',${outros(p)})">manter este</button>
+      </td></tr>`;}).join('')}</tbody></table></div></div>`;
 }
 function manterEJuntar(idFica,idsSaem){
   (idsSaem||[]).forEach(id=>juntarProdutos(idFica,id));
@@ -2607,9 +2659,22 @@ function produtosFiltrados(){
   if(u.ord==='precoMenor')ps.sort((a,b)=>(+a.preco||0)-(+b.preco||0));
   return ps;
 }
-function renderProdutosTab(){
-  const u=ui.p,ps=produtosFiltrados();
-  const linhas=ps.slice(0,u.lim).map(p=>{
+/* ---- dois grupos na listagem ----
+   Peça vendida continua cadastrada (é o histórico dela), mas misturada com o
+   que está à venda ela atrapalhava justamente quem abre a tela pra conferir o
+   estoque ou cadastrar peça nova. Então: primeiro o que tem estoque, depois,
+   num bloco à parte e recolhido, o que zerou.
+   "Sem controle" (estoque —) fica no primeiro grupo: não dá pra afirmar que
+   acabou uma peça que nunca foi contada — é a mesma regra da loja. */
+function produtoZerado(p){const s=saldoProduto(p);return s!=null&&s<=0;}
+/* o bloco dos zerados abre sozinho quando a pessoa está PROCURANDO algo:
+   esconder o resultado de uma busca atrás de um grupo fechado pareceria que
+   o produto não existe */
+function zeradosAbertos(ativos){
+  const u=ui.p;
+  return !!(u.verZerados||u.busca.trim()||u.estoque||!ativos);
+}
+function linhaProduto(p){
     const al=produtoAvisa(p)&&p.estoque!=null&&p.estoque<=(+p.minimo||0);
     const marg=(+p.preco>0&&p.custo!=null)?((p.preco-p.custo)/p.preco):null;
     const cols=colecoesDoProduto(p);
@@ -2618,7 +2683,7 @@ function renderProdutosTab(){
     const th=capa?`<img class="thumb" src="${capa}" alt="">${nMid>1?`<span class="mut" style="font-size:.66rem;display:block;text-align:center">${nMid} mídias</span>`:''}`:'<div class="thumb-vazio">📷</div>';
     /* data-rot: no celular a tabela vira cartão e cada célula precisa dizer
        de que campo ela é — o cabeçalho da tabela some lá (ver .cartoes) */
-    return `<tr>
+    return `<tr${produtoZerado(p)?' class="zerado"':''}>
       <td data-rot=""><input type="checkbox" ${ui.p.sel[p.id]?'checked':''} onchange="toggleProdSel('${p.id}',this.checked)"></td>
       <td class="capa" data-rot="">${th}</td>
       <td class="titulo" data-rot="Produto">${esc(p.nome)}${p.tipoId?` <span class="mut" style="font-size:.76rem">(${esc(tipoNome(p.tipoId))})</span>`:''}${cols.length?`<div style="margin-top:.15rem">${cols.map(n=>`<span class="tag-col">${esc(n)}</span>`).join('')}</div>`:''}${!produtoAvisa(p)?'<div class="mut" style="font-size:.68rem">🔕 sem aviso de estoque</div>':''}</td>
@@ -2634,12 +2699,40 @@ function renderProdutosTab(){
         <button class="bt mini" title="Editar" onclick="editarProduto('${p.id}')">✎</button>
         <button class="bt mini perigo" title="Excluir" onclick="excluirProduto('${p.id}')">✕</button>
       </td></tr>`;
-  }).join('');
+}
+/* produtos que aparecem de fato na tela, na ordem da tela — é daqui que
+   "selecionar os listados" tira a lista, pra nunca marcar peça escondida */
+function produtosVisiveis(){
+  const ps=produtosFiltrados(),ativos=ps.filter(p=>!produtoZerado(p)),zerados=ps.filter(produtoZerado);
+  return zeradosAbertos(ativos.length)?ativos.concat(zerados):ativos;
+}
+function renderProdutosTab(){
+  const u=ui.p,ps=produtosFiltrados();
+  // a ordem escolhida (nome, data, preço...) vale DENTRO de cada grupo
+  const ativos=ps.filter(p=>!produtoZerado(p)),zerados=ps.filter(produtoZerado);
+  const abertos=zeradosAbertos(ativos.length);
+  const cabGrupo=(titulo,n,extra)=>`<tr class="grupo"><td colspan="11"><div class="grupo-cab">
+    <b>${titulo}</b><span class="mut">${n} produto(s)</span>${extra||''}</div></td></tr>`;
+  let corpo='';
+  if(ativos.length){
+    corpo+=cabGrupo('🟢 Com estoque',ativos.length);
+    corpo+=ativos.slice(0,u.lim).map(linhaProduto).join('');
+  }
+  if(zerados.length){
+    // o botão só faz sentido quando o bloco abriu por escolha, não por busca/filtro
+    const automatico=abertos&&!u.verZerados;
+    const botao=automatico?''
+      :`<button class="bt mini" onclick="ui.p.verZerados=${!abertos};renderProdutosTab()">${abertos?'recolher':'mostrar'}</button>`;
+    corpo+=cabGrupo('⚪ Sem estoque — já vendidos',zerados.length,
+      (abertos?'':'<span class="mut">— cadastros guardados como histórico</span>')+botao);
+    if(abertos)corpo+=zerados.slice(0,u.lim).map(linhaProduto).join('');
+  }
+  const maisQueLimite=ativos.length>u.lim||(abertos&&zerados.length>u.lim);
   $('produtosTabela').innerHTML=`<div class="painel cartoes"><div class="rolagem"><table>
     <thead><tr><th title="marque p/ ver os totais só deles">✓</th><th></th><th>Produto</th><th>Categoria</th><th class="num">Preço</th><th class="num">Custo</th><th class="num">Margem</th><th class="num">Estoque</th><th class="num">Cadastro</th><th>Status</th><th></th></tr></thead>
-    ${linhas||`<tr><td colspan="11" class="centro">Nenhum produto encontrado.${filtrosAtivosProdutos()?' <button class="bt mini" onclick="limparFiltrosProdutos()">limpar filtros</button>':''}</td></tr>`}</table></div>
-    <div class="mut" style="font-size:.8rem;padding:.3rem .2rem">${ps.length} de ${dados.produtos.length} produto(s)${u.estoque||u.cat||u.tipo||u.forn||u.col||u.status||u.ini||u.fim?' — filtrado':''}</div>
-    ${ps.length>u.lim?`<div class="centro"><button class="bt" onclick="ui.p.lim+=300;renderProdutosTab()">Mostrar mais</button></div>`:''}</div>`;
+    ${corpo||`<tr><td colspan="11" class="centro">Nenhum produto encontrado.${filtrosAtivosProdutos()?' <button class="bt mini" onclick="limparFiltrosProdutos()">limpar filtros</button>':''}</td></tr>`}</table></div>
+    <div class="mut" style="font-size:.8rem;padding:.3rem .2rem">${ativos.length} com estoque · ${zerados.length} sem estoque · ${ps.length} de ${dados.produtos.length} produto(s)${u.estoque||u.cat||u.tipo||u.forn||u.col||u.status||u.ini||u.fim?' — filtrado':''}</div>
+    ${maisQueLimite?`<div class="centro"><button class="bt" onclick="ui.p.lim+=300;renderProdutosTab()">Mostrar mais</button></div>`:''}</div>`;
 }
 
 /* ---- mídia (fotos + vídeo) ---- */
@@ -6814,7 +6907,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-09-10 22:43';
+const VERSAO_APP='2026-09-12 18:12';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
