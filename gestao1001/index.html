@@ -386,6 +386,31 @@ tr.zerado:hover td{opacity:1}
 .mescla-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:.1rem}
 .mescla-info b{font-size:.88rem;font-weight:600}
 .mescla-info .mut{font-size:.74rem}
+/* banners: cabeçalho com as setinhas de ordem (antes / depois) */
+.bn-cab{display:flex;align-items:center;justify-content:space-between;gap:.4rem;min-height:1.7rem}
+.bn-ordem{display:flex;gap:.3rem}
+/* menu de ações (⋮) da lista de produtos: flutua junto do botão no
+   computador e sobe de baixo, como folha, no celular */
+.bt-tres{display:inline-flex;align-items:center;justify-content:center;min-width:32px}
+.bt-tres svg{width:16px;height:16px}
+.menu-fundo{position:fixed;inset:0;z-index:80;background:transparent}
+.menu-acoes{position:fixed;z-index:81;min-width:230px;max-width:calc(100vw - 16px);background:var(--painel);
+  border:1px solid var(--borda);border-radius:12px;box-shadow:var(--sombra2);padding:.35rem}
+.menu-acoes .menu-cab{font-size:.74rem;color:var(--texto2);padding:.35rem .6rem .45rem;max-width:270px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.menu-acoes button{display:flex;align-items:center;gap:.6rem;width:100%;background:none;border:none;color:var(--texto);
+  font:inherit;font-size:.9rem;text-align:left;padding:.55rem .6rem;border-radius:8px;cursor:pointer}
+.menu-acoes button:hover,.menu-acoes button:focus-visible{background:var(--hover);outline:none}
+.menu-acoes button svg{width:17px;height:17px;flex:none;color:var(--texto2)}
+.menu-acoes button.perigo,.menu-acoes button.perigo svg{color:var(--vermelho)}
+.menu-sep{height:1px;background:var(--borda);margin:.3rem .2rem}
+@media(max-width:700px){
+  .menu-fundo{background:rgba(20,18,12,.45)}
+  .menu-acoes{left:0;right:0;bottom:0;top:auto;min-width:0;max-width:none;border-radius:16px 16px 0 0;
+    padding:.5rem .6rem calc(.9rem + env(safe-area-inset-bottom))}
+  .menu-acoes .menu-cab{max-width:none;font-size:.8rem;padding:.45rem .6rem .6rem}
+  .menu-acoes button{padding:.85rem .7rem;font-size:1rem}
+}
 /* ---- tela de entrada (nuvem) ---- */
 .login-fundo{position:fixed;inset:0;z-index:9000;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:1rem}
 .login-caixa{background:var(--painel);border:1px solid var(--borda);border-radius:14px;padding:1.6rem;width:100%;max-width:340px;display:flex;flex-direction:column;gap:.7rem;box-shadow:var(--sombra2)}
@@ -1139,9 +1164,12 @@ try{
   </div>
 </form>
 </dialog>
-<!-- produto com vendas não pode ser excluído: mesclar com o cadastro certo ou ocultar -->
+<!-- menu de ações da lista de produtos (⋮): um só, posicionado junto do botão tocado -->
+<div id="menuProdutoFundo" class="menu-fundo" hidden onclick="fecharMenuProduto()"></div>
+<div id="menuProduto" class="menu-acoes" role="menu" hidden></div>
+<!-- mesclar: ao excluir produto com vendas (mesclar ou ocultar) ou pelo menu ⋮ -->
 <dialog id="dlgMesclar">
-  <h3 style="margin-top:0">Não dá para excluir este produto</h3>
+  <h3 style="margin-top:0" id="mesclaTitulo">Não dá para excluir este produto</h3>
   <div id="mesclaCorpo"></div>
   <div class="rodape"><button type="button" class="bt" onclick="dlgMesclar.close()">Cancelar</button></div>
 </dialog>
@@ -2792,14 +2820,43 @@ function confirmarNomeRepetido(nome,ignorarId){
 /* Junta dois cadastros num só: vendas, movimentações e estoque vão para o que
    fica. O que some não deixa buraco no histórico — as vendas antigas passam a
    apontar para o sobrevivente. */
+/* Anel e aliança (grade): cada tamanho do que sai soma no tamanho de mesmo
+   rótulo do que fica ("18" com "18 "); tamanho que só existe no que sai vira
+   tamanho novo. Se um dos dois não tinha grade, o estoque dele — e o histórico,
+   para uma devolução ter onde voltar — vai para o tamanho "sem tamanho": nada
+   se perde, e depois é só redistribuir no ✎ editar. Devolve null quando
+   nenhum dos dois tem grade (junção comum). Não altera nada: só planeja. */
+function planoGradeJuntar(fica,sai){
+  if(!temGrade(fica)&&!temGrade(sai))return null;
+  const norm=r=>String(r==null?'':r).trim().toLowerCase().replace(/\s+/g,' ');
+  const vars=(fica.variacoes||[]).map(v=>Object.assign({},v));
+  const mapa={};
+  const somar=(rot,qtd)=>{
+    let v=vars.find(x=>norm(x.rotulo)===norm(rot));
+    if(!v){v={id:novoId(),rotulo:String(rot==null?'':rot).trim(),estoque:0};vars.push(v);}
+    v.estoque=r2((+v.estoque||0)+(+qtd||0));
+    return v;
+  };
+  const simples=temGrade(fica)?sai:fica;
+  let semTamId=null;
+  if(!temGrade(simples)){
+    const temHistorico=dados.vendas.some(v=>(v.itens||[]).some(i=>i.produtoId===simples.id))
+      ||(dados.movEstoque||[]).some(m=>m.produtoId===simples.id);
+    if(+simples.estoque>0||temHistorico)semTamId=somar('sem tamanho',Math.max(0,+simples.estoque||0)).id;
+  }
+  if(temGrade(sai))sai.variacoes.forEach(sv=>{mapa[sv.id]=somar(sv.rotulo,sv.estoque).id;});
+  // tamanhos numéricos em ordem; "sem tamanho" sempre por último
+  const semT=v=>norm(v.rotulo)==='sem tamanho'?1:0;
+  const numero=v=>parseFloat(String(v.rotulo).trim().replace(',','.'));
+  const todosNumeros=vars.filter(v=>!semT(v)).every(v=>/^\d+([.,]\d+)?$/.test(String(v.rotulo).trim()));
+  vars.sort((a,b)=>(semT(a)-semT(b))||(todosNumeros?numero(a)-numero(b):0));
+  return {variacoes:vars,mapa,semTamId,
+    simplesId:(temGrade(fica)&&temGrade(sai))?null:simples.id,
+    total:r2(vars.reduce((s,v)=>s+(+v.estoque||0),0))};
+}
 function juntarProdutos(idFica,idSai){
   const fica=prodPorId(idFica),sai=prodPorId(idSai);
   if(!fica||!sai||fica===sai)return false;
-  if(temGrade(fica)||temGrade(sai)){
-    alert('Um deles controla estoque por tamanho (grade). Junte à mão: passe as quantidades'
-      +' para o cadastro que vai ficar e depois exclua o outro.');
-    return false;
-  }
   const nVendas=dados.vendas.reduce((n,v)=>n+v.itens.filter(i=>i.produtoId===idSai).length,0);
   const nMov=(dados.movEstoque||[]).filter(m=>m.produtoId===idSai).length;
   /* Juntar reescreve as vendas antigas. Quem só consulta Vendas não consegue
@@ -2810,13 +2867,29 @@ function juntarProdutos(idFica,idSai){
       +'Peça a quem é dono da loja para fazer isso — ou oculte o produto.');
     return false;
   }
-  const somaEst=(fica.estoque==null&&sai.estoque==null)?null:r2((+fica.estoque||0)+(+sai.estoque||0));
+  // anel/aliança: tamanho soma com tamanho (ver planoGradeJuntar)
+  const grade=planoGradeJuntar(fica,sai);
+  const somaEst=grade?grade.total
+    :((fica.estoque==null&&sai.estoque==null)?null:r2((+fica.estoque||0)+(+sai.estoque||0)));
   if(!confirm('Juntar "'+sai.nome+'" dentro de "'+fica.nome+'"?\n\n'
     +'• '+nVendas+' item(ns) de venda passam para "'+fica.nome+'"\n'
     +'• '+nMov+' movimentação(ões) de estoque também\n'
+    +(grade?'• Tamanhos depois de juntar: '+grade.variacoes.map(v=>v.rotulo+': '+fmtN(v.estoque)).join(' · ')+'\n'
+      +(grade.semTamId?'   (o que não tinha tamanho entrou em "sem tamanho" — dá pra redistribuir no ✎ editar)\n':''):'')
     +'• Estoque final: '+(somaEst==null?'—':fmtN(somaEst))+'\n\n'
     +'"'+sai.nome+'" deixa de existir. Não dá pra desfazer.'))return false;
 
+  if(grade){
+    /* vendas e movimentações passam a apontar para o tamanho equivalente do que
+       fica — sem isso, excluir uma venda antiga não teria para onde devolver a peça */
+    const troca=x=>{
+      if(x.produtoId===idSai&&x.variacaoId&&grade.mapa[x.variacaoId])x.variacaoId=grade.mapa[x.variacaoId];
+      else if(grade.semTamId&&x.produtoId===grade.simplesId&&!x.variacaoId){x.variacaoId=grade.semTamId;x.tamanho='sem tamanho';}
+    };
+    dados.vendas.forEach(v=>(v.itens||[]).forEach(troca));
+    (dados.movEstoque||[]).forEach(troca);
+    fica.variacoes=grade.variacoes;
+  }
   dados.vendas.forEach(v=>(v.itens||[]).forEach(i=>{if(i.produtoId===idSai)i.produtoId=idFica;}));
   (dados.movEstoque||[]).forEach(m=>{if(m.produtoId===idSai)m.produtoId=idFica;});
   fica.estoque=somaEst;
@@ -2963,9 +3036,7 @@ function linhaProduto(p){
       <td class="num mut" style="font-size:.78rem" data-rot="Cadastro">${cadastradoEm(p)?fmtData(cadastradoEm(p)):'—'}</td>
       <td data-rot="Status">${statusBadge(p.status)}${naLoja(p)?' <span class="bd ok" title="aparecendo no catálogo agora">🛍️</span>':''}</td>
       <td class="acoes">
-        <button class="bt mini" title="Estoque" onclick="abrirMov('${p.id}')">±</button>
-        <button class="bt mini" title="Editar" onclick="editarProduto('${p.id}')">✎</button>
-        <button class="bt mini perigo" title="Excluir" onclick="excluirProduto('${p.id}')">✕</button>
+        <button class="bt mini bt-tres" title="Ações" aria-label="Ações de ${esc(p.nome)}" aria-haspopup="menu" onclick="abrirMenuProduto('${p.id}',this)">${IC_TRES_PONTOS}</button>
       </td></tr>`;
 }
 /* produtos que aparecem de fato na tela, na ordem da tela — é daqui que
@@ -3356,33 +3427,48 @@ function excluirProduto(id){
    É o mesmo juntarProdutos dos Repetidos, mas aqui a pessoa escolhe o destino:
    os nomes podem ser bem diferentes ("Brinco Gota Strass" e "Brinco Cristal
    Pendente") e a detecção automática de repetidos não pegaria. */
-const MESCLA={id:null,busca:'',escolher:false};
-function podeMesclarProdutos(){return podeEscrever('vendas')&&podeEscrever('estoque');}
-function abrirMesclar(id){
-  MESCLA.id=id;MESCLA.busca='';MESCLA.escolher=false;
+const MESCLA={id:null,busca:'',escolher:false,origem:'excluir'};
+/* Mesclar mexe no estoque e, se o produto que some tem venda, nas vendas
+   antigas — que só sobem para a nuvem para quem pode alterar Vendas. */
+function motivoSemMesclar(p){
+  if(!podeEscrever('estoque'))return 'O seu acesso não permite alterar Produtos.';
+  if(vendasDoProduto(p.id)>0&&!podeEscrever('vendas'))
+    return 'Mesclar mexe nas vendas antigas, e o seu acesso não permite alterar Vendas. Peça a quem é dono da loja para mesclar, ou oculte este produto.';
+  return '';
+}
+/* origem 'excluir': tentou excluir peça com venda — mostra as duas saídas.
+   origem 'menu': escolheu "Mesclar" no ⋮ — vai direto para a escolha. */
+function abrirMesclar(id,origem){
+  MESCLA.id=id;MESCLA.busca='';
+  MESCLA.origem=origem==='menu'?'menu':'excluir';
+  MESCLA.escolher=MESCLA.origem==='menu';
   renderMesclar();
   dlgMesclar.showModal();
 }
 function renderMesclar(){
   const p=prodPorId(MESCLA.id);if(!p){if(dlgMesclar.open)dlgMesclar.close();return;}
-  const pode=podeMesclarProdutos()&&!temGrade(p);
-  let h=`<p style="margin:.1rem 0 .8rem;line-height:1.5"><b>${esc(p.nome)}</b> tem <b>${fmtN(vendasDoProduto(p.id))} peça(s) vendida(s)</b> registradas, por isso não pode ser excluído — as vendas antigas apontam para ele.</p>`;
-  if(!MESCLA.escolher){
+  const nV=vendasDoProduto(p.id),motivo=motivoSemMesclar(p),peloMenu=MESCLA.origem==='menu';
+  $('mesclaTitulo').textContent=peloMenu?'Mesclar produto':'Não dá para excluir este produto';
+  let h=peloMenu
+    ?`<p style="margin:.1rem 0 .8rem;line-height:1.5">Use quando <b>${esc(p.nome)}</b> for a mesma peça de outro cadastro. ${nV?`As vendas (${fmtN(nV)} peça(s)), o estoque`:'O estoque'}${temGrade(p)?' de cada tamanho':''} e as fotos passam para o produto que você escolher, e este cadastro some.</p>`
+    :`<p style="margin:.1rem 0 .8rem;line-height:1.5"><b>${esc(p.nome)}</b> tem <b>${fmtN(nV)} peça(s) vendida(s)</b> registradas, por isso não pode ser excluído — as vendas antigas apontam para ele.</p>`;
+  if(peloMenu&&motivo){
+    h+=`<p class="mut" style="font-size:.84rem">${motivo}</p>`;
+  }else if(!MESCLA.escolher){
     h+=`<div class="mescla-opcoes">
-      <button type="button" class="mescla-op" onclick="mesclarEscolher()"${pode?'':' disabled'}>
+      <button type="button" class="mescla-op" onclick="mesclarEscolher()"${motivo?' disabled':''}>
         <b>🔀 Mesclar com outro produto</b>
         <span>É a mesma peça cadastrada com outro nome. As vendas, o estoque e as fotos passam para o produto certo e este cadastro some.</span></button>
       <button type="button" class="mescla-op" onclick="ocultarPeloMesclar()">
         <b>🙈 Ocultar</b>
         <span>Sai da loja e fica fora do caminho, mas continua no histórico. Dá para voltar a mostrar depois.</span></button>
     </div>`;
-    if(temGrade(p))h+=`<p class="mut" style="font-size:.8rem;margin-top:.6rem">Este produto controla estoque por tamanho (grade): a mesclagem precisa ser feita à mão — passe as quantidades para o cadastro certo e depois oculte este.</p>`;
-    else if(!podeMesclarProdutos())h+=`<p class="mut" style="font-size:.8rem;margin-top:.6rem">Mesclar mexe nas vendas antigas, e o seu acesso não permite alterar Vendas. Peça a quem é dono da loja para mesclar, ou oculte este produto.</p>`;
+    if(motivo)h+=`<p class="mut" style="font-size:.8rem;margin-top:.6rem">${motivo}</p>`;
   }else{
     h+=`<label class="campo">Com qual produto mesclar?
         <input id="mesclaBusca" autocomplete="off" placeholder="🔎 digite o nome do produto certo" value="${esc(MESCLA.busca)}" oninput="MESCLA.busca=this.value;renderListaMesclar()"></label>
       <div id="mesclaLista" class="mescla-lista">${listaMesclarHTML()}</div>
-      <div class="barra" style="margin-top:.5rem"><button type="button" class="bt mini" onclick="MESCLA.escolher=false;renderMesclar()">← voltar</button></div>`;
+      ${peloMenu?'':`<div class="barra" style="margin-top:.5rem"><button type="button" class="bt mini" onclick="MESCLA.escolher=false;renderMesclar()">← voltar</button></div>`}`;
   }
   $('mesclaCorpo').innerHTML=h;
   if(MESCLA.escolher&&$('mesclaBusca'))$('mesclaBusca').focus();
@@ -3410,9 +3496,8 @@ function listaMesclarHTML(){
     return `<div class="mescla-item">
       ${capa?`<img class="thumb" src="${capa}" alt="">`:'<div class="thumb-vazio">📷</div>'}
       <div class="mescla-info"><b>${esc(x.nome)}</b>
-        <span class="mut">${esc(catNome(x.catId))}${x.tipoId?' · '+esc(tipoNome(x.tipoId)):''} · ${+x.preco>0?fmt(x.preco):'sem preço'} · estoque ${s==null?'—':fmtN(s)}</span></div>
-      ${temGrade(x)?'<span class="mut" style="font-size:.74rem">tem grade</span>'
-        :`<button type="button" class="bt mini primario" onclick="mesclarCom('${x.id}')">mesclar aqui</button>`}
+        <span class="mut">${esc(catNome(x.catId))}${x.tipoId?' · '+esc(tipoNome(x.tipoId)):''} · ${+x.preco>0?fmt(x.preco):'sem preço'} · estoque ${s==null?'—':fmtN(s)}${temGrade(x)?' ('+gradeResumo(x)+')':''}</span></div>
+      <button type="button" class="bt mini primario" onclick="mesclarCom('${x.id}')">mesclar aqui</button>
     </div>`;}).join('');
 }
 function renderListaMesclar(){const l=$('mesclaLista');if(l)l.innerHTML=listaMesclarHTML();}
@@ -3425,6 +3510,64 @@ function ocultarPeloMesclar(){
   p.status='oculto';salvar();dlgMesclar.close();renderTudo();
   toast('"'+esc(p.nome)+'" ocultado');
 }
+
+/* ---- menu de ações do produto (⋮) ----
+   Três botões soltos por linha (±, ✎, ✕) disputavam espaço e, no celular, o ✕
+   de excluir ficava colado no ✎ de editar. Num menu cabem mais ações (mesclar)
+   sem alargar a tabela. É um menu só, reposicionado junto do botão tocado; no
+   celular o CSS o transforma numa folha que sobe de baixo. */
+const IC_TRES_PONTOS='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>';
+const ICONES_MENU_PROD={
+  estoque:'M3 7l9-4 9 4-9 4-9-4zM3 7v10l9 4 9-4V7M12 11v10',
+  editar:'M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4',
+  mesclar:'M6 3v5c0 3 3 5 6 5s6-2 6-5V3M12 13v8',
+  excluir:'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6'
+};
+function svgMenuProd(d){
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+}
+function menuEhFolha(){return !!(window.matchMedia&&matchMedia('(max-width:700px)').matches);}
+function abrirMenuProduto(id,btn){
+  const m=$('menuProduto');
+  if(!m.hidden&&m.dataset.id===id){fecharMenuProduto();return;}
+  const p=prodPorId(id);if(!p)return;
+  m.dataset.id=id;
+  const item=(acao,rot)=>`<button type="button" role="menuitem"${acao==='excluir'?' class="perigo"':''} onclick="acaoProduto('${acao}')">${svgMenuProd(ICONES_MENU_PROD[acao])}<span>${rot}</span></button>`;
+  m.innerHTML=`<div class="menu-cab">${esc(p.nome)}</div>
+    ${item('estoque','Ajustar estoque')}${item('editar','Editar')}${item('mesclar','Mesclar com outro produto')}
+    <div class="menu-sep"></div>${item('excluir','Excluir')}`;
+  m.hidden=false;$('menuProdutoFundo').hidden=false;
+  posicionarMenuProduto(m,btn);
+  const pri=m.querySelector('button');if(pri)try{pri.focus({preventScroll:true});}catch(e){}
+}
+/* no computador o menu abre embaixo do ⋮ (ou em cima, se não couber) e
+   nunca sai da tela; no celular quem posiciona é o CSS (folha no rodapé) */
+function posicionarMenuProduto(m,btn){
+  m.style.left='';m.style.top='';
+  if(menuEhFolha()||!btn)return;
+  const r=btn.getBoundingClientRect(),w=m.offsetWidth,h=m.offsetHeight;
+  const left=Math.min(Math.max(8,r.right-w),innerWidth-w-8);
+  let top=r.bottom+4;
+  if(top+h>innerHeight-8)top=r.top-h-4;
+  top=Math.min(Math.max(8,top),Math.max(8,innerHeight-h-8));
+  m.style.left=left+'px';m.style.top=top+'px';
+}
+function fecharMenuProduto(){
+  const m=$('menuProduto');if(!m||m.hidden)return;
+  m.hidden=true;$('menuProdutoFundo').hidden=true;
+}
+function acaoProduto(acao){
+  const id=$('menuProduto').dataset.id;
+  fecharMenuProduto();
+  if(acao==='estoque')abrirMov(id);
+  else if(acao==='editar')editarProduto(id);
+  else if(acao==='mesclar')abrirMesclar(id,'menu');
+  else if(acao==='excluir')excluirProduto(id);
+}
+// Esc fecha; rolar ou mudar o tamanho da tela no computador também (a posição ficaria errada)
+document.addEventListener('keydown',e=>{if(e.key==='Escape')fecharMenuProduto();});
+window.addEventListener('resize',()=>{if(!menuEhFolha())fecharMenuProduto();});
+window.addEventListener('scroll',()=>{if(!menuEhFolha())fecharMenuProduto();},true);
 
 /* ---- cadastro rápido (usado a partir da venda) ---- */
 let qpFotos=[];
@@ -6379,7 +6522,7 @@ function catalogoLoja(embutir){
 function bannersDoCatalogo(cfg,cats,tps,cols){
   const bn=cfg.loja.banners;
   if(!bn||!bn.ativo)return [];
-  return (bn.itens||[]).filter(b=>b&&b.imagem)
+  return (bn.itens||[]).filter(b=>b&&b.imagem).slice(0,limiteBanners())
     .map(b=>({img:b.imagem,filtro:filtroDoBanner(cfg,b.alvo,cats,tps,cols)}));
 }
 function filtroDoBanner(cfg,alvo,cats,tps,cols){
@@ -6802,8 +6945,9 @@ var CATALOGO = __CATALOGO_JSON__;
     el.hidden=false;
     var h="<div class=\\"trilho\\" id=\\"lgTrilho\\">";
     for(var i=0;i<bs.length;i++){
+      // do 3º banner em diante a imagem só baixa quando chega perto: com 10 o celular não gasta a internet de uma vez
       h+="<div class=\\"slide"+(bs[i].filtro?" link":"")+"\\" data-i=\\""+i+"\\">"+
-         "<img src=\\""+esc(bs[i].img)+"\\" alt=\\""+esc(loja.nome||"")+"\\"></div>";
+         "<img src=\\""+esc(bs[i].img)+"\\" alt=\\""+esc(loja.nome||"")+"\\""+(i>=2?" loading=\\"lazy\\"":"")+"></div>";
     }
     h+="</div>";
     if(bs.length>1){
@@ -7355,11 +7499,12 @@ function painelPersonalizarCatalogo(){
     :`<p class="mut" style="font-size:.78rem;margin-bottom:1.1rem">A logo redonda é a mesma do painel (Configurações → Geral / Loja).</p>`}
 
     <h4>Banners em carrossel</h4>
-    <p class="mut" style="font-size:.82rem;margin-bottom:.5rem">Até 2 imagens que passam sozinhas no topo da loja, antes dos produtos. Cada uma pode levar o cliente direto para uma coleção, um material ou um tipo de peça.</p>
+    <p class="mut" style="font-size:.82rem;margin-bottom:.5rem">Imagens que passam sozinhas no topo da loja, antes dos produtos — adicione conforme precisar, até ${limiteBanners()}. Cada uma pode levar o cliente direto para uma coleção, um material ou um tipo de peça.</p>
     <label class="linha"><input type="checkbox" id="bnAtivo" ${bn.ativo?'checked':''} onchange="bannersAtivar(this.checked)"> Mostrar banners no catálogo</label>
     <div id="bnBox"${bn.ativo?'':' hidden'}>
-      ${bn.ativo&&!bn.itens.some(b=>b.imagem)?'<p class="mut" style="font-size:.78rem;color:var(--laranja);margin-top:.4rem">⚠️ Escolha pelo menos uma imagem — sem imagem nada aparece na loja.</p>':''}
-      <div class="bn-itens">${bn.itens.slice(0,2).map((b,i)=>itemBannerHTML(b,i,cat)).join('')}</div>
+      ${bn.ativo&&!bn.itens.some(b=>b.imagem)?'<p class="mut" style="font-size:.78rem;color:var(--laranja);margin-top:.4rem">⚠️ Adicione pelo menos um banner — sem imagem nada aparece na loja.</p>':''}
+      ${bn.itens.length?`<div class="bn-itens">${bn.itens.map((b,i)=>itemBannerHTML(b,i,cat,bn.itens.length)).join('')}</div>`:''}
+      ${barraNovoBanner(bn)}
       <p class="mut" style="font-size:.74rem;margin-top:.4rem">💡 Use imagem deitada, com o dobro da largura (ex.: 1600 × 800). No computador ela é cortada um pouco em cima e embaixo — deixe o assunto e o texto no meio.</p>
     </div>
 
@@ -7404,24 +7549,32 @@ function salvarCapaLoja(){
   salvar();renderConfig();toast('Capa salva ✓');
 }
 
-/* ---- banners em carrossel ---- */
+/* ---- banners em carrossel ----
+   Uma loja com várias coleções quer um banner para cada: a lista cresce
+   conforme a necessidade, até limiteBanners(). Função e não constante porque
+   o part6 roda depois do iniciar() — constante ainda não existiria ali. */
+function limiteBanners(){return 10;}
 function bannersLoja(){
   const l=C().loja;
   if(!l.banners)l.banners={ativo:false,itens:[]};
-  while(l.banners.itens.length<2)l.banners.itens.push({imagem:'',alvo:''});
+  if(!Array.isArray(l.banners.itens))l.banners.itens=[];
   return l.banners;
 }
-function itemBannerHTML(b,i,cat){
+function itemBannerHTML(b,i,cat,n){
   const cfg=C();
   const op=(v,rot)=>`<option value="${esc(v)}"${(b.alvo||'')===v?' selected':''}>${esc(rot)}</option>`;
   const grupo=(rot,lista,pref)=>lista.length?`<optgroup label="${rot}">${lista.map(x=>op(pref+':'+x.id,x.nome)).join('')}</optgroup>`:'';
   const semPeca=b.alvo&&!filtroDoBanner(cfg,b.alvo,cat.categorias,cat.tipos,cat.colecoes);
-  return `<div class="bn-item"><b>Banner ${i+1}</b>
+  return `<div class="bn-item">
+    <div class="bn-cab"><b>Banner ${i+1}</b><span class="bn-ordem">
+      ${i>0?`<button class="bt mini" title="passar para antes" aria-label="passar o banner ${i+1} para antes" onclick="moverBannerLoja(${i},-1)">‹</button>`:''}
+      ${i<n-1?`<button class="bt mini" title="passar para depois" aria-label="passar o banner ${i+1} para depois" onclick="moverBannerLoja(${i},1)">›</button>`:''}
+    </span></div>
     <div class="banner-prev bn-prev">${b.imagem?`<img src="${b.imagem}" alt="">`:'sem imagem'}</div>
     <input type="file" id="bnInput${i}" accept="image/*" hidden onchange="addBannerLoja(${i},this)">
     <div class="barra" style="margin-top:.4rem">
       <button class="bt mini" onclick="document.getElementById('bnInput${i}').click()">🖼️ ${b.imagem?'trocar imagem':'escolher imagem'}</button>
-      ${b.imagem?`<button class="bt mini perigo" onclick="removerBannerLoja(${i})">✕ remover</button>`:''}
+      <button class="bt mini perigo" onclick="removerBannerLoja(${i})">✕ remover banner</button>
     </div>
     <label class="campo mt">Ao tocar, leva para
       <select id="bnAlvo${i}" onchange="bannerAlvo(${i},this.value)">
@@ -7431,20 +7584,61 @@ function itemBannerHTML(b,i,cat){
     ${semPeca?'<p class="mut" style="font-size:.74rem;color:var(--laranja);margin-top:.3rem">⚠️ Nenhuma peça disponível nesse destino agora — o banner aparece, mas não leva a lugar nenhum até ter peça lá.</p>':''}
   </div>`;
 }
+/* espaço de banner sem imagem não serve para nada na loja: some antes de gravar */
+function limparBannersVazios(){
+  const bn=bannersLoja();
+  bn.itens=bn.itens.filter(b=>b&&b.imagem);
+  return bn;
+}
 function bannersAtivar(on){
-  bannersLoja().ativo=!!on;salvar();renderConfig();
+  const bn=limparBannersVazios();
+  bn.ativo=!!on;salvar();renderConfig();
   toast(on?'Banners ligados ✓':'Banners desligados');
+}
+function barraNovoBanner(bn){
+  const n=bn.itens.filter(b=>b&&b.imagem).length,max=limiteBanners();
+  return `<input type="file" id="bnNovoInput" accept="image/*" hidden onchange="adicionarBannerLoja(this)">
+    <div class="barra" style="margin-top:.6rem">
+      ${n<max?`<button class="bt" onclick="document.getElementById('bnNovoInput').click()">+ Adicionar banner</button>`:''}
+      <span class="mut" style="font-size:.78rem">${n} de ${max} banners${n>=max?' — limite atingido':''}</span>
+    </div>`;
+}
+/* banner novo entra no fim da fila; a ordem muda nas setinhas de cada um */
+function novoBannerLoja(url){
+  const bn=limparBannersVazios();
+  if(bn.itens.length>=limiteBanners()){toast('Limite de '+limiteBanners()+' banners.');return false;}
+  bn.itens.push({imagem:url,alvo:''});
+  salvar();renderConfig();
+  return true;
+}
+function adicionarBannerLoja(inp){
+  const f=inp.files[0];inp.value='';if(!f)return;
+  if(bannersLoja().itens.filter(b=>b&&b.imagem).length>=limiteBanners()){toast('Limite de '+limiteBanners()+' banners.');return;}
+  comprimirBanner(f,d=>{
+    toast('Enviando banner...');
+    guardarMidiaOuAvisar(d,'loja',u=>{if(novoBannerLoja(u))toast('Banner adicionado ✓');});
+  });
 }
 function addBannerLoja(i,inp){
   const f=inp.files[0];inp.value='';if(!f)return;
   comprimirBanner(f,d=>{
     toast('Enviando banner...');
-    guardarMidiaOuAvisar(d,'loja',u=>{bannersLoja().itens[i].imagem=u;salvar();renderConfig();toast('Banner enviado ✓');});
+    guardarMidiaOuAvisar(d,'loja',u=>{
+      const it=bannersLoja().itens[i];if(!it)return;
+      it.imagem=u;salvar();renderConfig();toast('Banner enviado ✓');
+    });
   });
 }
 function removerBannerLoja(i){
-  if(!confirm('Remover a imagem do banner '+(i+1)+'?'))return;
-  bannersLoja().itens[i].imagem='';salvar();renderConfig();toast('Banner removido');
+  const bn=bannersLoja();if(!bn.itens[i])return;
+  if(bn.itens[i].imagem&&!confirm('Remover o banner '+(i+1)+'?'))return;
+  bn.itens.splice(i,1);salvar();renderConfig();toast('Banner removido');
+}
+function moverBannerLoja(i,d){
+  const it=bannersLoja().itens,j=i+d;
+  if(!it[i]||j<0||j>=it.length)return;
+  const x=it[i];it[i]=it[j];it[j]=x;
+  salvar();renderConfig();
 }
 function bannerAlvo(i,v){
   bannersLoja().itens[i].alvo=v||'';salvar();renderConfig();
@@ -7560,7 +7754,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-09-13 12:56';
+const VERSAO_APP='2026-09-13 15:21';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
