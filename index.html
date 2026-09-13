@@ -28,6 +28,10 @@ a{color:inherit}
 .marca{display:flex;align-items:center;gap:.7rem;flex:none}
 .marca img{width:46px;height:46px;border-radius:50%;object-fit:cover;border:1px solid var(--borda);background:#000}
 .marca h1{font-size:1.1rem;color:var(--acento2);margin:0;letter-spacing:.4px;white-space:nowrap}
+/* logo horizontal (opcional): já traz o nome da marca desenhado, então toma o
+   lugar do círculo e do nome escrito */
+.marca img.logo-larga{width:auto;height:52px;max-width:300px;border-radius:0;border:none;background:none;object-fit:contain}
+.marca.larga #lgLogo,.marca.larga h1{display:none!important}
 .busca-wrap{flex:1;min-width:120px;display:flex;justify-content:flex-end}
 .busca-wrap input{width:100%;max-width:280px;background:var(--painel);border:1px solid var(--borda);color:var(--texto);border-radius:10px;padding:.5rem .8rem;font-size:.92rem}
 .busca-wrap input:focus{outline:1px solid var(--acento);border-color:var(--acento)}
@@ -65,6 +69,29 @@ a{color:inherit}
 .col-banner.capa p{font-size:1.05rem;color:var(--texto);letter-spacing:.2px}
 .col-banner.capa.sem-foto .faixa{padding:.2rem 0}
 @media(max-width:699px){.col-banner{padding:0 .8rem}.col-banner h2{font-size:1.1rem}.col-banner p{font-size:.82rem}}
+/* banners em carrossel (opcional): a vitrine da campanha antes dos produtos.
+   Deslizar com o dedo é o próprio rolar do trilho (scroll-snap), sem biblioteca */
+.banners{position:relative;max-width:1400px;margin:0 auto .9rem;padding:0 1rem}
+.banners .trilho{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;border-radius:14px;scrollbar-width:none;background:var(--painel)}
+.banners .trilho::-webkit-scrollbar{display:none}
+.banners .slide{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always}
+.banners .slide.link{cursor:pointer}
+.banners img{width:100%;aspect-ratio:3/1;object-fit:cover;display:block}
+.banners .pontos{position:absolute;left:50%;bottom:.7rem;transform:translateX(-50%);display:flex;gap:.45rem;background:rgba(0,0,0,.35);padding:.35rem .6rem;border-radius:20px}
+.banners .pontos button{width:9px;height:9px;border-radius:50%;border:1.5px solid #fff;background:transparent;padding:0;cursor:pointer}
+.banners .pontos button.on{background:#fff}
+.banners .seta{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border:none;border-radius:50%;
+  background:rgba(0,0,0,.4);color:#fff;font-size:1.6rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.banners .seta:hover{background:rgba(0,0,0,.7)}
+.banners .seta.ant{left:1.6rem}
+.banners .seta.prox{right:1.6rem}
+@media(max-width:699px){
+  .banners{padding:0 .8rem}
+  /* no celular a faixa é mais alta: a tela é estreita e o banner é o destaque */
+  .banners img{aspect-ratio:2/1}
+  /* e o dedo faz o papel das setas */
+  .banners .seta{display:none}
+}
 /* ---- corpo: coleções na lateral ESQUERDA + grade de produtos ---- */
 .corpo-loja{display:flex;gap:1.2rem;max-width:1400px;margin:0 auto;padding:1rem 1rem 6rem;align-items:flex-start}
 .lateral{flex:none;width:190px;position:sticky;top:152px}
@@ -83,7 +110,15 @@ a{color:inherit}
 @media(max-width:699px){
   .bt-menu{display:block}
   .marca h1{font-size:.98rem}
+  .marca img.logo-larga{height:38px;max-width:44vw}
   .corpo-loja{padding:.7rem .8rem 6rem}
+  /* materiais e tipos deslizam para o lado em vez de empilhar linhas: todos
+     juntos ocupavam meia tela do celular antes do primeiro produto. O esmaecido
+     na ponta direita avisa que tem mais para o lado. */
+  .chips{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;scrollbar-width:none;padding-left:.8rem;padding-right:1.6rem;
+    -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 26px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 26px),transparent)}
+  .chips::-webkit-scrollbar{display:none}
+  .chips button{flex:none}
   .lateral{position:fixed;inset:0 auto 0 0;width:76%;max-width:280px;z-index:60;background:var(--painel);border-right:1px solid var(--borda);padding:1rem;overflow-y:auto;transform:translateX(-100%);transition:transform .22s}
   .lateral.aberta{transform:none}
   .lateral button.lateral-fechar{display:block;background:var(--painel2);border:1px solid var(--borda);color:var(--texto);border-radius:8px;padding:.35rem .6rem;font-size:.85rem;cursor:pointer;margin-bottom:.8rem;width:100%;text-align:center;border-left:1px solid var(--borda)}
@@ -177,7 +212,7 @@ footer{text-align:center;padding:1.5rem 1rem 5rem;font-size:.75rem;color:var(--t
 <div class="topo">
   <div class="topo-linha">
     <button class="bt-menu" id="lgBtMenu" aria-label="Coleções">☰</button>
-    <div class="marca"><img id="lgLogo" src="" alt="" style="display:none"><h1 id="lgNome">Loja</h1></div>
+    <div class="marca" id="lgMarca"><img id="lgLogo" src="" alt="" style="display:none"><img id="lgLogoLarga" class="logo-larga" alt="" hidden><h1 id="lgNome">Loja</h1></div>
     <div class="busca-wrap"><input id="lgBusca" placeholder="🔎 Buscar..."></div>
   </div>
   <div class="chips" id="lgChips"></div>
@@ -185,6 +220,7 @@ footer{text-align:center;padding:1.5rem 1rem 5rem;font-size:.75rem;color:var(--t
 </div>
 <div class="fundo-lateral" id="lgFundoLat"></div>
 <div class="col-banner capa" id="lgCapa" hidden></div>
+<div class="banners" id="lgBanners" hidden></div>
 <div class="col-banner" id="lgBanner" hidden></div>
 <div class="corpo-loja">
   <aside class="lateral" id="lgLateral">
@@ -263,11 +299,6 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
   }
   absorverCatalogo();
 
-  // tema escolhido no painel de gestão (prata = cores da logo)
-  document.documentElement.setAttribute("data-tema", loja.tema==="ouro"?"ouro":"prata");
-  var mt=$("lgThemeColor");
-  if(mt)mt.setAttribute("content", loja.tema==="ouro"?"#16120d":"#0b0c0e");
-
   var estado={busca:"",cat:"",tipo:"",col:""};
   var atual=null,fotoIdx=0,tamSel="",qtd=1;
 
@@ -279,9 +310,29 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
     atualizarFab();
   }
 
-  document.title=(loja.nome||"Catálogo")+" — Catálogo";
-  $("lgNome").textContent=loja.nome||"Catálogo";
-  if(loja.logo){$("lgLogo").src=loja.logo;$("lgLogo").style.display="block";}
+  /* Cores, nome e logo saem de uma função porque a vitrine que chega do banco
+     pode trazer outra logo (ou a horizontal). Antes eles ficavam presos ao
+     catálogo embutido na página até alguém republicar o site. */
+  function aplicarMarca(){
+    // tema escolhido no painel de gestão (prata = cores da logo)
+    document.documentElement.setAttribute("data-tema", loja.tema==="ouro"?"ouro":"prata");
+    var mt=$("lgThemeColor");
+    if(mt)mt.setAttribute("content", loja.tema==="ouro"?"#16120d":"#0b0c0e");
+    document.title=(loja.nome||"Catálogo")+" — Catálogo";
+    $("lgNome").textContent=loja.nome||"Catálogo";
+    if(loja.logo){$("lgLogo").src=loja.logo;$("lgLogo").style.display="block";}
+    else $("lgLogo").style.display="none";
+    // logo horizontal: já tem o nome desenhado, então esconde o círculo e o nome escrito
+    var larga=$("lgLogoLarga");
+    if(loja.logoLarga){
+      larga.src=loja.logoLarga;larga.alt=loja.nome||"";larga.hidden=false;
+      $("lgMarca").classList.add("larga");
+    }else{
+      larga.hidden=true;larga.removeAttribute("src");
+      $("lgMarca").classList.remove("larga");
+    }
+  }
+  aplicarMarca();
   var dataGer="";
   if(CATALOGO.geradoEm){var pd=CATALOGO.geradoEm.slice(0,10).split("-");dataGer=pd[2]+"/"+pd[1]+"/"+pd[0];}
   $("lgRodape").textContent="Catálogo de "+(loja.nome||"")+" — os valores e a disponibilidade são confirmados no WhatsApp. Atualizado em "+dataGer+".";
@@ -292,7 +343,10 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
       var c=categorias[i];
       h+="<button class=\""+(estado.cat===c?"ativo":"")+"\" data-cat=\""+esc(c)+"\">"+esc(c)+"</button>";
     }
-    $("lgChips").innerHTML=h;
+    // no celular a fileira desliza de lado: redesenhar não pode voltá-la ao começo
+    var box=$("lgChips"),sl=box.scrollLeft;
+    box.innerHTML=h;
+    box.scrollLeft=sl;
   }
 
   /* 2ª fileira: o tipo da peça. Só aparece se houver mais de um tipo — com um
@@ -306,7 +360,9 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
       var t=tipos[i];
       h+="<button class=\""+(estado.tipo===t?"ativo":"")+"\" data-tipo=\""+esc(t)+"\">"+esc(t)+"</button>";
     }
+    var sl=box.scrollLeft;
     box.innerHTML=h;
+    box.scrollLeft=sl;
   }
 
   function acharColecao(nome){
@@ -327,6 +383,68 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
       (loja.capaBanner?"<img src=\""+esc(loja.capaBanner)+"\" alt=\""+esc(loja.nome||"")+"\">":"")+
       (loja.capaTexto?"<div class=\"legenda\"><p>"+esc(loja.capaTexto)+"</p></div>":"")+
       "</div>";
+  }
+
+  /* Banners em carrossel (opcional, ligado no painel). Só na tela cheia, como
+     a capa: escolhido um filtro, os produtos sobem para o topo. Passam sozinhos
+     a cada 5 s até a pessoa mexer — aí param, para não trocar o banner debaixo
+     do dedo dela. */
+  var bnIdx=0,bnTimer=null,bnMexeu=false;
+  function listaBanners(){
+    var bs=loja.banners||[],r=[];
+    for(var i=0;i<bs.length;i++)if(bs[i]&&bs[i].img)r.push(bs[i]);
+    return r;
+  }
+  function renderBanners(){
+    var el=$("lgBanners"),bs=listaBanners();
+    if(bnTimer){clearInterval(bnTimer);bnTimer=null;}
+    if(estado.col||estado.cat||estado.tipo||!bs.length){el.hidden=true;el.innerHTML="";return;}
+    el.hidden=false;
+    var h="<div class=\"trilho\" id=\"lgTrilho\">";
+    for(var i=0;i<bs.length;i++){
+      h+="<div class=\"slide"+(bs[i].filtro?" link":"")+"\" data-i=\""+i+"\">"+
+         "<img src=\""+esc(bs[i].img)+"\" alt=\""+esc(loja.nome||"")+"\"></div>";
+    }
+    h+="</div>";
+    if(bs.length>1){
+      h+="<button class=\"seta ant\" data-passo=\"-1\" aria-label=\"banner anterior\">‹</button>"+
+         "<button class=\"seta prox\" data-passo=\"1\" aria-label=\"próximo banner\">›</button><div class=\"pontos\">";
+      for(var j=0;j<bs.length;j++)h+="<button data-ir=\""+j+"\" aria-label=\"banner "+(j+1)+"\"></button>";
+      h+="</div>";
+    }
+    el.innerHTML=h;
+    bnIdx=0;marcarPontos();
+    var tr=$("lgTrilho");
+    // arrastar com o dedo move o trilho; as bolinhas acompanham
+    tr.addEventListener("scroll",function(){
+      var i=Math.round(tr.scrollLeft/Math.max(1,tr.clientWidth));
+      if(i!==bnIdx){bnIdx=i;marcarPontos();}
+    });
+    tr.addEventListener("touchstart",function(){bnMexeu=true;},{passive:true});
+    if(bs.length>1)bnTimer=setInterval(function(){
+      if(!bnMexeu&&!document.hidden)irBanner(bnIdx+1);
+    },5000);
+  }
+  function marcarPontos(){
+    var ps=document.querySelectorAll("#lgBanners .pontos button");
+    for(var i=0;i<ps.length;i++)ps[i].className=(i===bnIdx?"on":"");
+  }
+  function irBanner(i){
+    var tr=$("lgTrilho");if(!tr)return;
+    var n=tr.children.length;if(n<2)return;
+    bnIdx=(i%n+n)%n;
+    try{tr.scrollTo({left:bnIdx*tr.clientWidth,behavior:"smooth"});}catch(e){tr.scrollLeft=bnIdx*tr.clientWidth;}
+    marcarPontos();
+  }
+  /* tocar no banner leva à "aba" escolhida no painel e rola até os produtos */
+  function abrirDestinoBanner(f){
+    estado.cat=f.cat||"";estado.tipo=f.tipo||"";estado.col=f.col||"";
+    estado.busca="";$("lgBusca").value="";
+    render();
+    var alvo=$("lgBanner").hidden?$("lgGrade"):$("lgBanner");
+    var topo=document.querySelector(".topo");
+    var y=alvo.getBoundingClientRect().top+(window.pageYOffset||0)-(topo?topo.offsetHeight:0)-8;
+    try{window.scrollTo({top:Math.max(0,y),behavior:"smooth"});}catch(e){window.scrollTo(0,Math.max(0,y));}
   }
 
   function renderBanner(){
@@ -403,7 +521,20 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
     $("lgGrade").innerHTML=h;
   }
 
-  function render(){renderChips();renderTipos();renderColecoes();renderCapa();renderBanner();renderGrade();}
+  function render(){renderChips();renderTipos();renderColecoes();renderCapa();renderBanners();renderBanner();renderGrade();}
+
+  $("lgBanners").addEventListener("click",function(e){
+    var b=e.target.closest("button");
+    if(b){
+      bnMexeu=true;
+      if(b.hasAttribute("data-passo"))irBanner(bnIdx+parseInt(b.getAttribute("data-passo"),10));
+      else if(b.hasAttribute("data-ir"))irBanner(parseInt(b.getAttribute("data-ir"),10));
+      return;
+    }
+    var s=e.target.closest(".slide");if(!s)return;
+    var bn=listaBanners()[parseInt(s.getAttribute("data-i"),10)];
+    if(bn&&bn.filtro)abrirDestinoBanner(bn.filtro);
+  });
 
   $("lgChips").addEventListener("click",function(e){
     var b=e.target.closest("button");if(!b)return;
@@ -435,10 +566,11 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
     var p=acharProduto(id);if(!p)return;
     atual=p;fotoIdx=0;qtd=1;
     tamSel=(p.variacoes&&p.variacoes.length)?p.variacoes[0]:"";
-    renderModal();
+    // mostra antes de desenhar: peça só com vídeo já começa tocando, visível
     $("lgOverlay").classList.add("show");
+    renderModal();
   }
-  function fecharModal(){$("lgOverlay").classList.remove("show");atual=null;}
+  function fecharModal(){pararVideos();$("lgOverlay").classList.remove("show");atual=null;}
 
   /* O vídeo entra no mesmo carrossel das fotos, como último quadro. Antes ele
      era gravado no produto e nunca chegava à loja — não havia nada aqui que
@@ -449,7 +581,29 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
     if(p.video)m.push({tipo:"video",src:p.video});
     return m;
   }
-  function renderModal(){
+  /* Chegou no quadro do vídeo, ele toca sozinho — o cliente não precisa achar
+     o play. Com som quando o navegador deixa (a pessoa acabou de tocar na
+     tela); se ele recusar, toca sem som e o controle do vídeo liga o som. */
+  function tocarVideoVisivel(){
+    var v=$("lgCarrossel").querySelector("video.show");
+    if(!v)return;
+    try{
+      var pr=v.play();
+      if(pr&&pr.catch)pr.catch(function(){
+        if(!v.isConnected)return;   // a pessoa já passou para outro quadro
+        v.muted=true;
+        var p2=v.play();if(p2&&p2.catch)p2.catch(function(){});
+      });
+    }catch(e){}
+  }
+  function pararVideos(){
+    var vs=$("lgCarrossel").querySelectorAll("video");
+    for(var i=0;i<vs.length;i++){try{vs[i].pause();}catch(e){}}
+  }
+  /* mídia e informações se desenham separadas: trocar o tamanho não pode
+     recriar o vídeo — ele voltaria ao começo no meio da reprodução */
+  function renderModal(){renderMidiaModal();renderInfoModal();}
+  function renderMidiaModal(){
     var p=atual;
     var mds=midiasDe(p);
     if(fotoIdx>=mds.length)fotoIdx=0;
@@ -470,6 +624,7 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
     }else{
       ch="<div style=\"display:flex;align-items:center;justify-content:center;height:100%;font-size:3rem;opacity:.3\">💍</div>";
     }
+    pararVideos();
     $("lgCarrossel").innerHTML=ch;
     if(mds.length>1){
       $("lgAnt").addEventListener("click",function(e){e.stopPropagation();passarFoto(-1);});
@@ -478,6 +633,10 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
     var dh="";
     for(var j=0;j<mds.length;j++)dh+="<span class=\""+(j===fotoIdx?"on":"")+"\" data-i=\""+j+"\" title=\""+(mds[j].tipo==="video"?"vídeo":"foto")+"\">"+(mds[j].tipo==="video"?"▶":"")+"</span>";
     $("lgDots").innerHTML=dh;
+    tocarVideoVisivel();
+  }
+  function renderInfoModal(){
+    var p=atual;
     $("lgMdNome").textContent=p.nome;
     $("lgMdPreco").textContent=fmtR(p.preco);
     // etiquetas: material, tipo e as coleções da peça
@@ -534,7 +693,7 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
   });
   $("lgMdTamWrap").addEventListener("click",function(e){
     var b=e.target.closest("button");if(!b)return;
-    tamSel=b.getAttribute("data-tam");renderModal();
+    tamSel=b.getAttribute("data-tam");renderInfoModal();
   });
   $("lgQtdMenos").addEventListener("click",function(){if(qtd>1){qtd--;$("lgQtd").textContent=qtd;}});
   $("lgQtdMais").addEventListener("click",function(){qtd++;$("lgQtd").textContent=qtd;});
@@ -631,6 +790,7 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
         novo.nuvem=N;
         CATALOGO=novo;
         absorverCatalogo();   // sem isto, a tela continua com a lista antiga
+        aplicarMarca();       // logo, nome e cores também podem ter mudado no painel
         // um filtro escolhido antes pode não existir mais na vitrine nova
         if(estado.cat&&categorias.indexOf(estado.cat)<0)estado.cat="";
         if(estado.tipo&&tipos.indexOf(estado.tipo)<0)estado.tipo="";
