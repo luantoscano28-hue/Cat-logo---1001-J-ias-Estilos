@@ -79,6 +79,26 @@ nav button .cont{background:var(--vermelho);color:#fff;border-radius:9px;font-si
 /* cobrança em atraso é a única tarja que pede ação hoje: cor própria pra não
    se confundir com o lembrete de backup */
 .aviso.cobranca{background:#42201f;border-color:#7e3734;color:#ffb3af}
+/* aba só de consulta */
+.aviso-leitura{background:var(--painel2);border:1px solid var(--borda);border-left:3px solid var(--azul);
+  border-radius:0 10px 10px 0;padding:.55rem .8rem;font-size:.85rem;margin-bottom:.9rem;color:var(--texto2)}
+/* acesso por pessoa: uma linha por área, três níveis lado a lado */
+#dlgMembro{max-width:560px}
+.mb-areas{display:flex;flex-direction:column;border:1px solid var(--borda);border-radius:10px;overflow:hidden}
+.mb-area{display:flex;align-items:center;gap:.7rem;padding:.55rem .7rem;border-bottom:1px solid var(--borda);flex-wrap:wrap}
+.mb-area:last-child{border-bottom:none}
+.mb-area .nm{flex:1;min-width:150px;font-size:.9rem}
+.mb-area .nm small{display:block;color:var(--texto2);font-size:.74rem;line-height:1.3}
+.mb-area.mudou{background:rgba(255,255,255,.035)}
+.mb-seg{display:inline-flex;border:1px solid var(--borda);border-radius:8px;overflow:hidden}
+.mb-seg button{background:var(--painel2);border:none;color:var(--texto2);padding:.38rem .7rem;font-size:.8rem;position:relative}
+.mb-seg button+button{border-left:1px solid var(--borda)}
+.mb-seg button:hover{color:var(--texto)}
+.mb-seg button.on{background:var(--acento);color:var(--btpTx);font-weight:700}
+/* bolinha = o que o papel escolhido já daria; mostra o que foi mexido à mão */
+.mb-seg button.padrao::after{content:"";position:absolute;top:3px;right:3px;width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.6}
+.mb-legenda{white-space:nowrap}
+.mb-legenda i{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--texto2);margin:0 .25rem .1rem 0;vertical-align:middle}
 .aviso button{margin-left:auto}
 .aviso button+button{margin-left:0}
 .cob-lista{display:flex;flex-direction:column;gap:.3rem}
@@ -530,6 +550,23 @@ tr.zerado:hover td{opacity:1}
 </style>
 </head>
 <body>
+<!-- ENTRAR LIMPO: com uma sessão de nuvem salva, o painel não aparece até
+     saber o que esta pessoa pode ver. Sem isto, quem tem acesso limitado via
+     todas as abas de administrador por alguns segundos, até a nuvem responder.
+     Roda antes de qualquer desenho — por isso fica aqui, e não nos .js. -->
+<style>
+html.aguardando-acesso #nav,html.aguardando-acesso main,
+html.aguardando-acesso #avisoCobranca,html.aguardando-acesso #avisoBackup{visibility:hidden}
+html.aguardando-acesso body::after{content:"Carregando sua loja…";position:fixed;left:50%;top:45%;
+  transform:translate(-50%,-50%);color:var(--texto2);font-size:.95rem;letter-spacing:.3px}
+</style>
+<script>
+try{
+  var sessaoSalva=JSON.parse(localStorage.getItem('g1001_sessao')||'null');
+  if(sessaoSalva&&sessaoSalva.refresh_token&&localStorage.getItem('g1001_modo')!=='local')
+    document.documentElement.classList.add('aguardando-acesso');
+}catch(e){}
+</script>
 <!-- tela de entrada: só aparece quando a nuvem está ligada e não há sessão salva -->
 <div id="telaLogin" class="login-fundo" hidden>
   <form class="login-caixa" id="formLogin" onsubmit="event.preventDefault();fazerLogin()">
@@ -949,6 +986,31 @@ tr.zerado:hover td{opacity:1}
     <button class="bt" onclick="dlgFoto.close()">Cancelar</button>
     <button class="bt primario" onclick="confirmarEnquadrar()">Usar esta foto</button>
   </div>
+</dialog>
+<!-- acesso de uma pessoa da equipe: o papel é o ponto de partida e cada área
+     pode ser aberta ou fechada à parte (vai para membros.ajustes / convites.ajustes) -->
+<dialog id="dlgMembro">
+<form id="formMembro" onsubmit="event.preventDefault();salvarAcessoMembro()">
+  <h3 id="mbTitulo">Acesso</h3>
+  <input type="hidden" id="mbUsuario">
+  <div class="fgrid" id="mbNovoBox">
+    <label class="campo span2">E-mail de quem vai ter acesso <input type="email" id="mbEmail" autocomplete="off"
+      placeholder="o mesmo que ela vai usar para criar a conta"></label>
+    <label class="campo span2">Nome <span class="mut" style="font-size:.76rem">— só para você identificar</span> <input id="mbNome"></label>
+  </div>
+  <label class="campo mt">Ponto de partida
+    <select id="mbPapel" onchange="mbPapelMudou()"></select>
+    <small class="mut" id="mbPapelDesc" style="font-size:.76rem"></small></label>
+  <h4 class="mt">O que esta pessoa vê</h4>
+  <p class="mut" style="font-size:.8rem;margin:-.2rem 0 .6rem">O ponto de partida já marca o padrão — mude só o que quiser.
+    <span class="mb-legenda"><i></i>= padrão do ponto de partida</span></p>
+  <div id="mbAreas" class="mb-areas"></div>
+  <div id="mbAviso" class="mt"></div>
+  <div class="rodape">
+    <button type="button" class="bt" onclick="dlgMembro.close()">Cancelar</button>
+    <button type="submit" class="bt primario" id="mbSalvar">Salvar acesso</button>
+  </div>
+</form>
 </dialog>
 <!-- vitrine da coleção: a frase e o banner que aparecem no catálogo -->
 <dialog id="dlgColecao">
@@ -1602,6 +1664,8 @@ function renderTudo(){
   if(typeof avisoCobranca==='function')avisoCobranca();
   ({resumo:renderResumo,vendas:renderVendas,fiado:renderFiado,produtos:renderProdutos,
     fin:renderFin,clientes:renderClientes,config:renderConfig})[ui.tab]();
+  // quem só pode consultar esta tela precisa saber disso ANTES de tentar mexer
+  if(typeof avisoSomenteLeitura==='function')avisoSomenteLeitura();
 }
 function renderDatalists(){
   $('dlClientes').innerHTML=dados.clientes.map(c=>`<option value="${esc(c.nome)}">`).join('');
@@ -6907,7 +6971,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-09-12 18:12';
+const VERSAO_APP='2026-09-12 23:20';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -7000,11 +7064,18 @@ async function fazerLogin(){
     guardarSessao(s);
     NUVEM.modo='nuvem';
     try{localStorage.removeItem(LS_MODO);}catch(e){}
+    /* A tela de entrada só sai quando o painel já sabe o que esta pessoa vê.
+       Permissão conhecida neste aparelho: aplica na hora. Primeira vez: mostra
+       "carregando" no lugar das abas até a nuvem responder. */
+    NUVEM.acesso=lerAcessoLocal();
+    if(NUVEM.acesso){aplicarPermissoesNaTela();esperandoAcesso(false);}else esperandoAcesso(true);
     $('telaLogin').hidden=true;
     $('loginSenha').value='';
     atualizarChipNuvem();
     await sincronizarComNuvem({completo:true});
+    esperandoAcesso(false);
   }catch(e){
+    esperandoAcesso(false);
     erro.hidden=false;
     erro.textContent=erroDeRede(e)
       ? 'Sem conexão. Você pode trabalhar sem conexão por agora.'
@@ -7026,6 +7097,8 @@ function sairDaConta(){
   // a base descreve um acordo com o servidor que deixa de valer ao trocar de
   // conta; mantê-la faria o próximo login apagar dados achando que foram removidos
   limparBase();
+  // a permissão em memória era desta pessoa; o próximo login não pode herdá-la
+  NUVEM.acesso=null;
   NUVEM.modo='indefinido';
   try{localStorage.removeItem(LS_MODO);}catch(e){}
   mostrarLogin();
@@ -7921,16 +7994,47 @@ function temCatalogo(){return !!planoAtual().catalogo;}
 
 /* Descobre de qual loja esta pessoa faz parte e com que papel. Sem isso o
    painel não sabe quais dados carregar nem o que esconder. */
+/* ---- permissão guardada no aparelho ----
+   É o que permite "entrar limpo": quem já entrou uma vez neste aparelho tem o
+   papel aplicado antes do primeiro desenho da tela, em vez de ver as abas de
+   administrador por alguns segundos até a nuvem responder. A nuvem continua
+   sendo quem manda — assim que ela responde, esta cópia é atualizada. */
+const LS_ACESSO='g1001_acesso';
+function guardarAcessoLocal(a){
+  try{
+    if(a&&contaId())localStorage.setItem(LS_ACESSO,JSON.stringify(Object.assign({usuario:contaId()},a)));
+    else localStorage.removeItem(LS_ACESSO);
+  }catch(e){}
+}
+/* só vale para a MESMA pessoa: aplicar noutro login no mesmo aparelho seria
+   dar a alguém as permissões de outra */
+function lerAcessoLocal(){
+  try{
+    const a=JSON.parse(localStorage.getItem(LS_ACESSO)||'null');
+    return (a&&contaId()&&a.usuario===contaId())?a:null;
+  }catch(e){return null;}
+}
+function esperandoAcesso(on){
+  document.documentElement.classList.toggle('aguardando-acesso',!!on);
+}
 async function buscarAcesso(){
   try{
     const r=await chamarApi('/rest/v1/rpc/meu_acesso',{metodo:'POST',corpo:{}});
     NUVEM.acesso=(r&&r[0])||null;
+    guardarAcessoLocal(NUVEM.acesso);
   }catch(e){
-    /* Banco ainda sem o recurso de equipe (ou erro de rede): trata como dono
-       da própria loja, que é como o sistema sempre funcionou. */
-    NUVEM.acesso=null;
+    /* Dois casos bem diferentes:
+       - o BANCO disse que a função não existe (banco antigo, sem equipe):
+         trata como dono da própria loja, como o sistema sempre funcionou;
+       - qualquer outra falha (sem internet, servidor oscilando): vale a última
+         permissão conhecida desta pessoa. "Acesso total" como reserva era o
+         que abria as abas de dono para quem não é. */
+    const semRecurso=/does not exist|could not find|PGRST202/i.test((e&&(e.msg||e.message))||'');
+    if(semRecurso){NUVEM.acesso=null;guardarAcessoLocal(null);}
+    else NUVEM.acesso=lerAcessoLocal();
   }
   aplicarPermissoesNaTela();
+  esperandoAcesso(false);
   return NUVEM.acesso;
 }
 /* Esconde as abas que a pessoa não pode ver. É conveniência, não segurança:
@@ -7952,6 +8056,16 @@ function aplicarPermissoesNaTela(){
     const livre=Object.keys(AREA_DA_ABA).find(abaPermitida);
     if(livre)trocarTab(livre);
   }
+}
+/* Aba que a pessoa só pode CONSULTAR: avisa no topo. Sem isso ela mexe, vê a
+   mudança na tela, e na sincronização seguinte a nuvem desfaz — parece defeito.
+   (NUVEM é var: este aviso roda também no primeiro desenho, antes da nuvem existir.) */
+function avisoSomenteLeitura(){
+  if(!NUVEM||!NUVEM.acesso||ui.tab==='config')return;
+  const area=AREA_DA_ABA[ui.tab];if(!area)return;
+  if(!podeLer(area)||podeEscrever(area))return;
+  const sec=$('tab-'+ui.tab);if(!sec||sec.querySelector('.aviso-leitura'))return;
+  sec.insertAdjacentHTML('afterbegin','<div class="aviso-leitura">👁 Você pode <b>consultar</b> esta tela, mas não alterar. Para mudar isso, fale com o dono da loja.</div>');
 }
 
 async function buscarAssinatura(){
@@ -8065,8 +8179,8 @@ function painelEquipe(){
     const p=PAPEIS[m.papel]||{nome:m.papel,desc:''};
     return `<tr>
       <td>${esc(m.nome||(eu?'Você':'—'))}${eu?' <span class="bd cat">você</span>':''}
-        <div class="mut" style="font-size:.76rem">${esc(p.desc)}</div></td>
-      <td>${esc(p.nome)}</td>
+        <div class="mut" style="font-size:.76rem">${m.papel==='dono'?esc(p.desc):resumoAcesso(m.papel,m.ajustes)}</div></td>
+      <td>${esc(p.nome)}${Object.keys(m.ajustes||{}).length?' <span class="bd cat" title="áreas ajustadas à mão">ajustado</span>':''}</td>
       <td class="acoes">${(dono&&!eu)?`
         <button class="bt mini" onclick="editarMembro('${attr(m.usuario)}')">✎ acesso</button>
         <button class="bt mini perigo" onclick="removerMembro('${attr(m.usuario)}')">✕</button>`
@@ -8099,61 +8213,124 @@ function painelEquipe(){
       <button class="bt" onclick="carregarEquipe()">🔄 atualizar</button></div>`:''}
   </div>`;
 }
-async function convidarPessoa(){
-  const email=prompt('E-mail de quem vai ter acesso:\n\n'
-    +'Se a pessoa ainda não tiver conta, ela cria com esse mesmo e-mail e já entra na sua loja.');
-  if(email===null)return;
-  if(!emailValido(email)){alert('Esse e-mail não parece completo.');return;}
-  const nome=prompt('Nome dela (só para você identificar aqui):','')||'';
-  const papel=escolherPapel('estoquista');
-  if(!papel)return;
-  try{
-    await chamarApi('/rest/v1/convites?on_conflict=loja,email',{metodo:'POST',
-      corpo:[{loja:lojaId(),email:email.trim().toLowerCase(),papel,nome:nome.trim()||null}],
-      headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}});
-    await carregarEquipe();
-    alert('Convite criado para '+email+'.\n\n'
-      +'Peça para ela abrir o painel, clicar em "Criar minha conta" e usar\n'
-      +'exatamente esse e-mail. O acesso à sua loja é liberado sozinho.');
-  }catch(e){alert('Não deu para convidar: '+(e.msg||'erro'));}
+/* ============================================================
+   ACESSO POR PESSOA
+   O ajuste área por área sempre existiu (membros.ajustes, respeitado pelo
+   banco), mas ficava atrás de uma sequência de caixinhas de pergunta
+   numeradas — ninguém descobria que dava para personalizar. Agora é uma
+   tela: o papel é o ponto de partida e cada área se abre ou fecha à parte.
+   ============================================================ */
+const ORDEM_AREAS=['resumo','vendas','fiado','estoque','clientes','financeiro','loja','config'];
+const AREA_ROTULO={
+  resumo:['Resumo','os números da loja na tela inicial'],
+  vendas:['Vendas','registro e histórico de vendas'],
+  fiado:['Fiado','quem deve, parcelas e recebimentos'],
+  estoque:['Produtos e estoque','cadastro de peças e quantidades'],
+  clientes:['Clientes','cadastro de clientes'],
+  financeiro:['Financeiro','caixa, despesas e contas'],
+  loja:['Site da loja','catálogo online'],
+  config:['Configurações','categorias, formas de pagamento, equipe']
+};
+const NIVEIS_ROTULO=[['nenhum','Não vê'],['ler','Só vê'],['escrever','Vê e altera']];
+let MB={modo:'editar',usuario:null,papel:'estoquista',escolhas:{}};
+
+function nivelEscolhido(area){return MB.escolhas[area]||nivelDoPapel(MB.papel,area);}
+/* Grava só o que foge do padrão do papel: se o padrão de um papel mudar um
+   dia, as áreas que ninguém mexeu acompanham sozinhas. */
+function ajustesSoDiferencas(papel,escolhas){
+  const out={};
+  Object.keys(escolhas||{}).forEach(a=>{
+    if(escolhas[a]&&escolhas[a]!==nivelDoPapel(papel,a))out[a]=escolhas[a];
+  });
+  return out;
 }
-function escolherPapel(atual){
-  const ordem=['dono','gerente','estoquista'];
-  const lista=ordem.map((p,i)=>i+') '+PAPEIS[p].nome+' — '+PAPEIS[p].desc).join('\n');
-  const idx=prompt('Que acesso essa pessoa terá?\n\n'+lista,
-    String(Math.max(0,ordem.indexOf(atual||'estoquista'))));
-  if(idx===null)return null;
-  return ordem[+idx]||null;
+/* uma linha legível na lista da equipe: o que a pessoa altera e o que só vê */
+function resumoAcesso(papel,ajustes){
+  const niv=a=>(ajustes||{})[a]||nivelDoPapel(papel,a);
+  const nomes=teste=>ORDEM_AREAS.filter(a=>a!=='config'&&teste(niv(a))).map(a=>AREA_ROTULO[a][0]);
+  const alt=nomes(n=>n==='escrever'),ve=nomes(n=>n==='ler');
+  return [alt.length?'<b>altera:</b> '+esc(alt.join(', ')):'',
+          ve.length?'<b>só vê:</b> '+esc(ve.join(', ')):'']
+    .filter(Boolean).join(' · ')||'não vê nenhuma área';
 }
-async function editarMembro(usuario){
+function convidarPessoa(){
+  MB={modo:'convidar',usuario:null,papel:'estoquista',escolhas:{}};
+  $('formMembro').reset();
+  $('mbTitulo').textContent='Dar acesso a alguém';
+  $('mbNovoBox').hidden=false;$('mbSalvar').textContent='Criar convite';
+  prepararDialogoMembro();dlgMembro.showModal();
+  setTimeout(()=>$('mbEmail').focus(),50);
+}
+function editarMembro(usuario){
   const m=EQUIPE.membros.find(x=>x.usuario===usuario);if(!m)return;
-  const papel=escolherPapel(m.papel);
-  if(!papel)return;
-  /* Ajuste fino: o papel dá o padrão e aqui se abre ou fecha uma área
-     específica, sem precisar de um papel novo pra cada combinação. */
-  const ajustar=confirm('Acesso definido como "'+PAPEIS[papel].nome+'".\n\n'
-    +'Quer ajustar alguma área específica dessa pessoa?\n'
-    +'OK = ajustar · Cancelar = usar o padrão do acesso');
-  let ajustes=ajustar?(m.ajustes||{}):{};
-  if(ajustar){
-    const lista=AREAS.map((a,i)=>i+') '+a+'  ('+(ajustes[a]||nivelDoPapel(papel,a))+')').join('\n');
-    const qual=prompt('Qual área ajustar?\n\n'+lista,'0');
-    if(qual!==null&&AREAS[+qual]){
-      const area=AREAS[+qual];
-      const n=prompt('Acesso de "'+area+'":\n\n0) nenhum\n1) ler\n2) escrever','1');
-      const niveis={'0':'nenhum','1':'ler','2':'escrever'};
-      if(n!==null&&niveis[n.trim()]){
-        ajustes=Object.assign({},ajustes);ajustes[area]=niveis[n.trim()];
-      }
-    }
+  MB={modo:'editar',usuario,papel:m.papel||'estoquista',escolhas:Object.assign({},m.ajustes||{})};
+  $('formMembro').reset();
+  $('mbTitulo').textContent='Acesso de '+(m.nome||'esta pessoa');
+  $('mbNovoBox').hidden=true;$('mbSalvar').textContent='Salvar acesso';
+  prepararDialogoMembro();dlgMembro.showModal();
+}
+function prepararDialogoMembro(){
+  $('mbPapel').innerHTML=['gerente','estoquista','dono'].map(p=>
+    `<option value="${p}"${p===MB.papel?' selected':''}>${PAPEIS[p].nome}</option>`).join('');
+  renderAreasMembro();
+}
+function mbPapelMudou(){
+  MB.papel=$('mbPapel').value;
+  MB.escolhas={};   // trocar o ponto de partida recomeça do padrão dele: previsível
+  renderAreasMembro();
+}
+function mbNivel(area,nivel){MB.escolhas[area]=nivel;renderAreasMembro();}
+function renderAreasMembro(){
+  $('mbPapelDesc').textContent=(PAPEIS[MB.papel]||{}).desc||'';
+  const dono=MB.papel==='dono';
+  $('mbAreas').innerHTML=ORDEM_AREAS.map(a=>{
+    const nome=AREA_ROTULO[a][0],desc=AREA_ROTULO[a][1];
+    const atual=dono?'escrever':nivelEscolhido(a),pad=nivelDoPapel(MB.papel,a);
+    /* Configurações só tem "altera ou não": LER a configuração todo mundo
+       precisa, é dela que vêm categorias, tipos e fornecedores */
+    const niveis=a==='config'?[['ler','Não mexe'],['escrever','Pode alterar']]:NIVEIS_ROTULO;
+    return `<div class="mb-area${atual!==pad?' mudou':''}" data-area="${a}">
+      <div class="nm">${nome}<small>${desc}</small></div>
+      <div class="mb-seg" role="group" aria-label="${nome}">${niveis.map(([n,r])=>
+        `<button type="button" data-nivel="${n}" class="${n===atual?'on':''}${n===pad?' padrao':''}"${dono?' disabled':''}
+          aria-pressed="${n===atual}" onclick="mbNivel('${a}','${n}')">${r}</button>`).join('')}</div></div>`;
+  }).join('');
+  // dependências entre áreas que não são óbvias para quem configura
+  const avisos=[];
+  if(dono)avisos.push('Dono vê e altera tudo — as áreas não se aplicam.');
+  else{
+    if(nivelEscolhido('fiado')!=='nenhum'&&nivelEscolhido('vendas')==='nenhum')
+      avisos.push('⚠️ A aba <b>Fiado</b> vai aparecer vazia: as parcelas ficam guardadas dentro das vendas. Deixe <b>Vendas</b> pelo menos em "Só vê".');
+    if(nivelEscolhido('resumo')!=='nenhum'&&nivelEscolhido('financeiro')==='nenhum')
+      avisos.push('⚠️ O <b>Resumo</b> desta pessoa mostra as vendas, mas não as despesas (que ficam no Financeiro) — o lucro que ela vê aparece <b>maior que o real</b>.');
   }
+  $('mbAviso').innerHTML=avisos.map(t=>`<p class="mut" style="font-size:.8rem;margin:.3rem 0">${t}</p>`).join('');
+}
+async function salvarAcessoMembro(){
+  const papel=MB.papel,ajustes=papel==='dono'?{}:ajustesSoDiferencas(papel,MB.escolhas);
+  const bt=$('mbSalvar');bt.disabled=true;
   try{
-    await chamarApi('/rest/v1/membros?loja=eq.'+encodeURIComponent(lojaId())
-      +'&usuario=eq.'+encodeURIComponent(usuario),
-      {metodo:'PATCH',corpo:{papel,ajustes},headers:{'Prefer':'return=minimal'}});
-    await carregarEquipe();
-    toast('Acesso atualizado ✓');
-  }catch(e){alert('Não deu para atualizar: '+(e.msg||'erro'));}
+    if(MB.modo==='convidar'){
+      const email=($('mbEmail').value||'').trim().toLowerCase();
+      if(!emailValido(email)){alert('Esse e-mail não parece completo.');return;}
+      await chamarApi('/rest/v1/convites?on_conflict=loja,email',{metodo:'POST',
+        corpo:[{loja:lojaId(),email,papel,ajustes,nome:($('mbNome').value||'').trim()||null}],
+        headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}});
+      dlgMembro.close();
+      await carregarEquipe();
+      alert('Convite criado para '+email+'.\n\n'
+        +'Peça para ela abrir o painel, clicar em "Criar minha conta" e usar\n'
+        +'exatamente esse e-mail. O acesso à sua loja é liberado sozinho.');
+    }else{
+      await chamarApi('/rest/v1/membros?loja=eq.'+encodeURIComponent(lojaId())
+        +'&usuario=eq.'+encodeURIComponent(MB.usuario),
+        {metodo:'PATCH',corpo:{papel,ajustes},headers:{'Prefer':'return=minimal'}});
+      dlgMembro.close();
+      await carregarEquipe();
+      toast('Acesso atualizado ✓ — vale na próxima vez que a pessoa abrir o painel');
+    }
+  }catch(e){alert('Não deu para salvar: '+(e.msg||'erro'));}
+  finally{bt.disabled=false;}
 }
 async function removerMembro(usuario){
   const m=EQUIPE.membros.find(x=>x.usuario===usuario);if(!m)return;
@@ -8242,19 +8419,27 @@ async function forcarEnvioParaNuvem(){
    e a nuvem entra por cima. Assim o sistema abre rápido e nunca fica
    refém da rede. */
 async function iniciarNuvem(){
-  if(!nuvemConfigurada()){NUVEM.modo='local';return;}
+  if(!nuvemConfigurada()){NUVEM.modo='local';esperandoAcesso(false);return;}
   lerBase();
   let modoSalvo=null;
   try{modoSalvo=localStorage.getItem(LS_MODO);}catch(e){}
-  if(modoSalvo==='local'){NUVEM.modo='local';atualizarChipNuvem();return;}
+  if(modoSalvo==='local'){NUVEM.modo='local';esperandoAcesso(false);atualizarChipNuvem();return;}
   const s=lerSessao();
-  if(!s||!s.refresh_token){mostrarLogin();return;}
+  if(!s||!s.refresh_token){esperandoAcesso(false);mostrarLogin();return;}
   NUVEM.sessao=s;NUVEM.modo='nuvem';
+  /* Permissão já conhecida neste aparelho: aplica agora, ainda antes de a
+     tela aparecer. Só no primeiríssimo acesso o painel espera a nuvem. */
+  const conhecido=lerAcessoLocal();
+  if(conhecido){NUVEM.acesso=conhecido;aplicarPermissoesNaTela();esperandoAcesso(false);}
+  // rede travada nunca pode deixar a pessoa olhando uma tela vazia
+  setTimeout(()=>esperandoAcesso(false),10000);
   atualizarChipNuvem();
   try{
     await garantirToken();
     await sincronizarComNuvem({completo:true});
+    esperandoAcesso(false);
   }catch(e){
+    esperandoAcesso(false);
     if(erroDeRede(e)){
       // offline com sessão válida: segue trabalhando local e tenta depois
       NUVEM.ultimoErro=e;atualizarChipNuvem();
