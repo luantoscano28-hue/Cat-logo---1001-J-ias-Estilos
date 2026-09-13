@@ -402,8 +402,9 @@ var CATALOGO = {"loja":{"nome":"1001 Jóias & Estilos","logo":"data:image/png;ba
     el.hidden=false;
     var h="<div class=\"trilho\" id=\"lgTrilho\">";
     for(var i=0;i<bs.length;i++){
+      // do 3º banner em diante a imagem só baixa quando chega perto: com 10 o celular não gasta a internet de uma vez
       h+="<div class=\"slide"+(bs[i].filtro?" link":"")+"\" data-i=\""+i+"\">"+
-         "<img src=\""+esc(bs[i].img)+"\" alt=\""+esc(loja.nome||"")+"\"></div>";
+         "<img src=\""+esc(bs[i].img)+"\" alt=\""+esc(loja.nome||"")+"\""+(i>=2?" loading=\"lazy\"":"")+"></div>";
     }
     h+="</div>";
     if(bs.length>1){
