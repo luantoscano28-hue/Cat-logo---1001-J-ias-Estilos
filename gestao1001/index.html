@@ -363,6 +363,29 @@ tr.zerado:hover td{opacity:1}
   color:var(--texto2);font-size:.82rem;overflow:hidden;margin-top:.3rem}
 .banner-prev img{width:100%;height:100%;object-fit:cover}
 .col-mini{width:64px;height:22px;border-radius:5px;object-fit:cover;border:1px solid var(--borda);vertical-align:middle}
+/* banners em carrossel do catálogo: no celular (onde a loja mais é vista) a
+   faixa é 2:1 — a prévia usa a mesma proporção para mostrar o corte */
+.bn-itens{display:grid;gap:.9rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-top:.6rem}
+.bn-item{background:var(--painel2);border:1px solid var(--borda);border-radius:10px;padding:.7rem}
+.banner-prev.bn-prev{aspect-ratio:2/1}
+/* logo horizontal: a prévia fica sobre a cor do topo da loja, que é sempre
+   escura (vem inline, conforme o tema do catálogo) — por isso o texto fixo claro */
+.logo-larga-prev{border-radius:10px;padding:.9rem;display:flex;align-items:center;justify-content:center;min-height:84px;margin-top:.3rem;color:#9ba3b2;font-size:.82rem;text-align:center}
+.logo-larga-prev img{max-height:56px;max-width:100%;object-fit:contain}
+.tema-op img.marca-redonda{width:26px;height:26px;border-radius:50%;object-fit:cover}
+/* excluir produto com vendas: as duas saídas, cada uma explicada */
+#dlgMesclar{max-width:520px}
+.mescla-opcoes{display:grid;gap:.6rem}
+.mescla-op{display:flex;flex-direction:column;gap:.25rem;text-align:left;background:var(--painel2);border:1px solid var(--borda);border-radius:10px;padding:.75rem .9rem;color:var(--texto);cursor:pointer;font:inherit}
+.mescla-op:hover:not(:disabled){border-color:var(--acento)}
+.mescla-op:disabled{opacity:.5;cursor:not-allowed}
+.mescla-op span{font-size:.8rem;color:var(--texto2);line-height:1.45}
+.mescla-lista{max-height:46vh;overflow-y:auto;margin-top:.5rem;border-top:1px solid var(--borda)}
+.mescla-item{display:flex;align-items:center;gap:.6rem;padding:.5rem .1rem;border-bottom:1px solid var(--borda)}
+.mescla-item .thumb,.mescla-item .thumb-vazio{flex:none}
+.mescla-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:.1rem}
+.mescla-info b{font-size:.88rem;font-weight:600}
+.mescla-info .mut{font-size:.74rem}
 /* ---- tela de entrada (nuvem) ---- */
 .login-fundo{position:fixed;inset:0;z-index:9000;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:1rem}
 .login-caixa{background:var(--painel);border:1px solid var(--borda);border-radius:14px;padding:1.6rem;width:100%;max-width:340px;display:flex;flex-direction:column;gap:.7rem;box-shadow:var(--sombra2)}
@@ -1116,6 +1139,12 @@ try{
   </div>
 </form>
 </dialog>
+<!-- produto com vendas não pode ser excluído: mesclar com o cadastro certo ou ocultar -->
+<dialog id="dlgMesclar">
+  <h3 style="margin-top:0">Não dá para excluir este produto</h3>
+  <div id="mesclaCorpo"></div>
+  <div class="rodape"><button type="button" class="bt" onclick="dlgMesclar.close()">Cancelar</button></div>
+</dialog>
 <!-- vitrine da coleção: a frase e o banner que aparecem no catálogo -->
 <dialog id="dlgColecao">
 <form id="formColecao">
@@ -1422,13 +1451,14 @@ function estruturaInicial(){
   const canalMaq={id:novoId(),nome:'Maquininha / celular',prazoDias:1,contaId:cxInfinity.id,padrao:true,bandeiras:bMaq.bandeiras,taxas:bMaq.taxas};
   const canalLink={id:novoId(),nome:'Link de pagamento',prazoDias:1,contaId:cxInfinity.id,padrao:false,bandeiras:bLink.bandeiras,taxas:bLink.taxas};
   return {
-    versao:20, criadoEm:hoje(), alteradoEm:null, ultimoBackup:null, nAlteracoes:0, seqCriacao:0,
+    versao:21, criadoEm:hoje(), alteradoEm:null, ultimoBackup:null, nAlteracoes:0, seqCriacao:0,
     config:{
       /* Nasce NEUTRA. Deixar aqui o WhatsApp e o Pix de alguém faria toda conta
          nova receber os pedidos e as cobranças no contato errado — e o dono da
          conta só descobriria pelo cliente reclamando. Estes campos são
          preenchidos no cadastro e em Configurações → Geral / Loja. */
-      loja:{nome:'Minha Loja', whatsapp:'', dominio:'', pix:'', logo:'', capa:{banner:'',texto:''}, msgFiado:MSG_FIADO_PADRAO},
+      loja:{nome:'Minha Loja', whatsapp:'', dominio:'', pix:'', logo:'', capa:{banner:'',texto:''}, msgFiado:MSG_FIADO_PADRAO,
+        logoLarga:'', marcaModo:'redonda', banners:{ativo:false,itens:[{imagem:'',alvo:''},{imagem:'',alvo:''}]}},
       fiscal:{diaInicio:11}, autoBaixaCartao:true, tema:'ouro',
       avisos:{diasAntes:1, notificar:false, ultimoAviso:''},
       categorias:idfy([{nome:'Aço'},{nome:'Folheado'},{nome:'Biju'},{nome:'Prata'},{nome:'Acessórios'}]),
@@ -1683,6 +1713,14 @@ function migrar(d){
      coisa que o cliente vê e não existia. */
   if(!d.config.loja.capa)d.config.loja.capa={banner:'',texto:''};
   d.versao=20;
+
+  /* ---- v21: banners em carrossel e logo horizontal no catálogo ---- */
+  /* Os dois são opcionais e nascem desligados: nem toda loja quer vitrine com
+     banner, e a logo redonda + nome escrito continua sendo o padrão. */
+  if(!d.config.loja.banners)d.config.loja.banners={ativo:false,itens:[{imagem:'',alvo:''},{imagem:'',alvo:''}]};
+  if(d.config.loja.logoLarga==null)d.config.loja.logoLarga='';
+  if(d.config.loja.marcaModo==null)d.config.loja.marcaModo='redonda';
+  d.versao=21;
   return d;
 }
 
@@ -2764,6 +2802,14 @@ function juntarProdutos(idFica,idSai){
   }
   const nVendas=dados.vendas.reduce((n,v)=>n+v.itens.filter(i=>i.produtoId===idSai).length,0);
   const nMov=(dados.movEstoque||[]).filter(m=>m.produtoId===idSai).length;
+  /* Juntar reescreve as vendas antigas. Quem só consulta Vendas não consegue
+     gravar essa parte na nuvem: o produto sumiria e as vendas continuariam
+     apontando para ele. Melhor recusar do que deixar histórico órfão. */
+  if((nVendas>0&&!podeEscrever('vendas'))||!podeEscrever('estoque')){
+    alert('Juntar produtos muda o estoque e as vendas antigas, e o seu acesso não permite alterar Vendas.\n\n'
+      +'Peça a quem é dono da loja para fazer isso — ou oculte o produto.');
+    return false;
+  }
   const somaEst=(fica.estoque==null&&sai.estoque==null)?null:r2((+fica.estoque||0)+(+sai.estoque||0));
   if(!confirm('Juntar "'+sai.nome+'" dentro de "'+fica.nome+'"?\n\n'
     +'• '+nVendas+' item(ns) de venda passam para "'+fica.nome+'"\n'
@@ -3296,9 +3342,88 @@ function salvarProduto(){
 }
 function excluirProduto(id){
   const p=prodPorId(id);if(!p)return;
-  if(vendasDoProduto(id)>0){alert('Este produto já tem vendas registradas. Em vez de excluir, mude o status para "Oculto".');return;}
+  /* Com venda o cadastro não pode sumir: as vendas antigas apontam pra ele.
+     Antes a tela só mandava ocultar — mas quem tenta excluir costuma ter
+     achado a mesma peça cadastrada com outro nome. Então, além de ocultar,
+     aparece a opção de mesclar com o produto certo. Nada é mesclado sem a
+     pessoa escolher o destino e confirmar. */
+  if(vendasDoProduto(id)>0){abrirMesclar(id);return;}
   if(!confirm('Excluir "'+p.nome+'"?'))return;
   dados.produtos=dados.produtos.filter(x=>x.id!==id);salvar();renderTudo();toast('Produto excluído');
+}
+
+/* ---- mesclar um produto que tem vendas com outro ----
+   É o mesmo juntarProdutos dos Repetidos, mas aqui a pessoa escolhe o destino:
+   os nomes podem ser bem diferentes ("Brinco Gota Strass" e "Brinco Cristal
+   Pendente") e a detecção automática de repetidos não pegaria. */
+const MESCLA={id:null,busca:'',escolher:false};
+function podeMesclarProdutos(){return podeEscrever('vendas')&&podeEscrever('estoque');}
+function abrirMesclar(id){
+  MESCLA.id=id;MESCLA.busca='';MESCLA.escolher=false;
+  renderMesclar();
+  dlgMesclar.showModal();
+}
+function renderMesclar(){
+  const p=prodPorId(MESCLA.id);if(!p){if(dlgMesclar.open)dlgMesclar.close();return;}
+  const pode=podeMesclarProdutos()&&!temGrade(p);
+  let h=`<p style="margin:.1rem 0 .8rem;line-height:1.5"><b>${esc(p.nome)}</b> tem <b>${fmtN(vendasDoProduto(p.id))} peça(s) vendida(s)</b> registradas, por isso não pode ser excluído — as vendas antigas apontam para ele.</p>`;
+  if(!MESCLA.escolher){
+    h+=`<div class="mescla-opcoes">
+      <button type="button" class="mescla-op" onclick="mesclarEscolher()"${pode?'':' disabled'}>
+        <b>🔀 Mesclar com outro produto</b>
+        <span>É a mesma peça cadastrada com outro nome. As vendas, o estoque e as fotos passam para o produto certo e este cadastro some.</span></button>
+      <button type="button" class="mescla-op" onclick="ocultarPeloMesclar()">
+        <b>🙈 Ocultar</b>
+        <span>Sai da loja e fica fora do caminho, mas continua no histórico. Dá para voltar a mostrar depois.</span></button>
+    </div>`;
+    if(temGrade(p))h+=`<p class="mut" style="font-size:.8rem;margin-top:.6rem">Este produto controla estoque por tamanho (grade): a mesclagem precisa ser feita à mão — passe as quantidades para o cadastro certo e depois oculte este.</p>`;
+    else if(!podeMesclarProdutos())h+=`<p class="mut" style="font-size:.8rem;margin-top:.6rem">Mesclar mexe nas vendas antigas, e o seu acesso não permite alterar Vendas. Peça a quem é dono da loja para mesclar, ou oculte este produto.</p>`;
+  }else{
+    h+=`<label class="campo">Com qual produto mesclar?
+        <input id="mesclaBusca" autocomplete="off" placeholder="🔎 digite o nome do produto certo" value="${esc(MESCLA.busca)}" oninput="MESCLA.busca=this.value;renderListaMesclar()"></label>
+      <div id="mesclaLista" class="mescla-lista">${listaMesclarHTML()}</div>
+      <div class="barra" style="margin-top:.5rem"><button type="button" class="bt mini" onclick="MESCLA.escolher=false;renderMesclar()">← voltar</button></div>`;
+  }
+  $('mesclaCorpo').innerHTML=h;
+  if(MESCLA.escolher&&$('mesclaBusca'))$('mesclaBusca').focus();
+}
+/* palavras em comum com o nome do que vai sumir: põe o gêmeo provável no topo
+   antes mesmo de a pessoa digitar */
+function afinidadeNome(a,b){
+  const pb=chaveNome(b).split(' ');
+  return chaveNome(a).split(' ').filter(w=>w&&pb.indexOf(w)>=0).length;
+}
+function candidatosMesclar(){
+  const p=prodPorId(MESCLA.id);if(!p)return [];
+  // mesma normalização do nome: sem acento, sem plural e em qualquer ordem
+  const ws=chaveNome(MESCLA.busca).split(' ').filter(Boolean);
+  let cs=dados.produtos.filter(x=>x.id!==p.id).map(x=>({p:x,af:afinidadeNome(p.nome,x.nome),k:chaveNome(x.nome)}));
+  cs=ws.length?cs.filter(x=>ws.every(w=>x.k.indexOf(w)>=0)):cs.filter(x=>x.af>0);
+  cs.sort((a,b)=>b.af-a.af||a.p.nome.localeCompare(b.p.nome,'pt-BR'));
+  return cs.slice(0,ws.length?30:8).map(x=>x.p);
+}
+function listaMesclarHTML(){
+  const cs=candidatosMesclar(),q=MESCLA.busca.trim();
+  if(!cs.length)return `<p class="mut" style="font-size:.84rem;padding:.6rem 0">${q?'Nenhum produto com esse nome.':'Nenhum nome parecido — digite o nome do produto certo.'}</p>`;
+  return (q?'':'<div class="mut" style="font-size:.76rem;margin:.4rem 0 .1rem">Parecidos com este:</div>')+cs.map(x=>{
+    const capa=fotoCapa(x),s=saldoProduto(x);
+    return `<div class="mescla-item">
+      ${capa?`<img class="thumb" src="${capa}" alt="">`:'<div class="thumb-vazio">📷</div>'}
+      <div class="mescla-info"><b>${esc(x.nome)}</b>
+        <span class="mut">${esc(catNome(x.catId))}${x.tipoId?' · '+esc(tipoNome(x.tipoId)):''} · ${+x.preco>0?fmt(x.preco):'sem preço'} · estoque ${s==null?'—':fmtN(s)}</span></div>
+      ${temGrade(x)?'<span class="mut" style="font-size:.74rem">tem grade</span>'
+        :`<button type="button" class="bt mini primario" onclick="mesclarCom('${x.id}')">mesclar aqui</button>`}
+    </div>`;}).join('');
+}
+function renderListaMesclar(){const l=$('mesclaLista');if(l)l.innerHTML=listaMesclarHTML();}
+function mesclarEscolher(){MESCLA.escolher=true;renderMesclar();}
+function mesclarCom(idFica){
+  if(juntarProdutos(idFica,MESCLA.id))dlgMesclar.close();
+}
+function ocultarPeloMesclar(){
+  const p=prodPorId(MESCLA.id);if(!p)return;
+  p.status='oculto';salvar();dlgMesclar.close();renderTudo();
+  toast('"'+esc(p.nome)+'" ocultado');
 }
 
 /* ---- cadastro rápido (usado a partir da venda) ---- */
@@ -6240,9 +6365,30 @@ function catalogoLoja(embutir){
   const cols=(cfg.colecoes||[]).filter(c=>usadas[c.nome])
     .map(c=>({nome:c.nome,n:usadas[c.nome],texto:c.texto||'',banner:c.banner||''}));
   const capa=cfg.loja.capa||{banner:'',texto:''};
+  // a logo horizontal só vai quando foi escolhida — ter a imagem guardada não basta
+  const logoLarga=cfg.loja.marcaModo==='larga'?(cfg.loja.logoLarga||''):'';
   return {loja:{nome:cfg.loja.nome||'Loja',logo:cfg.loja.logo||'',whatsapp:cfg.loja.whatsapp||'',pix:cfg.loja.pix||'',
-      tema:temaAtual(),capaBanner:capa.banner||'',capaTexto:capa.texto||''},
+      tema:temaAtual(),capaBanner:capa.banner||'',capaTexto:capa.texto||'',
+      logoLarga:logoLarga,banners:bannersDoCatalogo(cfg,cats,tps,cols)},
     categorias:cats,tipos:tps,colecoes:cols,produtos:prods,geradoEm:new Date().toISOString()};
+}
+/* Banner leva a uma "aba" da loja: coleção, material ou tipo. No painel o
+   destino fica guardado pelo id (renomear a coleção não quebra o link); aqui
+   vira o nome, que é como a loja filtra. Destino sem peça visível agora deixa
+   o banner sem link — levar o cliente a uma tela vazia seria pior. */
+function bannersDoCatalogo(cfg,cats,tps,cols){
+  const bn=cfg.loja.banners;
+  if(!bn||!bn.ativo)return [];
+  return (bn.itens||[]).filter(b=>b&&b.imagem)
+    .map(b=>({img:b.imagem,filtro:filtroDoBanner(cfg,b.alvo,cats,tps,cols)}));
+}
+function filtroDoBanner(cfg,alvo,cats,tps,cols){
+  const m=String(alvo||'').match(/^(col|cat|tipo):(.+)$/);
+  if(!m)return null;
+  if(m[1]==='col'){const n=nomeDe(cfg.colecoes||[],m[2],'');return cols.some(c=>c.nome===n)?{col:n}:null;}
+  if(m[1]==='cat'){const n=nomeDe(cfg.categorias||[],m[2],'');return n&&cats.indexOf(n)>=0?{cat:n}:null;}
+  const n=nomeDe(cfg.tipos||[],m[2],'');
+  return n&&tps.indexOf(n)>=0?{tipo:n}:null;
 }
 
 /* ---- o site em si: HTML+CSS+JS autocontido, sem dependências externas ----
@@ -6282,6 +6428,10 @@ a{color:inherit}
 .marca{display:flex;align-items:center;gap:.7rem;flex:none}
 .marca img{width:46px;height:46px;border-radius:50%;object-fit:cover;border:1px solid var(--borda);background:#000}
 .marca h1{font-size:1.1rem;color:var(--acento2);margin:0;letter-spacing:.4px;white-space:nowrap}
+/* logo horizontal (opcional): já traz o nome da marca desenhado, então toma o
+   lugar do círculo e do nome escrito */
+.marca img.logo-larga{width:auto;height:52px;max-width:300px;border-radius:0;border:none;background:none;object-fit:contain}
+.marca.larga #lgLogo,.marca.larga h1{display:none!important}
 .busca-wrap{flex:1;min-width:120px;display:flex;justify-content:flex-end}
 .busca-wrap input{width:100%;max-width:280px;background:var(--painel);border:1px solid var(--borda);color:var(--texto);border-radius:10px;padding:.5rem .8rem;font-size:.92rem}
 .busca-wrap input:focus{outline:1px solid var(--acento);border-color:var(--acento)}
@@ -6319,6 +6469,29 @@ a{color:inherit}
 .col-banner.capa p{font-size:1.05rem;color:var(--texto);letter-spacing:.2px}
 .col-banner.capa.sem-foto .faixa{padding:.2rem 0}
 @media(max-width:699px){.col-banner{padding:0 .8rem}.col-banner h2{font-size:1.1rem}.col-banner p{font-size:.82rem}}
+/* banners em carrossel (opcional): a vitrine da campanha antes dos produtos.
+   Deslizar com o dedo é o próprio rolar do trilho (scroll-snap), sem biblioteca */
+.banners{position:relative;max-width:1400px;margin:0 auto .9rem;padding:0 1rem}
+.banners .trilho{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;border-radius:14px;scrollbar-width:none;background:var(--painel)}
+.banners .trilho::-webkit-scrollbar{display:none}
+.banners .slide{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always}
+.banners .slide.link{cursor:pointer}
+.banners img{width:100%;aspect-ratio:3/1;object-fit:cover;display:block}
+.banners .pontos{position:absolute;left:50%;bottom:.7rem;transform:translateX(-50%);display:flex;gap:.45rem;background:rgba(0,0,0,.35);padding:.35rem .6rem;border-radius:20px}
+.banners .pontos button{width:9px;height:9px;border-radius:50%;border:1.5px solid #fff;background:transparent;padding:0;cursor:pointer}
+.banners .pontos button.on{background:#fff}
+.banners .seta{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border:none;border-radius:50%;
+  background:rgba(0,0,0,.4);color:#fff;font-size:1.6rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.banners .seta:hover{background:rgba(0,0,0,.7)}
+.banners .seta.ant{left:1.6rem}
+.banners .seta.prox{right:1.6rem}
+@media(max-width:699px){
+  .banners{padding:0 .8rem}
+  /* no celular a faixa é mais alta: a tela é estreita e o banner é o destaque */
+  .banners img{aspect-ratio:2/1}
+  /* e o dedo faz o papel das setas */
+  .banners .seta{display:none}
+}
 /* ---- corpo: coleções na lateral ESQUERDA + grade de produtos ---- */
 .corpo-loja{display:flex;gap:1.2rem;max-width:1400px;margin:0 auto;padding:1rem 1rem 6rem;align-items:flex-start}
 .lateral{flex:none;width:190px;position:sticky;top:152px}
@@ -6337,7 +6510,15 @@ a{color:inherit}
 @media(max-width:699px){
   .bt-menu{display:block}
   .marca h1{font-size:.98rem}
+  .marca img.logo-larga{height:38px;max-width:44vw}
   .corpo-loja{padding:.7rem .8rem 6rem}
+  /* materiais e tipos deslizam para o lado em vez de empilhar linhas: todos
+     juntos ocupavam meia tela do celular antes do primeiro produto. O esmaecido
+     na ponta direita avisa que tem mais para o lado. */
+  .chips{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;scrollbar-width:none;padding-left:.8rem;padding-right:1.6rem;
+    -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 26px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 26px),transparent)}
+  .chips::-webkit-scrollbar{display:none}
+  .chips button{flex:none}
   .lateral{position:fixed;inset:0 auto 0 0;width:76%;max-width:280px;z-index:60;background:var(--painel);border-right:1px solid var(--borda);padding:1rem;overflow-y:auto;transform:translateX(-100%);transition:transform .22s}
   .lateral.aberta{transform:none}
   .lateral button.lateral-fechar{display:block;background:var(--painel2);border:1px solid var(--borda);color:var(--texto);border-radius:8px;padding:.35rem .6rem;font-size:.85rem;cursor:pointer;margin-bottom:.8rem;width:100%;text-align:center;border-left:1px solid var(--borda)}
@@ -6431,7 +6612,7 @@ footer{text-align:center;padding:1.5rem 1rem 5rem;font-size:.75rem;color:var(--t
 <div class="topo">
   <div class="topo-linha">
     <button class="bt-menu" id="lgBtMenu" aria-label="Coleções">☰</button>
-    <div class="marca"><img id="lgLogo" src="" alt="" style="display:none"><h1 id="lgNome">Loja</h1></div>
+    <div class="marca" id="lgMarca"><img id="lgLogo" src="" alt="" style="display:none"><img id="lgLogoLarga" class="logo-larga" alt="" hidden><h1 id="lgNome">Loja</h1></div>
     <div class="busca-wrap"><input id="lgBusca" placeholder="🔎 Buscar..."></div>
   </div>
   <div class="chips" id="lgChips"></div>
@@ -6439,6 +6620,7 @@ footer{text-align:center;padding:1.5rem 1rem 5rem;font-size:.75rem;color:var(--t
 </div>
 <div class="fundo-lateral" id="lgFundoLat"></div>
 <div class="col-banner capa" id="lgCapa" hidden></div>
+<div class="banners" id="lgBanners" hidden></div>
 <div class="col-banner" id="lgBanner" hidden></div>
 <div class="corpo-loja">
   <aside class="lateral" id="lgLateral">
@@ -6517,11 +6699,6 @@ var CATALOGO = __CATALOGO_JSON__;
   }
   absorverCatalogo();
 
-  // tema escolhido no painel de gestão (prata = cores da logo)
-  document.documentElement.setAttribute("data-tema", loja.tema==="ouro"?"ouro":"prata");
-  var mt=$("lgThemeColor");
-  if(mt)mt.setAttribute("content", loja.tema==="ouro"?"#16120d":"#0b0c0e");
-
   var estado={busca:"",cat:"",tipo:"",col:""};
   var atual=null,fotoIdx=0,tamSel="",qtd=1;
 
@@ -6533,9 +6710,29 @@ var CATALOGO = __CATALOGO_JSON__;
     atualizarFab();
   }
 
-  document.title=(loja.nome||"Catálogo")+" — Catálogo";
-  $("lgNome").textContent=loja.nome||"Catálogo";
-  if(loja.logo){$("lgLogo").src=loja.logo;$("lgLogo").style.display="block";}
+  /* Cores, nome e logo saem de uma função porque a vitrine que chega do banco
+     pode trazer outra logo (ou a horizontal). Antes eles ficavam presos ao
+     catálogo embutido na página até alguém republicar o site. */
+  function aplicarMarca(){
+    // tema escolhido no painel de gestão (prata = cores da logo)
+    document.documentElement.setAttribute("data-tema", loja.tema==="ouro"?"ouro":"prata");
+    var mt=$("lgThemeColor");
+    if(mt)mt.setAttribute("content", loja.tema==="ouro"?"#16120d":"#0b0c0e");
+    document.title=(loja.nome||"Catálogo")+" — Catálogo";
+    $("lgNome").textContent=loja.nome||"Catálogo";
+    if(loja.logo){$("lgLogo").src=loja.logo;$("lgLogo").style.display="block";}
+    else $("lgLogo").style.display="none";
+    // logo horizontal: já tem o nome desenhado, então esconde o círculo e o nome escrito
+    var larga=$("lgLogoLarga");
+    if(loja.logoLarga){
+      larga.src=loja.logoLarga;larga.alt=loja.nome||"";larga.hidden=false;
+      $("lgMarca").classList.add("larga");
+    }else{
+      larga.hidden=true;larga.removeAttribute("src");
+      $("lgMarca").classList.remove("larga");
+    }
+  }
+  aplicarMarca();
   var dataGer="";
   if(CATALOGO.geradoEm){var pd=CATALOGO.geradoEm.slice(0,10).split("-");dataGer=pd[2]+"/"+pd[1]+"/"+pd[0];}
   $("lgRodape").textContent="Catálogo de "+(loja.nome||"")+" — os valores e a disponibilidade são confirmados no WhatsApp. Atualizado em "+dataGer+".";
@@ -6546,7 +6743,10 @@ var CATALOGO = __CATALOGO_JSON__;
       var c=categorias[i];
       h+="<button class=\\""+(estado.cat===c?"ativo":"")+"\\" data-cat=\\""+esc(c)+"\\">"+esc(c)+"</button>";
     }
-    $("lgChips").innerHTML=h;
+    // no celular a fileira desliza de lado: redesenhar não pode voltá-la ao começo
+    var box=$("lgChips"),sl=box.scrollLeft;
+    box.innerHTML=h;
+    box.scrollLeft=sl;
   }
 
   /* 2ª fileira: o tipo da peça. Só aparece se houver mais de um tipo — com um
@@ -6560,7 +6760,9 @@ var CATALOGO = __CATALOGO_JSON__;
       var t=tipos[i];
       h+="<button class=\\""+(estado.tipo===t?"ativo":"")+"\\" data-tipo=\\""+esc(t)+"\\">"+esc(t)+"</button>";
     }
+    var sl=box.scrollLeft;
     box.innerHTML=h;
+    box.scrollLeft=sl;
   }
 
   function acharColecao(nome){
@@ -6581,6 +6783,68 @@ var CATALOGO = __CATALOGO_JSON__;
       (loja.capaBanner?"<img src=\\""+esc(loja.capaBanner)+"\\" alt=\\""+esc(loja.nome||"")+"\\">":"")+
       (loja.capaTexto?"<div class=\\"legenda\\"><p>"+esc(loja.capaTexto)+"</p></div>":"")+
       "</div>";
+  }
+
+  /* Banners em carrossel (opcional, ligado no painel). Só na tela cheia, como
+     a capa: escolhido um filtro, os produtos sobem para o topo. Passam sozinhos
+     a cada 5 s até a pessoa mexer — aí param, para não trocar o banner debaixo
+     do dedo dela. */
+  var bnIdx=0,bnTimer=null,bnMexeu=false;
+  function listaBanners(){
+    var bs=loja.banners||[],r=[];
+    for(var i=0;i<bs.length;i++)if(bs[i]&&bs[i].img)r.push(bs[i]);
+    return r;
+  }
+  function renderBanners(){
+    var el=$("lgBanners"),bs=listaBanners();
+    if(bnTimer){clearInterval(bnTimer);bnTimer=null;}
+    if(estado.col||estado.cat||estado.tipo||!bs.length){el.hidden=true;el.innerHTML="";return;}
+    el.hidden=false;
+    var h="<div class=\\"trilho\\" id=\\"lgTrilho\\">";
+    for(var i=0;i<bs.length;i++){
+      h+="<div class=\\"slide"+(bs[i].filtro?" link":"")+"\\" data-i=\\""+i+"\\">"+
+         "<img src=\\""+esc(bs[i].img)+"\\" alt=\\""+esc(loja.nome||"")+"\\"></div>";
+    }
+    h+="</div>";
+    if(bs.length>1){
+      h+="<button class=\\"seta ant\\" data-passo=\\"-1\\" aria-label=\\"banner anterior\\">‹</button>"+
+         "<button class=\\"seta prox\\" data-passo=\\"1\\" aria-label=\\"próximo banner\\">›</button><div class=\\"pontos\\">";
+      for(var j=0;j<bs.length;j++)h+="<button data-ir=\\""+j+"\\" aria-label=\\"banner "+(j+1)+"\\"></button>";
+      h+="</div>";
+    }
+    el.innerHTML=h;
+    bnIdx=0;marcarPontos();
+    var tr=$("lgTrilho");
+    // arrastar com o dedo move o trilho; as bolinhas acompanham
+    tr.addEventListener("scroll",function(){
+      var i=Math.round(tr.scrollLeft/Math.max(1,tr.clientWidth));
+      if(i!==bnIdx){bnIdx=i;marcarPontos();}
+    });
+    tr.addEventListener("touchstart",function(){bnMexeu=true;},{passive:true});
+    if(bs.length>1)bnTimer=setInterval(function(){
+      if(!bnMexeu&&!document.hidden)irBanner(bnIdx+1);
+    },5000);
+  }
+  function marcarPontos(){
+    var ps=document.querySelectorAll("#lgBanners .pontos button");
+    for(var i=0;i<ps.length;i++)ps[i].className=(i===bnIdx?"on":"");
+  }
+  function irBanner(i){
+    var tr=$("lgTrilho");if(!tr)return;
+    var n=tr.children.length;if(n<2)return;
+    bnIdx=(i%n+n)%n;
+    try{tr.scrollTo({left:bnIdx*tr.clientWidth,behavior:"smooth"});}catch(e){tr.scrollLeft=bnIdx*tr.clientWidth;}
+    marcarPontos();
+  }
+  /* tocar no banner leva à "aba" escolhida no painel e rola até os produtos */
+  function abrirDestinoBanner(f){
+    estado.cat=f.cat||"";estado.tipo=f.tipo||"";estado.col=f.col||"";
+    estado.busca="";$("lgBusca").value="";
+    render();
+    var alvo=$("lgBanner").hidden?$("lgGrade"):$("lgBanner");
+    var topo=document.querySelector(".topo");
+    var y=alvo.getBoundingClientRect().top+(window.pageYOffset||0)-(topo?topo.offsetHeight:0)-8;
+    try{window.scrollTo({top:Math.max(0,y),behavior:"smooth"});}catch(e){window.scrollTo(0,Math.max(0,y));}
   }
 
   function renderBanner(){
@@ -6657,7 +6921,20 @@ var CATALOGO = __CATALOGO_JSON__;
     $("lgGrade").innerHTML=h;
   }
 
-  function render(){renderChips();renderTipos();renderColecoes();renderCapa();renderBanner();renderGrade();}
+  function render(){renderChips();renderTipos();renderColecoes();renderCapa();renderBanners();renderBanner();renderGrade();}
+
+  $("lgBanners").addEventListener("click",function(e){
+    var b=e.target.closest("button");
+    if(b){
+      bnMexeu=true;
+      if(b.hasAttribute("data-passo"))irBanner(bnIdx+parseInt(b.getAttribute("data-passo"),10));
+      else if(b.hasAttribute("data-ir"))irBanner(parseInt(b.getAttribute("data-ir"),10));
+      return;
+    }
+    var s=e.target.closest(".slide");if(!s)return;
+    var bn=listaBanners()[parseInt(s.getAttribute("data-i"),10)];
+    if(bn&&bn.filtro)abrirDestinoBanner(bn.filtro);
+  });
 
   $("lgChips").addEventListener("click",function(e){
     var b=e.target.closest("button");if(!b)return;
@@ -6689,10 +6966,11 @@ var CATALOGO = __CATALOGO_JSON__;
     var p=acharProduto(id);if(!p)return;
     atual=p;fotoIdx=0;qtd=1;
     tamSel=(p.variacoes&&p.variacoes.length)?p.variacoes[0]:"";
-    renderModal();
+    // mostra antes de desenhar: peça só com vídeo já começa tocando, visível
     $("lgOverlay").classList.add("show");
+    renderModal();
   }
-  function fecharModal(){$("lgOverlay").classList.remove("show");atual=null;}
+  function fecharModal(){pararVideos();$("lgOverlay").classList.remove("show");atual=null;}
 
   /* O vídeo entra no mesmo carrossel das fotos, como último quadro. Antes ele
      era gravado no produto e nunca chegava à loja — não havia nada aqui que
@@ -6703,7 +6981,29 @@ var CATALOGO = __CATALOGO_JSON__;
     if(p.video)m.push({tipo:"video",src:p.video});
     return m;
   }
-  function renderModal(){
+  /* Chegou no quadro do vídeo, ele toca sozinho — o cliente não precisa achar
+     o play. Com som quando o navegador deixa (a pessoa acabou de tocar na
+     tela); se ele recusar, toca sem som e o controle do vídeo liga o som. */
+  function tocarVideoVisivel(){
+    var v=$("lgCarrossel").querySelector("video.show");
+    if(!v)return;
+    try{
+      var pr=v.play();
+      if(pr&&pr.catch)pr.catch(function(){
+        if(!v.isConnected)return;   // a pessoa já passou para outro quadro
+        v.muted=true;
+        var p2=v.play();if(p2&&p2.catch)p2.catch(function(){});
+      });
+    }catch(e){}
+  }
+  function pararVideos(){
+    var vs=$("lgCarrossel").querySelectorAll("video");
+    for(var i=0;i<vs.length;i++){try{vs[i].pause();}catch(e){}}
+  }
+  /* mídia e informações se desenham separadas: trocar o tamanho não pode
+     recriar o vídeo — ele voltaria ao começo no meio da reprodução */
+  function renderModal(){renderMidiaModal();renderInfoModal();}
+  function renderMidiaModal(){
     var p=atual;
     var mds=midiasDe(p);
     if(fotoIdx>=mds.length)fotoIdx=0;
@@ -6724,6 +7024,7 @@ var CATALOGO = __CATALOGO_JSON__;
     }else{
       ch="<div style=\\"display:flex;align-items:center;justify-content:center;height:100%;font-size:3rem;opacity:.3\\">💍</div>";
     }
+    pararVideos();
     $("lgCarrossel").innerHTML=ch;
     if(mds.length>1){
       $("lgAnt").addEventListener("click",function(e){e.stopPropagation();passarFoto(-1);});
@@ -6732,6 +7033,10 @@ var CATALOGO = __CATALOGO_JSON__;
     var dh="";
     for(var j=0;j<mds.length;j++)dh+="<span class=\\""+(j===fotoIdx?"on":"")+"\\" data-i=\\""+j+"\\" title=\\""+(mds[j].tipo==="video"?"vídeo":"foto")+"\\">"+(mds[j].tipo==="video"?"▶":"")+"</span>";
     $("lgDots").innerHTML=dh;
+    tocarVideoVisivel();
+  }
+  function renderInfoModal(){
+    var p=atual;
     $("lgMdNome").textContent=p.nome;
     $("lgMdPreco").textContent=fmtR(p.preco);
     // etiquetas: material, tipo e as coleções da peça
@@ -6788,7 +7093,7 @@ var CATALOGO = __CATALOGO_JSON__;
   });
   $("lgMdTamWrap").addEventListener("click",function(e){
     var b=e.target.closest("button");if(!b)return;
-    tamSel=b.getAttribute("data-tam");renderModal();
+    tamSel=b.getAttribute("data-tam");renderInfoModal();
   });
   $("lgQtdMenos").addEventListener("click",function(){if(qtd>1){qtd--;$("lgQtd").textContent=qtd;}});
   $("lgQtdMais").addEventListener("click",function(){qtd++;$("lgQtd").textContent=qtd;});
@@ -6885,6 +7190,7 @@ var CATALOGO = __CATALOGO_JSON__;
         novo.nuvem=N;
         CATALOGO=novo;
         absorverCatalogo();   // sem isto, a tela continua com a lista antiga
+        aplicarMarca();       // logo, nome e cores também podem ter mudado no painel
         // um filtro escolhido antes pode não existir mais na vitrine nova
         if(estado.cat&&categorias.indexOf(estado.cat)<0)estado.cat="";
         if(estado.tipo&&tipos.indexOf(estado.tipo)<0)estado.tipo="";
@@ -7011,8 +7317,11 @@ function capaLoja(){
   return l.capa;
 }
 function painelPersonalizarCatalogo(){
-  const capa=capaLoja(),cs=colecoes();
-  const usadas={};(catalogoLoja(true).produtos||[]).forEach(p=>(p.cols||[]).forEach(c=>{usadas[c]=(usadas[c]||0)+1;}));
+  const capa=capaLoja(),cs=colecoes(),cat=catalogoLoja(true),bn=bannersLoja(),l=C().loja;
+  const usadas={};(cat.produtos||[]).forEach(p=>(p.cols||[]).forEach(c=>{usadas[c]=(usadas[c]||0)+1;}));
+  const larga=l.marcaModo==='larga';
+  // a prévia da logo horizontal usa a cor do topo da loja (--topo1 do LOJA_TEMPLATE)
+  const fundoTopo=temaAtual()==='ouro'?'#1d1710':'#15171c';
   return `<div class="painel">
     <h3>🎨 Personalizar o catálogo</h3>
     <p class="mut" style="font-size:.85rem;margin-bottom:.9rem">Tudo que muda a <b>cara da loja</b> para quem entra. Nada aqui mexe no painel — é só vitrine.</p>
@@ -7025,7 +7334,36 @@ function painelPersonalizarCatalogo(){
         <span>${rot}</span>${temaAtual()===id?'<span class="bd ok">em uso</span>':''}
       </button>`).join('')}</div>
 
-    <h4>Capa da loja</h4>
+    <h4>Marca no topo da loja</h4>
+    <p class="mut" style="font-size:.82rem;margin-bottom:.5rem">Como o nome da loja aparece no alto do catálogo. As duas formas ficam guardadas — dá para trocar quando quiser.</p>
+    <div class="temas" style="margin-bottom:.5rem">
+      <button class="tema-op ${larga?'':'ativo'}" onclick="trocarMarcaModo('redonda')">
+        ${l.logo?`<img class="marca-redonda" src="${l.logo}" alt="">`:''}<span>Logo redonda + nome</span>${larga?'':'<span class="bd ok">em uso</span>'}
+      </button>
+      <button class="tema-op ${larga?'ativo':''}" onclick="trocarMarcaModo('larga')">
+        <span>Logo horizontal grande</span>${larga?'<span class="bd ok">em uso</span>':''}
+      </button>
+    </div>
+    ${larga?`
+    <div class="logo-larga-prev" style="background:${fundoTopo}">${l.logoLarga?`<img src="${l.logoLarga}" alt="">`:'sem imagem ainda — enquanto isso a loja mostra a logo redonda + nome'}</div>
+    <input type="file" id="logoLargaInput" accept="image/*" hidden onchange="carregarLogoLarga(this)">
+    <div class="barra" style="margin-top:.4rem">
+      <button class="bt mini" onclick="document.getElementById('logoLargaInput').click()">🖼️ ${l.logoLarga?'trocar imagem':'escolher imagem'}</button>
+      ${l.logoLarga?'<button class="bt mini perigo" onclick="removerLogoLarga()">✕ remover</button>':''}
+    </div>
+    <p class="mut" style="font-size:.74rem;margin:.3rem 0 1.1rem">💡 Use a logo deitada que já tem o nome da marca. PNG com fundo transparente fica melhor — o topo da loja é escuro.</p>`
+    :`<p class="mut" style="font-size:.78rem;margin-bottom:1.1rem">A logo redonda é a mesma do painel (Configurações → Geral / Loja).</p>`}
+
+    <h4>Banners em carrossel</h4>
+    <p class="mut" style="font-size:.82rem;margin-bottom:.5rem">Até 2 imagens que passam sozinhas no topo da loja, antes dos produtos. Cada uma pode levar o cliente direto para uma coleção, um material ou um tipo de peça.</p>
+    <label class="linha"><input type="checkbox" id="bnAtivo" ${bn.ativo?'checked':''} onchange="bannersAtivar(this.checked)"> Mostrar banners no catálogo</label>
+    <div id="bnBox"${bn.ativo?'':' hidden'}>
+      ${bn.ativo&&!bn.itens.some(b=>b.imagem)?'<p class="mut" style="font-size:.78rem;color:var(--laranja);margin-top:.4rem">⚠️ Escolha pelo menos uma imagem — sem imagem nada aparece na loja.</p>':''}
+      <div class="bn-itens">${bn.itens.slice(0,2).map((b,i)=>itemBannerHTML(b,i,cat)).join('')}</div>
+      <p class="mut" style="font-size:.74rem;margin-top:.4rem">💡 Use imagem deitada, com o dobro da largura (ex.: 1600 × 800). No computador ela é cortada um pouco em cima e embaixo — deixe o assunto e o texto no meio.</p>
+    </div>
+
+    <h4 class="mt">Capa da loja</h4>
     <p class="mut" style="font-size:.82rem;margin-bottom:.5rem">Primeira coisa que o cliente vê ao abrir o catálogo, antes dos produtos.</p>
     <div class="banner-prev" id="capaPrev">${capa.banner?`<img src="${capa.banner}" alt="">`:'sem capa — a loja começa direto nos produtos'}</div>
     <input type="file" id="capaInput" accept="image/*" hidden onchange="addCapaLoja(this)">
@@ -7064,6 +7402,88 @@ function removerCapaLoja(){
 function salvarCapaLoja(){
   capaLoja().texto=$('capaTexto').value.trim();
   salvar();renderConfig();toast('Capa salva ✓');
+}
+
+/* ---- banners em carrossel ---- */
+function bannersLoja(){
+  const l=C().loja;
+  if(!l.banners)l.banners={ativo:false,itens:[]};
+  while(l.banners.itens.length<2)l.banners.itens.push({imagem:'',alvo:''});
+  return l.banners;
+}
+function itemBannerHTML(b,i,cat){
+  const cfg=C();
+  const op=(v,rot)=>`<option value="${esc(v)}"${(b.alvo||'')===v?' selected':''}>${esc(rot)}</option>`;
+  const grupo=(rot,lista,pref)=>lista.length?`<optgroup label="${rot}">${lista.map(x=>op(pref+':'+x.id,x.nome)).join('')}</optgroup>`:'';
+  const semPeca=b.alvo&&!filtroDoBanner(cfg,b.alvo,cat.categorias,cat.tipos,cat.colecoes);
+  return `<div class="bn-item"><b>Banner ${i+1}</b>
+    <div class="banner-prev bn-prev">${b.imagem?`<img src="${b.imagem}" alt="">`:'sem imagem'}</div>
+    <input type="file" id="bnInput${i}" accept="image/*" hidden onchange="addBannerLoja(${i},this)">
+    <div class="barra" style="margin-top:.4rem">
+      <button class="bt mini" onclick="document.getElementById('bnInput${i}').click()">🖼️ ${b.imagem?'trocar imagem':'escolher imagem'}</button>
+      ${b.imagem?`<button class="bt mini perigo" onclick="removerBannerLoja(${i})">✕ remover</button>`:''}
+    </div>
+    <label class="campo mt">Ao tocar, leva para
+      <select id="bnAlvo${i}" onchange="bannerAlvo(${i},this.value)">
+        ${op('','Nenhum lugar (só imagem)')}
+        ${grupo('Coleção',colecoes(),'col')}${grupo('Material',cfg.categorias||[],'cat')}${grupo('Tipo de peça',cfg.tipos||[],'tipo')}
+      </select></label>
+    ${semPeca?'<p class="mut" style="font-size:.74rem;color:var(--laranja);margin-top:.3rem">⚠️ Nenhuma peça disponível nesse destino agora — o banner aparece, mas não leva a lugar nenhum até ter peça lá.</p>':''}
+  </div>`;
+}
+function bannersAtivar(on){
+  bannersLoja().ativo=!!on;salvar();renderConfig();
+  toast(on?'Banners ligados ✓':'Banners desligados');
+}
+function addBannerLoja(i,inp){
+  const f=inp.files[0];inp.value='';if(!f)return;
+  comprimirBanner(f,d=>{
+    toast('Enviando banner...');
+    guardarMidiaOuAvisar(d,'loja',u=>{bannersLoja().itens[i].imagem=u;salvar();renderConfig();toast('Banner enviado ✓');});
+  });
+}
+function removerBannerLoja(i){
+  if(!confirm('Remover a imagem do banner '+(i+1)+'?'))return;
+  bannersLoja().itens[i].imagem='';salvar();renderConfig();toast('Banner removido');
+}
+function bannerAlvo(i,v){
+  bannersLoja().itens[i].alvo=v||'';salvar();renderConfig();
+  toast('Destino do banner salvo ✓');
+}
+
+/* ---- logo horizontal ---- */
+function trocarMarcaModo(m){
+  const l=C().loja;
+  l.marcaModo=m==='larga'?'larga':'redonda';
+  salvar();renderConfig();
+  toast(l.marcaModo==='larga'
+    ?(l.logoLarga?'Loja usando a logo horizontal ✓':'Agora escolha a imagem da logo horizontal')
+    :'Loja usando a logo redonda + nome ✓');
+}
+/* A logo horizontal não passa pelo recorte da logo redonda nem vira JPEG:
+   logo costuma ter fundo transparente, e o JPEG pintaria esse fundo. */
+function carregarLogoLarga(inp){
+  const f=inp.files[0];inp.value='';if(!f)return;
+  if(f.size>5*1024*1024){alert('Imagem muito grande (máx 5MB).');return;}
+  const r=new FileReader();
+  r.onload=()=>{const img=new Image();img.onload=()=>{
+    const e=Math.min(1,900/img.width,300/img.height);
+    const cv=document.createElement('canvas');
+    cv.width=Math.max(1,Math.round(img.width*e));cv.height=Math.max(1,Math.round(img.height*e));
+    cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+    const d=f.type==='image/jpeg'?cv.toDataURL('image/jpeg',0.9):cv.toDataURL('image/png');
+    toast('Enviando logo...');
+    guardarMidiaOuAvisar(d,'loja',u=>{
+      const l=C().loja;l.logoLarga=u;l.marcaModo='larga';
+      salvar();renderConfig();toast('Logo horizontal enviada ✓');
+    });
+  };img.onerror=()=>alert('Não deu para ler esta imagem. Tente um arquivo PNG ou JPG.');img.src=r.result;};
+  r.readAsDataURL(f);
+}
+function removerLogoLarga(){
+  if(!confirm('Remover a logo horizontal? A loja volta a mostrar a logo redonda + nome.'))return;
+  const l=C().loja;l.logoLarga='';l.marcaModo='redonda';
+  salvar();renderConfig();toast('Logo horizontal removida');
 }
 function painelLojaSite(){
   const cfg=C();
@@ -7140,7 +7560,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-09-13 00:44';
+const VERSAO_APP='2026-09-13 12:56';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
