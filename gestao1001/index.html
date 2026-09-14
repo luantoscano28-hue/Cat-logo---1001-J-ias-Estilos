@@ -386,6 +386,13 @@ tr.zerado:hover td{opacity:1}
 .mescla-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:.1rem}
 .mescla-info b{font-size:.88rem;font-weight:600}
 .mescla-info .mut{font-size:.74rem}
+/* mesclar — conferência do estoque antes de confirmar */
+.mescla-destino{background:var(--painel2);border:1px solid var(--borda);border-radius:10px;padding:.55rem .7rem;font-size:.9rem;line-height:1.45}
+.mescla-fatos{margin:.5rem 0 0;padding-left:1.1rem;font-size:.8rem;color:var(--texto2);line-height:1.5}
+.mescla-grade{width:100%;font-size:.86rem}
+.mescla-grade th,.mescla-grade td{padding:.35rem .45rem}
+.mescla-grade input{width:5.2rem;text-align:right}
+#mesclaEst{max-width:9rem}
 /* banners: cabeçalho com as setinhas de ordem (antes / depois) */
 .bn-cab{display:flex;align-items:center;justify-content:space-between;gap:.4rem;min-height:1.7rem}
 .bn-ordem{display:flex;gap:.3rem}
@@ -1122,7 +1129,7 @@ try{
      automático decapita a modelo em foto vertical -->
 <dialog id="dlgFoto">
   <h3 style="margin:0 0 .2rem">Enquadrar a foto</h3>
-  <p class="mut" style="margin:0 0 .8rem;font-size:.82rem">Arraste a imagem para escolher o que aparece. O que estiver dentro do quadrado é o que a loja mostra.</p>
+  <p class="mut" style="margin:0 0 .8rem;font-size:.82rem">Arraste a imagem para escolher o que aparece. Para aproximar, use <b>dois dedos</b> na foto, a <b>rodinha do mouse</b> ou a barrinha. O que estiver dentro do quadrado é o que a loja mostra.</p>
   <div id="fotoPalco" class="foto-palco">
     <canvas id="fotoCanvas"></canvas>
     <div class="foto-guia"></div>
@@ -2820,21 +2827,21 @@ function confirmarNomeRepetido(nome,ignorarId){
 /* Junta dois cadastros num só: vendas, movimentações e estoque vão para o que
    fica. O que some não deixa buraco no histórico — as vendas antigas passam a
    apontar para o sobrevivente. */
-/* Anel e aliança (grade): cada tamanho do que sai soma no tamanho de mesmo
-   rótulo do que fica ("18" com "18 "); tamanho que só existe no que sai vira
-   tamanho novo. Se um dos dois não tinha grade, o estoque dele — e o histórico,
-   para uma devolução ter onde voltar — vai para o tamanho "sem tamanho": nada
-   se perde, e depois é só redistribuir no ✎ editar. Devolve null quando
-   nenhum dos dois tem grade (junção comum). Não altera nada: só planeja. */
+/* Anel e aliança (grade): casa os tamanhos pelo rótulo ("18" com "18 ") e
+   anota, para cada tamanho, quanto o produto certo tem (doFica) e quanto o
+   repetido tinha (doSai). Por padrão fica o estoque do produto certo — somar é
+   escolha na janela de mesclar. Tamanho que só o repetido tinha entra na lista
+   (as vendas dele precisam de um tamanho para onde apontar). Se um dos dois não
+   tinha grade, o estoque e o histórico dele vão para o tamanho "sem tamanho".
+   Devolve null quando nenhum dos dois tem grade. Não altera nada: só planeja. */
 function planoGradeJuntar(fica,sai){
   if(!temGrade(fica)&&!temGrade(sai))return null;
   const norm=r=>String(r==null?'':r).trim().toLowerCase().replace(/\s+/g,' ');
-  const vars=(fica.variacoes||[]).map(v=>Object.assign({},v));
+  const vars=(fica.variacoes||[]).map(v=>Object.assign({},v,{estoque:+v.estoque||0,doFica:+v.estoque||0,doSai:0,nova:false}));
   const mapa={};
-  const somar=(rot,qtd)=>{
+  const achar=rot=>{
     let v=vars.find(x=>norm(x.rotulo)===norm(rot));
-    if(!v){v={id:novoId(),rotulo:String(rot==null?'':rot).trim(),estoque:0};vars.push(v);}
-    v.estoque=r2((+v.estoque||0)+(+qtd||0));
+    if(!v){v={id:novoId(),rotulo:String(rot==null?'':rot).trim(),estoque:0,doFica:0,doSai:0,nova:true};vars.push(v);}
     return v;
   };
   const simples=temGrade(fica)?sai:fica;
@@ -2842,9 +2849,14 @@ function planoGradeJuntar(fica,sai){
   if(!temGrade(simples)){
     const temHistorico=dados.vendas.some(v=>(v.itens||[]).some(i=>i.produtoId===simples.id))
       ||(dados.movEstoque||[]).some(m=>m.produtoId===simples.id);
-    if(+simples.estoque>0||temHistorico)semTamId=somar('sem tamanho',Math.max(0,+simples.estoque||0)).id;
+    const qtd=Math.max(0,+simples.estoque||0);
+    if(qtd>0||temHistorico){
+      const v=achar('sem tamanho');semTamId=v.id;
+      if(simples===fica){v.doFica=r2(v.doFica+qtd);v.estoque=v.doFica;}
+      else v.doSai=r2(v.doSai+qtd);
+    }
   }
-  if(temGrade(sai))sai.variacoes.forEach(sv=>{mapa[sv.id]=somar(sv.rotulo,sv.estoque).id;});
+  if(temGrade(sai))sai.variacoes.forEach(sv=>{const v=achar(sv.rotulo);v.doSai=r2(v.doSai+(+sv.estoque||0));mapa[sv.id]=v.id;});
   // tamanhos numéricos em ordem; "sem tamanho" sempre por último
   const semT=v=>norm(v.rotulo)==='sem tamanho'?1:0;
   const numero=v=>parseFloat(String(v.rotulo).trim().replace(',','.'));
@@ -2852,9 +2864,15 @@ function planoGradeJuntar(fica,sai){
   vars.sort((a,b)=>(semT(a)-semT(b))||(todosNumeros?numero(a)-numero(b):0));
   return {variacoes:vars,mapa,semTamId,
     simplesId:(temGrade(fica)&&temGrade(sai))?null:simples.id,
-    total:r2(vars.reduce((s,v)=>s+(+v.estoque||0),0))};
+    totalFica:r2(vars.reduce((s,v)=>s+v.doFica,0)),totalSoma:r2(vars.reduce((s,v)=>s+v.doFica+v.doSai,0))};
 }
-function juntarProdutos(idFica,idSai){
+/* opc (vem da janela de mesclar, que já é a confirmação):
+     semConfirmar — não pergunta de novo
+     estoque      — produto sem grade: quanto fica (null = sem controle)
+     plano/estoques — com grade: o plano mostrado e quanto fica em cada tamanho
+   Sem opc (Repetidos → "manter este"): pergunta e mantém o estoque do que fica. */
+function juntarProdutos(idFica,idSai,opc){
+  opc=opc||{};
   const fica=prodPorId(idFica),sai=prodPorId(idSai);
   if(!fica||!sai||fica===sai)return false;
   const nVendas=dados.vendas.reduce((n,v)=>n+v.itens.filter(i=>i.produtoId===idSai).length,0);
@@ -2867,18 +2885,21 @@ function juntarProdutos(idFica,idSai){
       +'Peça a quem é dono da loja para fazer isso — ou oculte o produto.');
     return false;
   }
-  // anel/aliança: tamanho soma com tamanho (ver planoGradeJuntar)
-  const grade=planoGradeJuntar(fica,sai);
-  const somaEst=grade?grade.total
-    :((fica.estoque==null&&sai.estoque==null)?null:r2((+fica.estoque||0)+(+sai.estoque||0)));
-  if(!confirm('Juntar "'+sai.nome+'" dentro de "'+fica.nome+'"?\n\n'
+  const grade=opc.plano||planoGradeJuntar(fica,sai);
+  if(grade)grade.variacoes.forEach(v=>{
+    const pedido=opc.estoques?opc.estoques[v.id]:undefined;
+    v.estoque=(pedido==null||pedido==='')?v.doFica:r2(Math.max(0,+pedido||0));
+  });
+  const estFinal=grade?r2(grade.variacoes.reduce((s,v)=>s+(+v.estoque||0),0))
+    :(('estoque' in opc)?opc.estoque:fica.estoque);
+  if(!opc.semConfirmar&&!confirm('Juntar "'+sai.nome+'" dentro de "'+fica.nome+'"?\n\n'
     +'• '+nVendas+' item(ns) de venda passam para "'+fica.nome+'"\n'
     +'• '+nMov+' movimentação(ões) de estoque também\n'
-    +(grade?'• Tamanhos depois de juntar: '+grade.variacoes.map(v=>v.rotulo+': '+fmtN(v.estoque)).join(' · ')+'\n'
-      +(grade.semTamId?'   (o que não tinha tamanho entrou em "sem tamanho" — dá pra redistribuir no ✎ editar)\n':''):'')
-    +'• Estoque final: '+(somaEst==null?'—':fmtN(somaEst))+'\n\n'
+    +'• O estoque de "'+fica.nome+'" continua '+(estFinal==null?'sem controle':fmtN(estFinal))
+    +' — o de "'+sai.nome+'" não é somado (para ajustar, use ⋮ → Mesclar)\n\n'
     +'"'+sai.nome+'" deixa de existir. Não dá pra desfazer.'))return false;
 
+  const obsMov='mesclagem com "'+sai.nome+'"';
   if(grade){
     /* vendas e movimentações passam a apontar para o tamanho equivalente do que
        fica — sem isso, excluir uma venda antiga não teria para onde devolver a peça */
@@ -2888,11 +2909,24 @@ function juntarProdutos(idFica,idSai){
     };
     dados.vendas.forEach(v=>(v.itens||[]).forEach(troca));
     (dados.movEstoque||[]).forEach(troca);
-    fica.variacoes=grade.variacoes;
+    // tamanho que só apareceu agora, ficou zerado e nenhuma venda usa: não precisa existir
+    const usados=new Set();
+    dados.vendas.forEach(v=>(v.itens||[]).forEach(i=>{if((i.produtoId===idSai||i.produtoId===idFica)&&i.variacaoId)usados.add(i.variacaoId);}));
+    (dados.movEstoque||[]).forEach(m=>{if((m.produtoId===idSai||m.produtoId===idFica)&&m.variacaoId)usados.add(m.variacaoId);});
+    const antes={};(fica.variacoes||[]).forEach(v=>{antes[v.id]=+v.estoque||0;});
+    fica.variacoes=grade.variacoes.filter(v=>!(v.nova&&!(+v.estoque>0)&&!usados.has(v.id)))
+      .map(v=>{const x=Object.assign({},v);delete x.doFica;delete x.doSai;delete x.nova;return x;});
+    // o que mudou de estoque fica no histórico, como um ajuste feito no ±
+    fica.variacoes.forEach(v=>{
+      if((antes[v.id]||0)!==(+v.estoque||0))dados.movEstoque.push({id:novoId(),data:hoje(),produtoId:idFica,
+        variacaoId:v.id,tamanho:v.rotulo,tipo:'ajuste',qtde:+v.estoque||0,obs:obsMov});
+    });
+  }else if(estFinal!==fica.estoque){
+    dados.movEstoque.push({id:novoId(),data:hoje(),produtoId:idFica,tipo:'ajuste',qtde:estFinal,obs:obsMov});
   }
   dados.vendas.forEach(v=>(v.itens||[]).forEach(i=>{if(i.produtoId===idSai)i.produtoId=idFica;}));
   (dados.movEstoque||[]).forEach(m=>{if(m.produtoId===idSai)m.produtoId=idFica;});
-  fica.estoque=somaEst;
+  fica.estoque=estFinal;
   // o que estiver em branco no sobrevivente é preenchido pelo que sai
   if(fica.custo==null&&sai.custo!=null)fica.custo=sai.custo;
   if(!(+fica.preco>0)&&+sai.preco>0)fica.preco=+sai.preco;
@@ -2918,7 +2952,7 @@ function painelDuplicados(){
   return `<div class="painel" style="border-color:var(--laranja)">
     <h3 style="margin-top:0">🔀 Produtos repetidos <span class="bd fiadoP">${gs.length} grupo(s)</span></h3>
     <p class="mut" style="font-size:.84rem;margin-bottom:.4rem">Estes cadastros têm nomes equivalentes. Compare os detalhes — o que está <b style="color:var(--laranja)">em laranja</b> é diferente entre eles.</p>
-    <p class="mut" style="font-size:.84rem;margin-bottom:.9rem">• É a <b>mesma peça</b>? Clique em <b>manter este</b> no cadastro certo: vendas, histórico e estoque dos outros passam para ele.<br>
+    <p class="mut" style="font-size:.84rem;margin-bottom:.9rem">• É a <b>mesma peça</b>? Clique em <b>manter este</b> no cadastro certo: vendas e histórico dos outros passam para ele, e o estoque dele é mantido (para somar ou ajustar, use ⋮ → Mesclar na lista).<br>
       • São <b>peças diferentes</b>? Clique em <b>✎ editar</b> e ajuste o nome (ex.: acrescente a cor ou o tamanho). Ao salvar, ela sai desta lista sozinha.</p>
     ${gs.map(grupoDuplicado).join('')}
     <div class="rodape"><button class="bt" onclick="ui.p.dups=false;renderProdutos()">Fechar</button></div></div>`;
@@ -3178,14 +3212,22 @@ function centralizarOffset(){
   enq.x=(LADO_FOTO-enq.img.width*e)/2;
   enq.y=(LADO_FOTO-enq.img.height*e)/2;
 }
-function fotoZoomMudou(){
-  const novo=(+$('fotoZoom').value||100)/100;
-  // mantém o centro no lugar ao aproximar, senão a imagem foge da mão
-  const meio=LADO_FOTO/2,ant=enq.base*enq.zoom,dep=enq.base*novo;
-  enq.x=meio-(meio-enq.x)*(dep/ant);
-  enq.y=meio-(meio-enq.y)*(dep/ant);
-  enq.zoom=novo;desenharEnquadrar();
+/* Aproxima ou afasta mantendo parado o ponto (cx,cy) do quadrado, senão a
+   imagem foge da mão: na barrinha é o centro; na rodinha do mouse, onde está
+   o ponteiro; com dois dedos, o meio entre eles. A barrinha acompanha sempre. */
+const ZOOM_FOTO_MIN=1,ZOOM_FOTO_MAX=3;
+function aplicarZoomEnquadrar(novo,cx,cy){
+  if(!enq.img)return;
+  novo=Math.min(ZOOM_FOTO_MAX,Math.max(ZOOM_FOTO_MIN,+novo||1));
+  if(cx==null){cx=LADO_FOTO/2;cy=LADO_FOTO/2;}
+  const ant=enq.base*enq.zoom,dep=enq.base*novo;
+  enq.x=cx-(cx-enq.x)*(dep/ant);
+  enq.y=cy-(cy-enq.y)*(dep/ant);
+  enq.zoom=novo;
+  $('fotoZoom').value=Math.round(novo*100);
+  desenharEnquadrar();
 }
+function fotoZoomMudou(){aplicarZoomEnquadrar((+$('fotoZoom').value||100)/100);}
 function desenharEnquadrar(){
   const cv=$('fotoCanvas');cv.width=LADO_FOTO;cv.height=LADO_FOTO;
   const c=cv.getContext('2d');
@@ -3193,22 +3235,45 @@ function desenharEnquadrar(){
   const e=enq.base*enq.zoom;
   c.drawImage(enq.img,enq.x,enq.y,enq.img.width*e,enq.img.height*e);
 }
-/* arrastar dentro do palco — funciona com mouse e com o dedo */
+/* mexer dentro do palco: arrastar com mouse ou um dedo, aproximar com dois
+   dedos (pinça) ou com a rodinha do mouse — a barrinha continua valendo */
 (function(){
   const palco=()=>$('fotoPalco');
-  function ponto(ev){
-    const r=palco().getBoundingClientRect();
-    const t=ev.touches&&ev.touches[0]?ev.touches[0]:ev;
-    // a tela mostra o palco menor que os 900px reais do canvas
-    const f=LADO_FOTO/r.width;
-    return {x:(t.clientX-r.left)*f,y:(t.clientY-r.top)*f};
+  const noPalco=e=>!!(e.target&&e.target.closest&&e.target.closest('#fotoPalco'));
+  // a tela mostra o palco menor que os 900px reais do canvas
+  function paraCanvas(clientX,clientY){
+    const r=palco().getBoundingClientRect(),f=LADO_FOTO/r.width;
+    return {x:(clientX-r.left)*f,y:(clientY-r.top)*f};
   }
+  function ponto(ev){
+    const t=ev.touches&&ev.touches[0]?ev.touches[0]:ev;
+    return paraCanvas(t.clientX,t.clientY);
+  }
+  // dois dedos: a distância entre eles decide o zoom; o meio, o ponto que fica parado
+  function medirPinca(ev){
+    const a=ev.touches[0],b=ev.touches[1];
+    return {d:Math.hypot(b.clientX-a.clientX,b.clientY-a.clientY)||1,
+      meio:paraCanvas((a.clientX+b.clientX)/2,(a.clientY+b.clientY)/2)};
+  }
+  let pinca=null;
   function inicio(ev){
     if(!enq.img||!dlgFoto.open)return;
+    if(ev.touches&&ev.touches.length>=2){
+      const m=medirPinca(ev);pinca={d:m.d,zoom:enq.zoom,meio:m.meio};enq.arrastando=false;
+      return;
+    }
     const p=ponto(ev);enq.arrastando=true;enq.px=p.x;enq.py=p.y;
     palco().classList.add('movendo');
   }
   function move(ev){
+    if(pinca&&ev.touches&&ev.touches.length>=2){
+      ev.preventDefault();
+      const m=medirPinca(ev);
+      // o meio entre os dedos também arrasta a foto, como nos apps de galeria
+      enq.x+=m.meio.x-pinca.meio.x;enq.y+=m.meio.y-pinca.meio.y;pinca.meio=m.meio;
+      aplicarZoomEnquadrar(pinca.zoom*m.d/pinca.d,m.meio.x,m.meio.y);
+      return;
+    }
     if(!enq.arrastando)return;
     ev.preventDefault();
     const p=ponto(ev);
@@ -3216,13 +3281,31 @@ function desenharEnquadrar(){
     enq.px=p.x;enq.py=p.y;
     desenharEnquadrar();
   }
-  function fim(){enq.arrastando=false;const el=palco();if(el)el.classList.remove('movendo');}
-  document.addEventListener('mousedown',e=>{if(e.target.closest&&e.target.closest('#fotoPalco'))inicio(e);});
+  function fim(ev){
+    // soltou um dos dois dedos: segue arrastando com o que ficou, sem a foto pular
+    if(pinca&&ev&&ev.touches&&ev.touches.length===1){
+      pinca=null;const p=ponto(ev);enq.arrastando=true;enq.px=p.x;enq.py=p.y;
+      return;
+    }
+    if(ev&&ev.touches&&ev.touches.length>=2)return;
+    pinca=null;enq.arrastando=false;
+    const el=palco();if(el)el.classList.remove('movendo');
+  }
+  document.addEventListener('mousedown',e=>{if(noPalco(e))inicio(e);});
   document.addEventListener('mousemove',move);
   document.addEventListener('mouseup',fim);
-  document.addEventListener('touchstart',e=>{if(e.target.closest&&e.target.closest('#fotoPalco'))inicio(e);},{passive:true});
+  document.addEventListener('touchstart',e=>{if(noPalco(e))inicio(e);},{passive:true});
   document.addEventListener('touchmove',move,{passive:false});
   document.addEventListener('touchend',fim);
+  document.addEventListener('touchcancel',fim);
+  // rodinha do mouse (a pinça do touchpad chega como rodinha com Ctrl)
+  document.addEventListener('wheel',e=>{
+    if(!enq.img||!dlgFoto.open||!noPalco(e))return;
+    e.preventDefault();
+    const dy=e.deltaMode===1?e.deltaY*33:e.deltaY;
+    const p=paraCanvas(e.clientX,e.clientY);
+    aplicarZoomEnquadrar(enq.zoom*Math.exp(-dy*(e.ctrlKey?0.01:0.0015)),p.x,p.y);
+  },{passive:false});
 })();
 function confirmarEnquadrar(){
   const d=$('fotoCanvas').toDataURL('image/jpeg',0.85);
@@ -3427,7 +3510,7 @@ function excluirProduto(id){
    É o mesmo juntarProdutos dos Repetidos, mas aqui a pessoa escolhe o destino:
    os nomes podem ser bem diferentes ("Brinco Gota Strass" e "Brinco Cristal
    Pendente") e a detecção automática de repetidos não pegaria. */
-const MESCLA={id:null,busca:'',escolher:false,origem:'excluir'};
+const MESCLA={id:null,busca:'',escolher:false,origem:'excluir',destino:null,plano:null};
 /* Mesclar mexe no estoque e, se o produto que some tem venda, nas vendas
    antigas — que só sobem para a nuvem para quem pode alterar Vendas. */
 function motivoSemMesclar(p){
@@ -3439,18 +3522,59 @@ function motivoSemMesclar(p){
 /* origem 'excluir': tentou excluir peça com venda — mostra as duas saídas.
    origem 'menu': escolheu "Mesclar" no ⋮ — vai direto para a escolha. */
 function abrirMesclar(id,origem){
-  MESCLA.id=id;MESCLA.busca='';
+  MESCLA.id=id;MESCLA.busca='';MESCLA.destino=null;MESCLA.plano=null;
   MESCLA.origem=origem==='menu'?'menu':'excluir';
   MESCLA.escolher=MESCLA.origem==='menu';
   renderMesclar();
   dlgMesclar.showModal();
 }
+/* Conferência antes de mesclar (V6). Somar sozinho estava errado: quase sempre
+   o cadastro repetido tem um estoque antigo, que já foi contado no certo. Então
+   vem preenchido com o estoque do produto certo, e somar ou mudar é escolha. */
+function passoEstoqueMesclaHTML(sai,fica){
+  const g=MESCLA.plano,nV=vendasDoProduto(sai.id);
+  const qtd=n=>n==null?'sem controle':fmtN(n);
+  let h=`<div class="mescla-destino"><span class="mut">Mesclar</span> <b>${esc(sai.nome)}</b> <span class="mut">em</span> <b>${esc(fica.nome)}</b></div>
+    <ul class="mescla-fatos">
+      ${nV?`<li>${fmtN(nV)} peça(s) vendida(s) passam para “${esc(fica.nome)}”</li>`:''}
+      <li>“${esc(sai.nome)}” deixa de existir — não dá pra desfazer</li>
+    </ul>
+    <h4 style="margin:.9rem 0 .2rem">Estoque de “${esc(fica.nome)}” depois de mesclar</h4>
+    <p class="mut" style="font-size:.8rem;margin:0 0 .5rem">Fica o estoque que ele já tem. O de “${esc(sai.nome)}” <b>não é somado</b> — mude o número se precisar.</p>`;
+  if(g){
+    h+=`<div class="rolagem"><table class="mescla-grade" id="mesclaGrade">
+      <thead><tr><th>Tamanho</th><th class="num">hoje</th><th class="num">no repetido</th><th class="num">vai ficar</th></tr></thead>
+      <tbody>${g.variacoes.map(v=>`<tr><td>${esc(v.rotulo)}</td><td class="num">${fmtN(v.doFica)}</td><td class="num">${fmtN(v.doSai)}</td>
+        <td class="num"><input type="number" min="0" step="1" inputmode="numeric" data-var="${v.id}" data-soma="${r2(v.doFica+v.doSai)}" value="${v.doFica}"></td></tr>`).join('')}</tbody>
+    </table></div>
+    <p class="mut" style="font-size:.76rem;margin:.3rem 0 0">Tamanho que ficar com 0 e não tiver venda não é criado.</p>`;
+  }else{
+    const soma=(fica.estoque==null&&sai.estoque==null)?'':r2((+fica.estoque||0)+(+sai.estoque||0));
+    h+=`<label class="campo">Estoque
+        <input type="number" id="mesclaEst" min="0" step="1" inputmode="numeric" data-soma="${soma}" value="${fica.estoque==null?'':fica.estoque}" placeholder="sem controle"></label>
+      <p class="mut" style="font-size:.78rem;margin:.3rem 0 0">Hoje: “${esc(fica.nome)}” ${qtd(fica.estoque)} · “${esc(sai.nome)}” ${qtd(sai.estoque)}</p>`;
+  }
+  h+=`<div class="barra" style="margin-top:.5rem"><button type="button" class="bt mini" onclick="mesclarSomarEstoque()">＋ somar os dois</button></div>
+    <div class="barra" style="margin-top:.9rem">
+      <button type="button" class="bt" onclick="mesclarVoltarLista()">← escolher outro</button>
+      <span class="esp"></span>
+      <button type="button" class="bt primario" onclick="mesclarConfirmar()">🔀 Mesclar</button>
+    </div>`;
+  return h;
+}
 function renderMesclar(){
   const p=prodPorId(MESCLA.id);if(!p){if(dlgMesclar.open)dlgMesclar.close();return;}
+  const destino=MESCLA.destino?prodPorId(MESCLA.destino):null;
+  if(destino){
+    $('mesclaTitulo').textContent='Mesclar produto';
+    $('mesclaCorpo').innerHTML=passoEstoqueMesclaHTML(p,destino);
+    return;
+  }
+  MESCLA.destino=null;MESCLA.plano=null;
   const nV=vendasDoProduto(p.id),motivo=motivoSemMesclar(p),peloMenu=MESCLA.origem==='menu';
   $('mesclaTitulo').textContent=peloMenu?'Mesclar produto':'Não dá para excluir este produto';
   let h=peloMenu
-    ?`<p style="margin:.1rem 0 .8rem;line-height:1.5">Use quando <b>${esc(p.nome)}</b> for a mesma peça de outro cadastro. ${nV?`As vendas (${fmtN(nV)} peça(s)), o estoque`:'O estoque'}${temGrade(p)?' de cada tamanho':''} e as fotos passam para o produto que você escolher, e este cadastro some.</p>`
+    ?`<p style="margin:.1rem 0 .8rem;line-height:1.5">Use quando <b>${esc(p.nome)}</b> for a mesma peça de outro cadastro. ${nV?`As vendas (${fmtN(nV)} peça(s)) e as fotos`:'As fotos'} passam para o produto que você escolher, e este cadastro some. Antes de confirmar, você confere o estoque.</p>`
     :`<p style="margin:.1rem 0 .8rem;line-height:1.5"><b>${esc(p.nome)}</b> tem <b>${fmtN(nV)} peça(s) vendida(s)</b> registradas, por isso não pode ser excluído — as vendas antigas apontam para ele.</p>`;
   if(peloMenu&&motivo){
     h+=`<p class="mut" style="font-size:.84rem">${motivo}</p>`;
@@ -3458,7 +3582,7 @@ function renderMesclar(){
     h+=`<div class="mescla-opcoes">
       <button type="button" class="mescla-op" onclick="mesclarEscolher()"${motivo?' disabled':''}>
         <b>🔀 Mesclar com outro produto</b>
-        <span>É a mesma peça cadastrada com outro nome. As vendas, o estoque e as fotos passam para o produto certo e este cadastro some.</span></button>
+        <span>É a mesma peça cadastrada com outro nome. As vendas e as fotos passam para o produto certo, você confere o estoque, e este cadastro some.</span></button>
       <button type="button" class="mescla-op" onclick="ocultarPeloMesclar()">
         <b>🙈 Ocultar</b>
         <span>Sai da loja e fica fora do caminho, mas continua no histórico. Dá para voltar a mostrar depois.</span></button>
@@ -3502,8 +3626,28 @@ function listaMesclarHTML(){
 }
 function renderListaMesclar(){const l=$('mesclaLista');if(l)l.innerHTML=listaMesclarHTML();}
 function mesclarEscolher(){MESCLA.escolher=true;renderMesclar();}
+/* escolheu o produto certo: ainda não mescla — abre a conferência do estoque */
 function mesclarCom(idFica){
-  if(juntarProdutos(idFica,MESCLA.id))dlgMesclar.close();
+  const sai=prodPorId(MESCLA.id),fica=prodPorId(idFica);if(!sai||!fica)return;
+  MESCLA.destino=idFica;
+  MESCLA.plano=planoGradeJuntar(fica,sai);
+  renderMesclar();
+}
+function mesclarVoltarLista(){MESCLA.destino=null;MESCLA.plano=null;renderMesclar();}
+function mesclarSomarEstoque(){
+  $('mesclaCorpo').querySelectorAll('input[data-soma]').forEach(i=>{i.value=i.dataset.soma;});
+}
+function mesclarConfirmar(){
+  if(!MESCLA.destino)return;
+  const opc={semConfirmar:true,plano:MESCLA.plano};
+  if(MESCLA.plano){
+    opc.estoques={};
+    $('mesclaCorpo').querySelectorAll('input[data-var]').forEach(i=>{opc.estoques[i.dataset.var]=i.value.trim()===''?0:+i.value;});
+  }else{
+    const v=($('mesclaEst')||{value:''}).value.trim();
+    opc.estoque=v===''?null:r2(Math.max(0,+v||0));
+  }
+  if(juntarProdutos(MESCLA.destino,MESCLA.id,opc)){MESCLA.destino=null;MESCLA.plano=null;dlgMesclar.close();}
 }
 function ocultarPeloMesclar(){
   const p=prodPorId(MESCLA.id);if(!p)return;
@@ -6749,6 +6893,13 @@ a{color:inherit}
 .carr-item .rm{background:none;border:none;color:var(--vermelho);font-size:1.2rem;cursor:pointer;padding:.2rem .4rem}
 .carr-total{display:flex;justify-content:space-between;font-size:1rem;font-weight:700;padding:.8rem 0;border-top:1px solid var(--borda);margin-top:.4rem}
 footer{text-align:center;padding:1.5rem 1rem 5rem;font-size:.75rem;color:var(--texto3)}
+/* primeira visita neste aparelho: enquanto a vitrine atual não chega do banco,
+   a página espera com um sinal de carregando (no máximo 2,5 s) em vez de
+   mostrar o retrato antigo embutido nela e trocar tudo na cara do cliente */
+html.lg-esperando body>*{visibility:hidden}
+html.lg-esperando body::after{content:"";position:fixed;top:50%;left:50%;width:34px;height:34px;margin:-17px 0 0 -17px;
+  border:3px solid var(--borda);border-top-color:var(--acento);border-radius:50%;animation:lgGira .8s linear infinite}
+@keyframes lgGira{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -6840,6 +6991,22 @@ var CATALOGO = __CATALOGO_JSON__;
     tipos=CATALOGO.tipos||[];
     colecoes=CATALOGO.colecoes||[];
   }
+  /* ---- a última vitrine fica guardada no aparelho ----
+     O catálogo embutido nesta página é um retrato do dia em que o site foi
+     publicado; a vitrine de verdade chega do banco um instante depois. Sem
+     isto, quem recarregava via por 2 segundos a loja antiga (outro topo, sem
+     banners) antes da atual. Agora a última vitrine baixada aparece de cara e
+     o banco só confirma ou atualiza. Vale sempre a mais nova das duas. */
+  var CHAVE_VITRINE="loja_vitrine_v1",vitrineGuardada="";
+  function dataVitrine(c){return String((c&&(c.publicadoEm||c.geradoEm))||"");}
+  try{
+    var guardada=JSON.parse(localStorage.getItem(CHAVE_VITRINE)||"null");
+    if(guardada&&guardada.produtos&&dataVitrine(guardada)>dataVitrine(CATALOGO)){
+      guardada.nuvem=CATALOGO.nuvem;
+      CATALOGO=guardada;
+      vitrineGuardada=JSON.stringify(guardada);
+    }
+  }catch(e){}
   absorverCatalogo();
 
   var estado={busca:"",cat:"",tipo:"",col:""};
@@ -7324,14 +7491,28 @@ var CATALOGO = __CATALOGO_JSON__;
   (function(){
     var N=CATALOGO.nuvem;
     if(!N||!N.url||!N.chave)return;
+    /* primeira visita (nada guardado neste aparelho): segura a página até a
+       vitrine chegar, no máximo 2,5 s — um instante de "carregando" é melhor
+       que mostrar a loja antiga e trocar tudo na frente do cliente */
+    var esperando=!vitrineGuardada;
+    function liberar(){
+      if(!esperando)return;
+      esperando=false;
+      document.documentElement.classList.remove("lg-esperando");
+    }
+    if(esperando){document.documentElement.classList.add("lg-esperando");setTimeout(liberar,2500);}
     fetch(N.url+"/rest/v1/catalogo?id=eq.unico&select=dados",{headers:{apikey:N.chave}})
       .then(function(r){return r.ok?r.json():null;})
       .then(function(linhas){
-        if(!linhas||!linhas.length||!linhas[0].dados)return;
+        if(!linhas||!linhas.length||!linhas[0].dados){liberar();return;}
         var novo=linhas[0].dados;
-        if(!novo.produtos)return;
+        if(!novo.produtos){liberar();return;}
         // guarda a nuvem: o registro salvo no banco não carrega essas chaves
         novo.nuvem=N;
+        var texto=JSON.stringify(novo);
+        try{localStorage.setItem(CHAVE_VITRINE,texto);}catch(e){}
+        // igual ao que já está na tela: não redesenha (o banner não volta ao começo)
+        if(texto===vitrineGuardada){liberar();return;}
         CATALOGO=novo;
         absorverCatalogo();   // sem isto, a tela continua com a lista antiga
         aplicarMarca();       // logo, nome e cores também podem ter mudado no painel
@@ -7340,8 +7521,9 @@ var CATALOGO = __CATALOGO_JSON__;
         if(estado.tipo&&tipos.indexOf(estado.tipo)<0)estado.tipo="";
         if(estado.col&&!colecoes.some(function(c){return c.nome===estado.col;}))estado.col="";
         render();
+        liberar();
       })
-      .catch(function(){/* sem internet: fica o que já está na tela */});
+      .catch(function(){liberar();/* sem internet: fica o que já está na tela */});
   })();
 })();
 <\/script>
@@ -7754,7 +7936,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-09-13 15:21';
+const VERSAO_APP='2026-09-14 20:52';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
