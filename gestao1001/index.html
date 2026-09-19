@@ -473,6 +473,42 @@ tr.zerado:hover td{opacity:1}
 .linknovo{color:var(--laranja);font-size:.72rem}
 .sel-add{display:flex;gap:.3rem;align-items:stretch}
 .sel-add select{flex:1;min-width:0}
+/* campo de escolha com busca: lista comprida vira botão + lista filtrável
+   (o select original segue ali, escondido, guardando o valor) */
+.combo{display:flex;flex:1;min-width:0}
+.combo>select{display:none}
+.combo-bt{flex:1;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:.4rem;
+  background:var(--painel2);border:1px solid var(--borda);color:var(--texto);border-radius:9px;
+  padding:.5rem .65rem;font-family:inherit;font-size:.9rem;text-align:left;cursor:pointer;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.combo-bt::after{content:"▾";color:var(--texto2);font-size:.8rem;flex:none}
+.combo-bt:hover{border-color:var(--acento)}
+.combo-bt:focus-visible{outline:none;border-color:var(--acento);box-shadow:0 0 0 1px var(--acento)}
+.combo-pop{padding:.35rem}
+.combo-busca{width:100%;margin-bottom:.35rem}
+.combo-itens{max-height:210px;overflow-y:auto}
+@media(max-width:700px){.combo-bt{font-size:16px;padding:.55rem .6rem}}
+/* alterar vários produtos de uma vez: opções em lista clicável */
+#dlgLote{max-width:520px}
+.lote-lista{display:grid;gap:.4rem;max-height:46vh;overflow-y:auto;margin-top:.2rem}
+.lote-lista button{display:flex;align-items:center;gap:.6rem;width:100%;text-align:left;background:var(--painel2);
+  border:1px solid var(--borda);border-radius:10px;padding:.6rem .7rem;color:var(--texto);font:inherit;font-size:.9rem;cursor:pointer}
+.lote-lista button:hover{border-color:var(--acento)}
+.lote-lista .lote-desc{font-size:.76rem;color:var(--texto2);font-weight:400;margin-top:.1rem}
+.lote-lista .bt.mini{flex:none}
+.lote-busca{width:100%;margin-bottom:.4rem}
+/* cor da peça: paleta das cores mais usadas + uma personalizada (nome + tom) */
+.paleta-cores{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.3rem}
+.cor-op{display:flex;align-items:center;gap:.35rem;background:var(--painel2);border:1px solid var(--borda);
+  border-radius:20px;padding:.25rem .65rem .25rem .3rem;font:inherit;font-size:.78rem;color:var(--texto);cursor:pointer}
+.cor-op:hover{border-color:var(--acento)}
+.cor-op.on{border-color:var(--acento);box-shadow:0 0 0 1px var(--acento) inset;font-weight:600}
+.cor-bolha{width:16px;height:16px;border-radius:50%;border:1px solid var(--borda);display:inline-block;flex:none}
+.cor-bolha.sem{background:repeating-linear-gradient(45deg,var(--painel3),var(--painel3) 3px,var(--painel) 3px,var(--painel) 6px)}
+.cor-bolha.mini{width:11px;height:11px;vertical-align:middle;margin-right:.25rem}
+.cor-outra{display:flex;gap:.4rem;margin-top:.45rem;align-items:center}
+.cor-outra input[type=color]{width:44px;height:34px;padding:.1rem;flex:none}
+.cor-outra input:not([type=color]){flex:1;min-width:0}
 .sel-add button{padding:.2rem .5rem;font-weight:700}
 .mini-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.6rem;margin-bottom:.8rem}
 .filtro-chips{display:flex;gap:.3rem;flex-wrap:wrap}
@@ -746,6 +782,8 @@ try{
     <button data-tab="clientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0M16 5a3 3 0 0 1 0 6M18 20a5 5 0 0 0-3-4.6"/></svg><span>Clientes</span></button>
     <div class="nav-grupo">Ajustes</div>
     <button data-tab="config"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg><span>Configurações</span></button>
+    <!-- atalho direto para a vitrine: é onde se mexe no dia a dia (banners, capa, cores) -->
+    <button data-tab="config" data-cfg="lojaSite"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h16l-1.2-4.2A1 1 0 0 0 17.8 4H6.2a1 1 0 0 0-1 .8zM5 9v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9M10 20v-6h4v6"/></svg><span>Site da loja</span></button>
   </nav>
   <div class="lateral-rodape">
     <div class="nuvem-chip" id="nuvemChip"></div>
@@ -820,7 +858,7 @@ try{
     <label class="campo" id="vBandeiraBox" hidden>Bandeira <select id="vBandeira" onchange="recalcVenda()"></select></label>
     <label class="campo" id="vParcCartaoBox" hidden>Parcelado no cartão em <select id="vParcCartao" onchange="vTaxaPadraoMudou()"></select></label>
     <label class="campo" id="vTaxaBox" hidden>Taxa desta venda (%) <input type="number" id="vTaxaManual" min="0" max="100" step="0.01" oninput="recalcVenda()"><small class="mut" id="vTaxaDica" style="font-size:.7rem"></small></label>
-    <label class="campo">Cliente <input id="vCliente" list="dlClientes" placeholder="digite pra buscar ou criar" autocomplete="off" oninput="vClienteMudou()"><small id="vClienteHint" style="font-size:.72rem;min-height:.9rem;display:block"></small></label>
+    <label class="campo">Cliente <input id="vCliente" placeholder="digite pra buscar ou criar" autocomplete="off" oninput="vClienteMudou();acClientes(this,vClienteMudou)" onfocus="acClientes(this,vClienteMudou)" onkeydown="acTeclas(event,()=>acClientes(this,vClienteMudou))" onblur="acBlur()"><small id="vClienteHint" style="font-size:.72rem;min-height:.9rem;display:block"></small></label>
     <label class="campo">Local <span class="sel-add"><select id="vLocal"></select><button type="button" class="bt mini" title="novo local" onclick="novoCadInline('locais','vLocal')">+</button></span></label>
     <label class="campo span2" id="vTelBox" hidden>Telefone do novo cliente (opcional, ajuda na cobrança) <input id="vTelNovo" placeholder="(11) 9...."></label>
   </div>
@@ -888,6 +926,10 @@ try{
     <label class="campo">Tipo <span class="sel-add"><select id="pTipo"></select><button type="button" class="bt mini" title="novo tipo" onclick="novoCadInline('tipos','pTipo')">+</button></span></label>
     <label class="campo">Fornecedor <span class="sel-add"><select id="pForn"></select><button type="button" class="bt mini" title="novo fornecedor" onclick="novoCadInline('fornecedores','pForn')">+</button></span></label>
     <label class="campo">Status <select id="pStatus"><option value="ativo">À venda</option><option value="esgotado">Esgotado</option><option value="oculto">Oculto na loja</option></select></label>
+    <div class="campo span2">
+      <span>Cor <span class="mut" style="font-size:.76rem">— escolha na paleta ou crie a sua</span></span>
+      <div id="pCor"></div>
+    </div>
     <label class="campo">Preço de venda (R$) <input type="number" id="pPreco" min="0" step="0.01"></label>
     <label class="campo">Custo unitário (R$) <input type="number" id="pCusto" min="0" step="0.01" placeholder="quanto você pagou" oninput="renderInsumosProduto()"></label>
     <!-- Embalagem/insumo POR PEÇA fica escondido: confundia quem estava só
@@ -1059,6 +1101,11 @@ try{
     <label class="linha span2"><input type="checkbox" id="qpTemGrade" onchange="qpGradeMudou()"> Controlar estoque por tamanho (grade) — ideal p/ anel e aliança</label>
     <label class="campo" id="qpEstoqueBox">Estoque atual <input type="number" id="qpEstoque" step="any" placeholder="opcional"></label>
     <label class="campo">Fornecedor <span class="sel-add"><select id="qpForn"></select><button type="button" class="bt mini" title="novo fornecedor" onclick="novoCadInline('fornecedores','qpForn')">+</button></span></label>
+    <label class="campo">Status <select id="qpStatus"><option value="ativo">À venda</option><option value="esgotado">Esgotado</option><option value="oculto">Oculto na loja</option></select></label>
+    <div class="campo span2">
+      <span>Cor <span class="mut" style="font-size:.76rem">— escolha na paleta ou crie a sua</span></span>
+      <div id="qpCor"></div>
+    </div>
     <div class="campo span2" id="qpGradeBox" hidden>
       <span>Grade de tamanhos (informe quantas peças de cada tamanho)</span>
       <div id="qpGradeRows" style="margin-top:.3rem"></div>
@@ -1170,6 +1217,14 @@ try{
     <button type="submit" class="bt primario" id="mbSalvar">Salvar acesso</button>
   </div>
 </form>
+</dialog>
+<!-- alterar vários produtos de uma vez: lista clicável no lugar das caixinhas
+     numeradas do navegador -->
+<dialog id="dlgLote">
+  <h3 style="margin-top:0" id="loteTitulo">Alterar selecionados</h3>
+  <p class="mut" id="loteSub" style="margin:.1rem 0 .7rem;font-size:.84rem"></p>
+  <div id="loteCorpo"></div>
+  <div class="rodape"><button type="button" class="bt" onclick="dlgLote.close()">Cancelar</button></div>
 </dialog>
 <!-- menu de ações da lista de produtos (⋮): um só, posicionado junto do botão tocado -->
 <div id="menuProdutoFundo" class="menu-fundo" hidden onclick="fecharMenuProduto()"></div>
@@ -1803,7 +1858,7 @@ const ui={tab:'resumo',
   r:{desloca:0,ini:null,fim:null},
   v:{per:'fiscal',ini:'',fim:'',busca:'',lim:200,dia:'',semOff:0,forn:'',tipo:'',cat:'',col:''},
   f:{busca:'',mostrarPagos:false,abertos:{},filtro:'todos',local:''},
-  p:{busca:'',cat:'',tipo:'',forn:'',col:'',status:'',estoque:'',ini:'',fim:'',ord:'nome',lim:300,sel:{},dups:false,verZerados:false},
+  p:{busca:'',cat:'',tipo:'',forn:'',col:'',cor:'',status:'',estoque:'',ini:'',fim:'',ord:'nome',lim:300,sel:{},dups:false,verZerados:false},
   l:{per:'fiscal',ini:'',fim:'',tipo:'',busca:'',lim:200},
   c:{busca:'',lim:300},
   cfgTab:'geral'
@@ -1813,24 +1868,31 @@ const ui={tab:'resumo',
 function trocarTab(t){ui.tab=t;renderTudo();window.scrollTo(0,0);}
 function renderNav(){
   // o menu lateral (computador) e a barra de baixo (celular) mostram a mesma seção ativa
-  document.querySelectorAll('#nav button, #navCel button[data-tab]').forEach(b=>b.classList.toggle('ativo',b.dataset.tab===ui.tab));
+  /* atalhos que abrem direto uma aba de Configurações (ex.: Site da loja) só
+     ficam marcados quando é aquela aba que está aberta */
+  const cfgAtual=ui.tab==='config'?(ui.cfgTab==='lojaSite'?'lojaSite':''):'';
+  document.querySelectorAll('#nav button, #navCel button[data-tab]').forEach(b=>
+    b.classList.toggle('ativo',b.dataset.tab===ui.tab&&(b.dataset.cfg||'')===(b.dataset.tab==='config'?cfgAtual:'')));
   document.querySelectorAll('.tab').forEach(s=>s.classList.toggle('ativo',s.id==='tab-'+ui.tab));
   const n=fiadosPendentes().length;
-  $('navFiado').textContent=n||'';$('navFiado').style.display=n?'':'none';
-  const nc=$('navFiadoCel');if(nc){nc.textContent=n||'';nc.style.display=n?'':'none';}
+  // o número ao lado de "Fiado" são as vendas fiado ainda não quitadas
+  const rotFiado=n?n+' venda(s) no fiado ainda em aberto':'';
+  $('navFiado').textContent=n||'';$('navFiado').title=rotFiado;$('navFiado').style.display=n?'':'none';
+  const nc=$('navFiadoCel');if(nc){nc.textContent=n||'';nc.title=rotFiado;nc.style.display=n?'':'none';}
 }
 /* menu "Mais" do celular: o que não coube na barra de baixo, a aparência e a
    conta. Monta na hora de abrir, porque depende da permissão de quem está usando. */
 function preencherMais(){
   const abas=[['resumo','Resumo'],['vendas','Vendas'],['fiado','Fiado'],['produtos','Produtos'],
-    ['fin','Financeiro'],['clientes','Clientes'],['config','Configurações']];
+    ['fin','Financeiro'],['clientes','Clientes'],['config','Configurações'],['config','Site da loja','lojaSite']];
   const pode=t=>typeof abaPermitida==='function'?abaPermitida(t):true;
   // o ícone vem do próprio menu lateral: um desenho só, nos dois lugares
-  const icone=t=>{const s=document.querySelector('#nav button[data-tab="'+t+'"] svg');return s?s.outerHTML:'';};
+  const icone=(t,cfg)=>{const s=document.querySelector('#nav button[data-tab="'+t+'"]'+(cfg?'[data-cfg="'+cfg+'"]':':not([data-cfg])')+' svg');return s?s.outerHTML:'';};
   const nuvem=$('nuvemChip'),logado=typeof nuvemLigada==='function'&&nuvemLigada();
+  const cfgAtual=ui.tab==='config'?(ui.cfgTab==='lojaSite'?'lojaSite':''):'';
   $('maisCorpo').innerHTML=
     `<div class="mais-abas">${abas.filter(a=>pode(a[0])).map(a=>
-      `<button type="button" class="${ui.tab===a[0]?'ativo':''}" onclick="dlgMais.close();trocarTab('${a[0]}')">${icone(a[0])}<span>${a[1]}</span></button>`).join('')}</div>
+      `<button type="button" class="${ui.tab===a[0]&&(a[2]||'')===(a[0]==='config'?cfgAtual:'')?'ativo':''}" onclick="dlgMais.close();${a[2]?`ui.cfgTab='${a[2]}';`:''}trocarTab('${a[0]}')">${icone(a[0],a[2])}<span>${a[1]}</span></button>`).join('')}</div>
     <h4 class="mt">Aparência</h4>
     <div class="mb-seg">${APARENCIAS.map(([id,rot])=>
       `<button type="button" class="${aparenciaEscolhida()===id?'on':''}" onclick="trocarAparencia('${id}')">${rot}</button>`).join('')}</div>
@@ -1896,11 +1958,122 @@ function renderTudo(){
     fin:renderFin,clientes:renderClientes,config:renderConfig})[ui.tab]();
   // quem só pode consultar esta tela precisa saber disso ANTES de tentar mexer
   if(typeof avisoSomenteLeitura==='function')avisoSomenteLeitura();
+  ativarBuscaSelects(document);
 }
 function renderDatalists(){
   $('dlClientes').innerHTML=dados.clientes.map(c=>`<option value="${esc(c.nome)}">`).join('');
   $('dlProdutos').innerHTML=dados.produtos.filter(p=>p.status!=='oculto').map(p=>`<option value="${esc(p.nome)}">`).join('');
 }
+
+/* ============================================================
+   CAMPOS DE ESCOLHA COM BUSCA
+   Lista comprida (categoria, fornecedor, cliente, conta...) obrigava a rolar
+   procurando. Agora o campo vira um botão que abre a mesma lista com uma
+   caixa de busca em cima. O <select> continua existindo, escondido: todo o
+   resto do sistema continua lendo e escrevendo o .value dele como sempre.
+   Lista curta continua como select comum — trocar ali só atrapalharia.
+   ============================================================ */
+const MIN_OPCOES_BUSCA=8;
+let comboAberto=null;
+function fecharCombo(){
+  const p=$('comboPop');if(p)p.remove();
+  comboAberto=null;
+}
+function rotuloDoSelect(sel){
+  const o=sel.options[sel.selectedIndex];
+  return (o?o.textContent:'').trim();
+}
+function atualizarBotaoCombo(sel){
+  if(!sel||!sel.parentNode)return;
+  const bt=sel.parentNode.querySelector('.combo-bt');
+  if(bt)bt.firstChild.textContent=rotuloDoSelect(sel)||'escolher…';
+}
+function ativarBuscaSelects(raiz){
+  (raiz||document).querySelectorAll('select').forEach(sel=>{
+    if(sel.dataset.combo){atualizarBotaoCombo(sel);return;}
+    if(sel.multiple||sel.classList.contains('grade-sel'))return;
+    if(sel.options.length<MIN_OPCOES_BUSCA&&sel.dataset.busca!=='1')return;
+    sel.dataset.combo='1';
+    const caixa=document.createElement('span');caixa.className='combo';
+    sel.parentNode.insertBefore(caixa,sel);
+    caixa.appendChild(sel);
+    const bt=document.createElement('button');
+    bt.type='button';bt.className='combo-bt';
+    bt.appendChild(document.createTextNode(''));
+    bt.onclick=()=>abrirCombo(sel,bt);
+    caixa.appendChild(bt);
+    // lista refeita por outro trecho do sistema (ex.: mudou a forma de pagamento):
+    // o botão tem que mostrar a opção certa sem ninguém precisar avisar
+    try{new MutationObserver(()=>atualizarBotaoCombo(sel)).observe(sel,{childList:true,subtree:true});}catch(e){}
+    atualizarBotaoCombo(sel);
+  });
+}
+function abrirCombo(sel,bt){
+  const jaAberto=comboAberto===sel;
+  fecharCombo();
+  if(jaAberto)return;
+  comboAberto=sel;
+  const pop=document.createElement('div');
+  pop.id='comboPop';pop.className='ac-pop combo-pop';
+  pop.innerHTML='<input class="combo-busca" placeholder="🔎 digite para achar" autocomplete="off"><div class="combo-itens"></div>';
+  (bt.closest('dialog')||document.body).appendChild(pop);
+  const r=bt.getBoundingClientRect(),larg=Math.max(230,r.width);
+  pop.style.left=Math.max(4,Math.min(r.left,window.innerWidth-larg-8))+'px';
+  pop.style.minWidth=larg+'px';
+  // abre para cima quando não cabe embaixo (campo no fim de uma janela comprida)
+  pop.style.top=(r.bottom+2+250>window.innerHeight&&r.top>260?Math.max(4,r.top-252):r.bottom+2)+'px';
+  const campo=pop.querySelector('.combo-busca'),lista=pop.querySelector('.combo-itens');
+  let mostrando=[],marcado=0;
+  function desenhar(){
+    const q=campo.value.trim().toLowerCase();
+    mostrando=Array.prototype.filter.call(sel.options,o=>!q||o.textContent.toLowerCase().indexOf(q)>=0);
+    marcado=Math.max(0,mostrando.findIndex(o=>o.value===sel.value));
+    lista.innerHTML=mostrando.length
+      ? mostrando.map((o,k)=>`<div class="ac-item${k===marcado?' hl':''}" data-k="${k}">
+          <span class="ac-nome">${esc(o.textContent)}</span>${o.value===sel.value?'<span class="ac-cat">em uso</span>':''}</div>`).join('')
+      : '<div class="ac-item"><span class="ac-nome mut">Nada com esse nome.</span></div>';
+  }
+  function escolher(k){
+    const o=mostrando[k];if(!o)return;
+    sel.value=o.value;
+    atualizarBotaoCombo(sel);
+    fecharCombo();
+    sel.dispatchEvent(new Event('change',{bubbles:true}));
+    bt.focus();
+  }
+  lista.onmousedown=e=>{
+    const it=e.target.closest('.ac-item');
+    if(it&&it.dataset.k!=null){e.preventDefault();escolher(+it.dataset.k);}
+  };
+  campo.oninput=desenhar;
+  campo.onkeydown=e=>{
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+      e.preventDefault();
+      const n=mostrando.length;if(!n)return;
+      marcado=(marcado+(e.key==='ArrowDown'?1:-1)+n)%n;
+      Array.prototype.forEach.call(lista.children,(c,k)=>c.classList.toggle('hl',k===marcado));
+      const at=lista.children[marcado];if(at&&at.scrollIntoView)at.scrollIntoView({block:'nearest'});
+    }else if(e.key==='Enter'){e.preventDefault();escolher(marcado);}
+    else if(e.key==='Escape'){e.stopPropagation();fecharCombo();bt.focus();}
+  };
+  campo.onblur=()=>setTimeout(()=>{if(comboAberto===sel)fecharCombo();},180);
+  desenhar();
+  campo.focus();
+}
+/* toda janela que abre passa pelos campos de escolha; rolar ou mudar o tamanho
+   da tela fecha a lista, que fica presa numa posição */
+(function(){
+  if(!window.HTMLDialogElement)return;
+  const abrirModal=HTMLDialogElement.prototype.showModal;
+  HTMLDialogElement.prototype.showModal=function(){
+    abrirModal.call(this);
+    try{ativarBuscaSelects(this);}catch(e){}
+  };
+})();
+window.addEventListener('resize',fecharCombo);
+window.addEventListener('scroll',e=>{
+  if(comboAberto&&!(e.target&&e.target.closest&&e.target.closest('#comboPop')))fecharCombo();
+},true);
 function opcoes(lista,sel,rotulo){
   return lista.map(x=>`<option value="${x.id}"${x.id===sel?' selected':''}>${esc(rotulo?rotulo(x):x.nome)}</option>`).join('');
 }
@@ -2406,21 +2579,54 @@ function aplicarEmMassa(fn,rotulo){
   salvar();renderProdutos();
   toast(n+' produto(s) '+rotulo);
 }
+/* ---- alterar vários de uma vez ----
+   Antes cada escolha era uma caixinha do navegador com opções numeradas
+   ("0) Categoria, 1) Tipo…"): rápido de programar, confuso de usar e fora do
+   visual do painel. Agora é uma janela com lista clicável e busca. */
+const ROT_STATUS_PROD={ativo:'À venda',esgotado:'Esgotado',oculto:'Oculto'};
+const LOTE={acoes:[],busca:'',itens:null};
+function abrirLote(titulo,sub,corpo){
+  $('loteTitulo').textContent=titulo;
+  $('loteSub').textContent=sub||'';
+  $('loteCorpo').innerHTML=corpo;
+  if(!dlgLote.open)dlgLote.showModal();
+}
+/* itens = [{rot, desc, dir, fn, botao:{rot,fn}}] */
+function loteLista(itens){
+  LOTE.acoes=[];
+  const reg=fn=>{LOTE.acoes.push(fn);return LOTE.acoes.length-1;};
+  if(!itens.length)return '<p class="mut" style="font-size:.85rem;padding:.5rem 0">Nada com esse nome.</p>';
+  return `<div class="lote-lista">${itens.map(x=>{
+    const k=reg(x.fn),k2=x.botao?reg(x.botao.fn):-1;
+    return `<button type="button" onclick="LOTE.acoes[${k}]()">
+      <span style="flex:1;min-width:0"><b>${esc(x.rot)}</b>${x.desc?`<div class="lote-desc">${esc(x.desc)}</div>`:''}</span>
+      ${x.dir?`<span class="mut" style="font-size:.78rem">${esc(x.dir)}</span>`:''}
+      ${x.botao?`<span class="bt mini" role="button" tabindex="0" onclick="event.stopPropagation();LOTE.acoes[${k2}]()">${esc(x.botao.rot)}</span>`:''}
+    </button>`;}).join('')}</div>`;
+}
+/* a busca redesenha só a lista: recriar o campo inteiro tiraria o cursor dele */
+function loteBuscaHTML(ph){
+  return `<input class="lote-busca" id="loteBusca" placeholder="${ph}" autocomplete="off"
+    value="${esc(LOTE.busca||'')}" oninput="LOTE.busca=this.value;loteRedesenhar()">`;
+}
+function loteRedesenhar(){const c=$('loteItens');if(c&&LOTE.itens)c.innerHTML=loteLista(LOTE.itens());}
 function massaEstoque(){
-  const ps=produtosSel();
-  const v=prompt('Novo estoque para os '+ps.length+' produtos selecionados:\n\n'
-    +'Digite um número (0 tira da loja).\n'
-    +'Deixe em branco e confirme para voltar a "—" (não controlo esta peça).','0');
-  if(v===null)return;
-  const vazio=v.trim()==='';
-  const q=vazio?null:(+v.replace(',','.')||0);
-  const comGrade=ps.filter(temGrade).length;
-  if(comGrade&&!confirm(comGrade+' produto(s) usam grade de tamanhos e serão pulados —\n'
-    +'o estoque deles vem da soma dos tamanhos. Continuar com os demais?'))return;
-  aplicarEmMassa(p=>{
-    if(temGrade(p))return false;
-    p.estoque=q;return true;
-  },vazio?'voltaram para "—"':'ficaram com estoque '+fmtN(q));
+  const ps=produtosSel(),comGrade=ps.filter(temGrade).length;
+  LOTE.itens=null;
+  abrirLote('Definir estoque de '+ps.length+' produto(s)','',
+    `<label class="campo">Novo estoque para todos
+      <input type="number" id="loteEstoque" min="0" step="any" value="0" inputmode="numeric"></label>
+    <p class="mut" style="font-size:.8rem;margin:.45rem 0">Estoque 0 tira as peças da loja.${comGrade?` <b>${comGrade}</b> com grade de tamanhos ficam de fora — o estoque deles é a soma dos tamanhos.`:''}</p>
+    ${loteLista([
+      {rot:'Aplicar este estoque',desc:'todos os selecionados ficam com o número acima',fn:()=>aplicarEstoqueLote(false)},
+      {rot:'Voltar para "—" (não controlo esta peça)',desc:'peça sem contagem: continua aparecendo na loja',fn:()=>aplicarEstoqueLote(true)}
+    ])}`);
+}
+function aplicarEstoqueLote(semControle){
+  const v=semControle?null:(r2($('loteEstoque').value)||0);
+  dlgLote.close();
+  aplicarEmMassa(p=>{if(temGrade(p))return false;p.estoque=v;return true;},
+    semControle?'voltaram para "—"':'ficaram com estoque '+fmtN(v));
 }
 function massaAviso(ligar){
   aplicarEmMassa(p=>{p.avisarEstoque=!!ligar;return true;},
@@ -2437,20 +2643,40 @@ function massaZerarSemControle(){
   toast(ps.length+' produto(s) zerados e fora da loja ✓');
 }
 function massaStatus(){
-  const op=prompt('Novo status para os selecionados:\n\n0) À venda\n1) Esgotado\n2) Oculto (não aparece na loja)','0');
-  if(op===null)return;
-  const st=({'0':'ativo','1':'esgotado','2':'oculto'})[op.trim()];
-  if(!st){toast('Opção inválida.');return;}
-  aplicarEmMassa(p=>{p.status=st;return true;},'agora estão como "'+({ativo:'À venda',esgotado:'Esgotado',oculto:'Oculto'})[st]+'"');
+  const ps=produtosSel();
+  LOTE.itens=null;
+  abrirLote('Mudar status de '+ps.length+' produto(s)','O status decide como a peça aparece na loja.',
+    loteLista([
+      {rot:'À venda',desc:'aparece na loja (se tiver estoque)',fn:()=>aplicarStatusLote('ativo')},
+      {rot:'Esgotado',desc:'aparece na loja marcada como indisponível',fn:()=>aplicarStatusLote('esgotado')},
+      {rot:'Oculto',desc:'não aparece na loja',fn:()=>aplicarStatusLote('oculto')}
+    ]));
+}
+function aplicarStatusLote(st){
+  dlgLote.close();
+  aplicarEmMassa(p=>{p.status=st;return true;},'agora estão como "'+ROT_STATUS_PROD[st]+'"');
 }
 function massaColecao(){
   const cs=colecoes();
   if(!cs.length){toast('Nenhuma coleção criada — crie em Configurações → Coleções.');return;}
-  const lista=cs.map((c,i)=>i+') '+c.nome).join('\n');
-  const idx=prompt('Qual coleção?\n'+lista,'0');
-  if(idx===null)return;
-  const c=cs[+idx];if(!c){toast('Opção inválida.');return;}
-  const marcar=confirm('OK = ADICIONAR "'+c.nome+'" aos selecionados\nCancelar = REMOVER "'+c.nome+'" deles');
+  const ps=produtosSel();
+  LOTE.busca='';
+  LOTE.itens=()=>{
+    const q=(LOTE.busca||'').trim().toLowerCase();
+    return cs.filter(c=>!q||c.nome.toLowerCase().includes(q)).map(c=>{
+      const n=ps.filter(p=>(p.colecaoIds||[]).indexOf(c.id)>=0).length;
+      return {rot:c.nome,
+        desc:n?n+' de '+ps.length+' já está(ão) nela':'nenhum dos selecionados está nela',
+        dir:'＋ colocar',
+        fn:()=>aplicarColecaoLote(c,true),
+        botao:n?{rot:'tirar',fn:()=>aplicarColecaoLote(c,false)}:null};
+    });
+  };
+  abrirLote('Coleções de '+ps.length+' produto(s)','Clique na coleção para colocar as peças nela.',
+    loteBuscaHTML('🔎 filtrar coleções')+`<div id="loteItens">${loteLista(LOTE.itens())}</div>`);
+}
+function aplicarColecaoLote(c,marcar){
+  dlgLote.close();
   aplicarEmMassa(p=>{
     if(!Array.isArray(p.colecaoIds))p.colecaoIds=[];
     const tem=p.colecaoIds.indexOf(c.id)>=0;
@@ -2460,19 +2686,36 @@ function massaColecao(){
     return true;
   },(marcar?'entraram em "':'saíram de "')+c.nome+'"');
 }
-function massaCadastro(){
-  const qual=prompt('O que mudar nos selecionados?\n\n0) Categoria\n1) Tipo\n2) Fornecedor','0');
-  if(qual===null)return;
-  const mapa={'0':{lista:'categorias',campo:'catId',rot:'categoria'},
-              '1':{lista:'tipos',campo:'tipoId',rot:'tipo'},
-              '2':{lista:'fornecedores',campo:'fornId',rot:'fornecedor'}}[qual.trim()];
-  if(!mapa){toast('Opção inválida.');return;}
-  const itens=C()[mapa.lista]||[];
-  if(!itens.length){toast('Nenhum(a) '+mapa.rot+' cadastrado(a).');return;}
-  const idx=prompt('Nova '+mapa.rot+':\n'+itens.map((x,i)=>i+') '+x.nome).join('\n'),'0');
-  if(idx===null)return;
-  const it=itens[+idx];if(!it){toast('Opção inválida.');return;}
-  aplicarEmMassa(p=>{p[mapa.campo]=it.id;return true;},'ficaram com '+mapa.rot+' "'+it.nome+'"');
+function massaCadastro(qual){
+  const ps=produtosSel();
+  if(!qual){
+    LOTE.itens=null;
+    abrirLote('Alterar '+ps.length+' produto(s)','O que você quer mudar em todos?',
+      loteLista([
+        {rot:'Categoria',desc:'o material: Aço, Folheado, Prata 925…',fn:()=>massaCadastro('categorias')},
+        {rot:'Tipo de peça',desc:'Brinco, Anel, Colar…',fn:()=>massaCadastro('tipos')},
+        {rot:'Fornecedor',desc:'de quem você compra',fn:()=>massaCadastro('fornecedores')}
+      ]));
+    return;
+  }
+  const rot={categorias:'categoria',tipos:'tipo',fornecedores:'fornecedor'}[qual];
+  const campo={categorias:'catId',tipos:'tipoId',fornecedores:'fornId'}[qual];
+  const itens=C()[qual]||[];
+  if(!itens.length){toast('Nenhum(a) '+rot+' cadastrado(a).');return;}
+  LOTE.busca='';
+  LOTE.itens=()=>{
+    const q=(LOTE.busca||'').trim().toLowerCase();
+    return itens.filter(x=>!q||x.nome.toLowerCase().includes(q)).map(x=>({
+      rot:x.nome,
+      desc:ps.filter(p=>p[campo]===x.id).length+' de '+ps.length+' já está(ão) assim',
+      fn:()=>{
+        dlgLote.close();
+        aplicarEmMassa(p=>{p[campo]=x.id;return true;},'ficaram com '+rot+' "'+x.nome+'"');
+      }}));
+  };
+  abrirLote('Nova '+rot+' para '+ps.length+' produto(s)','Clique na opção que todos vão passar a ter.',
+    loteBuscaHTML('🔎 filtrar')+`<div id="loteItens">${loteLista(LOTE.itens())}</div>
+    <div class="barra mt"><button type="button" class="bt mini" onclick="massaCadastro()">← voltar</button></div>`);
 }
 
 /* cadastro rápido de conta e de categoria financeira (usado no diálogo do Financeiro) */
@@ -2483,8 +2726,8 @@ function novaContaInline(selId){
   const tipo=(TIPOS_CONTA[+idx]||TIPOS_CONTA[1])[0];
   const c={id:novoId(),nome:nm.trim(),tipo};
   C().contas.push(c);salvar();
-  ['lConta','lContra'].forEach(id=>{const s=$(id);if(s){const atual=s.value;s.innerHTML=opcoes(C().contas);s.value=atual;}});
-  $(selId).value=c.id;
+  ['lConta','lContra'].forEach(id=>{const s=$(id);if(s){const atual=s.value;s.innerHTML=opcoes(C().contas);s.value=atual;atualizarBotaoCombo(s);}});
+  $(selId).value=c.id;atualizarBotaoCombo($(selId));
   toast('Conta "'+esc(c.nome)+'" criada ✓');
 }
 function novaCatFinInline(selId){
@@ -2698,6 +2941,63 @@ function removerLogo(){C().loja.logo='';salvar();aplicarIdentidade();renderConfi
 function statusBadge(s){return s==='ativo'?'<span class="bd ok">À venda</span>':s==='esgotado'?'<span class="bd off">Esgotado</span>':'<span class="bd hid">Oculto</span>';}
 function fotoCapa(p){return (p.fotos&&p.fotos.length)?p.fotos[0]:'';}
 
+/* ============================================================
+   COR DA PEÇA
+   Só o nome escrito não ajuda: "rosé" e "dourado" são parecidos na escrita e
+   diferentes na vitrine. Aqui a pessoa escolhe numa paleta com as cores mais
+   usadas em semijoia e, se faltar a dela, cria a própria (nome + tom).
+   A cor fica em p.cor = {nome, hex}; peça sem cor continua sem nada.
+   ============================================================ */
+const CORES_PADRAO=[['Dourado','#c9a227'],['Prateado','#b9c0c6'],['Rosé','#e3a692'],['Preto','#1f1d1b'],
+  ['Branco','#f4f2ec'],['Nude','#e3d2be'],['Vermelho','#b5372c'],['Rosa','#e489ac'],['Azul','#3b6ba5'],
+  ['Verde','#2f7d5b'],['Roxo','#7a5aa8'],['Marrom','#7a5233']];
+const CORSEL={p:null,qp:null};
+function corEhPadrao(c){return !!c&&CORES_PADRAO.some(x=>x[0]===c.nome&&x[1].toLowerCase()===String(c.hex||'').toLowerCase());}
+function iniciarPaletaCor(pref,cor){
+  CORSEL[pref]=cor&&cor.hex?{nome:cor.nome||'',hex:cor.hex}:null;
+  renderPaletaCor(pref);
+}
+function renderPaletaCor(pref){
+  const box=$(pref+'Cor');if(!box)return;
+  const atual=CORSEL[pref],outra=!!atual&&!corEhPadrao(atual);
+  box.innerHTML=`<div class="paleta-cores">
+      <button type="button" class="cor-op${atual?'':' on'}" onclick="escolherCor('${pref}','','')">
+        <span class="cor-bolha sem"></span><span>sem cor</span></button>
+      ${CORES_PADRAO.map(([nome,hex])=>`<button type="button" class="cor-op${atual&&atual.nome===nome?' on':''}" onclick="escolherCor('${pref}','${nome}','${hex}')">
+        <span class="cor-bolha" style="background:${hex}"></span><span>${nome}</span></button>`).join('')}
+      <button type="button" class="cor-op${outra?' on':''}" onclick="corOutra('${pref}')">
+        <span class="cor-bolha" style="background:${outra?esc(atual.hex):'conic-gradient(#c9a227,#e489ac,#3b6ba5,#2f7d5b,#c9a227)'}"></span><span>outra cor…</span></button>
+    </div>
+    <div class="cor-outra" id="${pref}CorOutra"${outra?'':' hidden'}>
+      <input type="color" id="${pref}CorHex" value="${outra?esc(atual.hex):'#c9a227'}" oninput="corOutraMudou('${pref}')" title="tom da cor">
+      <input id="${pref}CorNome" maxlength="24" placeholder="nome da cor (ex.: vinho, grafite)" value="${outra?esc(atual.nome):''}" oninput="corOutraMudou('${pref}')">
+    </div>`;
+}
+function escolherCor(pref,nome,hex){
+  CORSEL[pref]=nome?{nome,hex}:null;
+  renderPaletaCor(pref);
+}
+function corOutra(pref){
+  const a=CORSEL[pref];
+  CORSEL[pref]={nome:(a&&!corEhPadrao(a)&&a.nome)||'',hex:(a&&a.hex)||'#c9a227'};
+  renderPaletaCor(pref);
+  const n=$(pref+'CorNome');if(n)n.focus();
+}
+function corOutraMudou(pref){
+  const n=$(pref+'CorNome'),h=$(pref+'CorHex');
+  if(n&&h)CORSEL[pref]={nome:n.value.trim(),hex:h.value};
+}
+function lerCor(pref){
+  const c=CORSEL[pref];
+  if(!c||!c.hex)return null;
+  return {nome:(c.nome||'').trim()||'cor personalizada',hex:c.hex};
+}
+/* bolinha da cor ao lado do nome, na lista e na janela de mesclar */
+function bolhaCor(p){
+  return p&&p.cor&&p.cor.hex
+    ? `<span class="cor-bolha mini" title="${esc(p.cor.nome||'')}" style="background:${esc(p.cor.hex)}"></span>`:'';
+}
+
 function renderProdutos(){
   const u=ui.p;
   if(!dados.produtos.length){
@@ -2728,14 +3028,22 @@ function renderProdutos(){
 /* Filtros da aba Produtos. Duas linhas: a primeira responde "qual peça?",
    a segunda "em que situação?". A de estoque é a mais pedida — é ela que
    responde "o que está aparecendo na loja agora". */
+/* só as cores que já existem em alguma peça: filtro com cor que ninguém usa
+   só aumentaria a lista */
+function coresUsadas(){
+  const m={};
+  dados.produtos.forEach(p=>{if(p.cor&&p.cor.nome&&!m[p.cor.nome])m[p.cor.nome]=p.cor;});
+  return Object.keys(m).sort((a,b)=>a.localeCompare(b,'pt-BR')).map(k=>m[k]);
+}
 function barraFiltrosProdutos(){
-  const u=ui.p;
+  const u=ui.p,cores=coresUsadas();
   const op=(v,rot)=>`<option value="${v}"${u.estoque===v?' selected':''}>${rot}</option>`;
   return `<div class="barra">
     <input class="busca-larga" placeholder="🔎 nome do produto..." value="${esc(u.busca)}" oninput="ui.p.busca=this.value;renderProdutosTab()" style="flex:1;min-width:150px">
     <select onchange="ui.p.cat=this.value;renderProdutosTab()"><option value="">Material: todos</option>${opcoes(C().categorias,u.cat)}</select>
     <select onchange="ui.p.tipo=this.value;renderProdutosTab()"><option value="">Tipo: todos</option>${opcoes(C().tipos,u.tipo)}</select>
     ${colecoes().length?`<select onchange="ui.p.col=this.value;renderProdutosTab()"><option value="">Coleção: todas</option><option value="__sem"${u.col==='__sem'?' selected':''}>— sem coleção —</option>${opcoes(colecoes(),u.col)}</select>`:''}
+    ${cores.length?`<select onchange="ui.p.cor=this.value;renderProdutosTab()"><option value="">Cor: todas</option>${cores.map(c=>`<option value="${esc(c.nome)}"${u.cor===c.nome?' selected':''}>${esc(c.nome)}</option>`).join('')}</select>`:''}
     <select onchange="ui.p.forn=this.value;renderProdutosTab()"><option value="">Fornecedor: todos</option>${opcoes(C().fornecedores,u.forn)}</select>
   </div>
   <div class="barra">
@@ -2760,10 +3068,10 @@ function barraFiltrosProdutos(){
 }
 function filtrosAtivosProdutos(){
   const u=ui.p;
-  return !!(u.busca||u.cat||u.tipo||u.forn||u.col||u.status||u.estoque||u.ini||u.fim||u.ord!=='nome');
+  return !!(u.busca||u.cat||u.tipo||u.forn||u.col||u.cor||u.status||u.estoque||u.ini||u.fim||u.ord!=='nome');
 }
 function limparFiltrosProdutos(){
-  Object.assign(ui.p,{busca:'',cat:'',tipo:'',forn:'',col:'',status:'',estoque:'',ini:'',fim:'',ord:'nome'});
+  Object.assign(ui.p,{busca:'',cat:'',tipo:'',forn:'',col:'',cor:'',status:'',estoque:'',ini:'',fim:'',ord:'nome'});
   renderProdutos();
 }
 /* data de cadastro: produtos antigos não tinham o campo, então a migração
@@ -2934,6 +3242,7 @@ function juntarProdutos(idFica,idSai,opc){
   if(!fica.tipoId&&sai.tipoId)fica.tipoId=sai.tipoId;
   if(!fica.fornId&&sai.fornId)fica.fornId=sai.fornId;
   if(!fica.descricao&&sai.descricao)fica.descricao=sai.descricao;
+  if(!fica.cor&&sai.cor)fica.cor=sai.cor;
   if(!fica.video&&sai.video)fica.video=sai.video;
   fica.fotos=(fica.fotos||[]).concat(sai.fotos||[]).slice(0,3);
   fica.colecaoIds=[...new Set((fica.colecaoIds||[]).concat(sai.colecaoIds||[]))];
@@ -3019,6 +3328,7 @@ function produtosFiltrados(){
     (!u.tipo||p.tipoId===u.tipo)&&
     (!u.forn||p.fornId===u.forn)&&
     (!u.col||(u.col==='__sem'?!((p.colecaoIds||[]).length):produtoNaColecao(p,u.col)))&&
+    (!u.cor||((p.cor&&p.cor.nome)||'')===u.cor)&&
     (!u.status||p.status===u.status)&&
     passaEstoque(p,u.estoque)&&
     (!u.ini||(cadastradoEm(p)&&cadastradoEm(p)>=u.ini))&&
@@ -3061,7 +3371,7 @@ function linhaProduto(p){
     return `<tr${produtoZerado(p)?' class="zerado"':''}>
       <td data-rot=""><input type="checkbox" ${ui.p.sel[p.id]?'checked':''} onchange="toggleProdSel('${p.id}',this.checked)"></td>
       <td class="capa" data-rot="">${th}</td>
-      <td class="titulo" data-rot="Produto">${esc(p.nome)}${p.tipoId?` <span class="mut" style="font-size:.76rem">(${esc(tipoNome(p.tipoId))})</span>`:''}${cols.length?`<div style="margin-top:.15rem">${cols.map(n=>`<span class="tag-col">${esc(n)}</span>`).join('')}</div>`:''}${!produtoAvisa(p)?'<div class="mut" style="font-size:.68rem">🔕 sem aviso de estoque</div>':''}</td>
+      <td class="titulo" data-rot="Produto">${bolhaCor(p)}${esc(p.nome)}${p.tipoId?` <span class="mut" style="font-size:.76rem">(${esc(tipoNome(p.tipoId))})</span>`:''}${cols.length?`<div style="margin-top:.15rem">${cols.map(n=>`<span class="tag-col">${esc(n)}</span>`).join('')}</div>`:''}${!produtoAvisa(p)?'<div class="mut" style="font-size:.68rem">🔕 sem aviso de estoque</div>':''}</td>
       <td data-rot="Material"><span class="bd cat">${esc(catNome(p.catId))}</span></td>
       <td class="num" data-rot="Preço">${+p.preco>0?fmt(p.preco):'—'}</td>
       <td class="num" data-rot="Custo">${p.custo!=null?fmt(p.custo):'<span class="mut">—</span>'}</td>
@@ -3438,6 +3748,7 @@ function abrirNovoProduto(){
   // desmarcado por padrão: a maioria das peças é compra única e não se repõe
   $('pAvisarEstoque').checked=false;pAvisarMudou();renderColecoesChecks('p',[]);
   $('pInsProprios').checked=false;$('pInsBox').hidden=true;$('pInsWrap').hidden=true;insRows=[];renderInsumosProduto();
+  iniciarPaletaCor('p',null);
   prodFotos=[];prodVideo='';renderMidiaProduto();dlgProduto.showModal();
 }
 function editarProduto(id){
@@ -3459,6 +3770,7 @@ function editarProduto(id){
   const grade=temGrade(p);
   $('pTemGrade').checked=grade;gradeRows=grade?p.variacoes.map(v=>Object.assign({},v)):[];
   $('pGradeBox').hidden=!grade;$('pEstoqueBox').style.display=grade?'none':'';if(grade)renderGradeRows();
+  iniciarPaletaCor('p',p.cor);
   prodFotos=(p.fotos||[]).slice();prodVideo=p.video||'';renderMidiaProduto();
   dlgProduto.showModal();
 }
@@ -3477,7 +3789,7 @@ function salvarProduto(){
     insumosProprios:$('pInsProprios').checked,
     insumos:$('pInsProprios').checked?insRows.filter(x=>String(x.nome||'').trim()!==''||(+x.valor||0)>0)
       .map(x=>({id:x.id||novoId(),nome:String(x.nome||'').trim()||'insumo',valor:r2(x.valor)||0})):[],
-    fotos:prodFotos.slice(),video:prodVideo,variacoes};
+    cor:lerCor('p'),fotos:prodFotos.slice(),video:prodVideo,variacoes};
   if(!o.nome){toast('Informe o nome.');return;}
   if(!confirmarNomeRepetido(o.nome,id||null))return;
   if(id){
@@ -3765,6 +4077,7 @@ function abrirQuickProd(idx){
   const it=itensVenda[idx]||{},np=it.novoProd;
   $('qpNome').value=(np&&np.nome)||it.nome||'';
   $('qpPreco').value=(np&&np.preco>0)?np.preco:(it.preco>0?it.preco:'');
+  $('qpStatus').value=(np&&np.status)||'ativo';   // nasce "À venda", como no cadastro completo
   if(np){
     if(np.catId)$('qpCat').value=np.catId;
     $('qpTipo').value=np.tipoId||'';$('qpForn').value=np.fornId||'';
@@ -3778,6 +4091,7 @@ function abrirQuickProd(idx){
   if(comGrade)renderQpGradeRows();
   $('qpAvisarEstoque').checked=np?np.avisarEstoque===true:false;
   renderColecoesChecks('qp',(np&&np.colecaoIds)||[]);
+  iniciarPaletaCor('qp',np&&np.cor);
   qpFotos=(np&&np.fotos)?np.fotos.slice():[];renderMidiaQuick();
   dlgQuickProd.showModal();
 }
@@ -3796,14 +4110,16 @@ function salvarQuickProd(){
     estoqueFinal=r2(variacoes.reduce((s,v)=>s+(+v.estoque||0),0));
   }else{estoqueFinal=est===''?null:r2(est);}
   const p={id:novoId(),criadoEm:hoje(),nome,catId:$('qpCat').value,tipoId:$('qpTipo').value||null,fornId:$('qpForn').value||null,
-    status:'ativo',preco:r2($('qpPreco').value)||0,custo:$('qpCusto').value===''?null:r2($('qpCusto').value),
+    status:$('qpStatus').value||'ativo',preco:r2($('qpPreco').value)||0,custo:$('qpCusto').value===''?null:r2($('qpCusto').value),
     estoque:estoqueFinal,minimo:0,descricao:'',avisarEstoque:$('qpAvisarEstoque').checked,colecaoIds:lerColecoesChecks('qp'),
-    fotos:qpFotos.slice(),video:'',variacoes};
+    cor:lerCor('qp'),fotos:qpFotos.slice(),video:'',variacoes};
   const idx=+$('qpIdx').value,it=itensVenda[idx];
   if(it){
     it.novoProd=p;it.produtoId=null;it.nome=nome;
     it.custo=p.custo!=null?+p.custo:0;
-    if(p.preco>0&&!(+it.preco>0))it.preco=+p.preco;
+    // o preço do "detalhado" manda: se ela informou aqui, é este que vale na venda
+    // (antes ficava o do produto parecido que o sistema tinha achado pelo nome)
+    if(p.preco>0)it.preco=+p.preco;
     // com grade, já deixa o 1º tamanho escolhido pra o seletor abrir preenchido
     it.variacaoId=variacoes.length?variacoes[0].id:null;
     it.tamanho=variacoes.length?variacoes[0].rotulo:'';
@@ -4222,9 +4538,11 @@ function editarProdutoDaVenda(i){
   if(!prodPorId(it.produtoId)){toast('Produto não encontrado no estoque.');return;}
   editarProduto(it.produtoId);
 }
-/* ---------- sugestões de produto (com a categoria ao lado) ---------- */
-let acCtx={idx:-1,itens:[],hl:0,el:null};
-function acFechar(){const p=$('acPop');if(p)p.remove();acCtx.idx=-1;acCtx.itens=[];acCtx.el=null;}
+/* ---------- lista de sugestões (produto, cliente...) ----------
+   Uma lista só, no visual do painel: a lista nativa do navegador (datalist)
+   aparecia num balão preto do Windows, fora do desenho do sistema. */
+let acCtx={itens:[],hl:0,el:null,aoEscolher:null};
+function acFechar(){const p=$('acPop');if(p)p.remove();acCtx={itens:[],hl:0,el:null,aoEscolher:null};}
 function acBlur(){setTimeout(acFechar,180);}
 /* mantém a lista colada no campo quando a tela rola/redimensiona */
 function acReposicionar(){
@@ -4243,44 +4561,69 @@ function acDescricao(p){
   if(p.estoque!=null)partes.push(fmtN(p.estoque)+' un');
   return partes.join(' · ');
 }
+/* desenha a lista; itens = [{nome, desc, realce, dado}] */
+function acMostrar(el,itens,aoEscolher){
+  acFechar();
+  if(!itens.length)return;
+  acCtx={itens,hl:0,el,aoEscolher};
+  const r=el.getBoundingClientRect();
+  const pop=document.createElement('div');pop.id='acPop';pop.className='ac-pop';
+  pop.style.left=Math.max(4,Math.min(r.left,window.innerWidth-250))+'px';
+  pop.style.top=(r.bottom+2)+'px';
+  pop.style.minWidth=Math.max(230,r.width)+'px';
+  pop.innerHTML=itens.map((x,k)=>
+    `<div class="ac-item${k===0?' hl':''}" onmousedown="acEscolher(${k})">
+      <span class="ac-nome">${esc(x.nome)}</span>
+      <span class="ac-cat" ${x.realce?'style="color:var(--ouro2)"':''}>${esc(x.desc||'')||'—'}</span></div>`).join('');
+  (el.closest('dialog')||document.body).appendChild(pop);
+}
 function acAbrir(i,el){
   const termo=el.value.trim().toLowerCase();
   let lista=dados.produtos.filter(p=>p.status!=='oculto');
   if(termo)lista=lista.filter(p=>p.nome.toLowerCase().includes(termo));
   lista.sort((a,b)=>a.nome.localeCompare(b.nome));
   const dup={};lista.forEach(p=>{const k=p.nome.toLowerCase();dup[k]=(dup[k]||0)+1;});
-  lista=lista.slice(0,8);
-  acFechar();
-  if(!lista.length)return;
-  acCtx={idx:i,itens:lista,hl:0,el};
-  const r=el.getBoundingClientRect();
-  const pop=document.createElement('div');pop.id='acPop';pop.className='ac-pop';
-  pop.style.left=Math.max(4,Math.min(r.left,window.innerWidth-250))+'px';
-  pop.style.top=(r.bottom+2)+'px';
-  pop.style.minWidth=Math.max(230,r.width)+'px';
-  pop.innerHTML=lista.map((p,k)=>{
-    const varios=dup[p.nome.toLowerCase()]>1;
-    return `<div class="ac-item${k===0?' hl':''}" onmousedown="acEscolher(${k})">
-      <span class="ac-nome">${esc(p.nome)}</span>
-      <span class="ac-cat" ${varios?'style="color:var(--ouro2)"':''}>${esc(acDescricao(p))||'—'}</span></div>`;
-  }).join('');
-  (el.closest('dialog')||document.body).appendChild(pop);
+  acMostrar(el,lista.slice(0,8).map(p=>({id:p.id,nome:p.nome,desc:acDescricao(p),
+    realce:dup[p.nome.toLowerCase()]>1,dado:p})),x=>usarProdutoNoItem(i,x.dado));
 }
-function acEscolher(k){
-  const p=acCtx.itens[k],i=acCtx.idx;
-  if(!p||i<0||!itensVenda[i]){acFechar();return;}
+function usarProdutoNoItem(i,p){
+  if(!p||i<0||!itensVenda[i])return;
   const it=itensVenda[i];
   it.nome=p.nome;it.produtoId=p.id;it.custo=p.custo!=null?+p.custo:0;
   if(+p.preco>0)it.preco=+p.preco;
   it.variacaoId=temGrade(p)?((p.variacoes[0]||{}).id||null):null;
-  acFechar();renderItensVenda();
+  renderItensVenda();
   const row=$('vItensBody').children[i];
   if(row){const q=row.querySelector('.qtd');if(q)q.focus();}
 }
-function acTeclas(e,i,el){
+/* sugestões de cliente: mesma lista, com o local e o quanto ele deve */
+function acDescricaoCliente(c){
+  const partes=[];
+  if(c.localId&&typeof localNome==='function'){const l=localNome(c.localId);if(l)partes.push(l);}
+  if(c.tel)partes.push(c.tel);
+  const deve=typeof totalEmAbertoDe==='function'?totalEmAbertoDe(c.nome):0;
+  if(deve>0.005)partes.push('deve '+fmt(deve));
+  return partes.join(' · ');
+}
+function acClientes(el,depois){
+  const termo=el.value.trim().toLowerCase();
+  let lista=dados.clientes.slice();
+  if(termo)lista=lista.filter(c=>c.nome.toLowerCase().includes(termo));
+  lista.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  acMostrar(el,lista.slice(0,8).map(c=>({id:c.id,nome:c.nome,desc:acDescricaoCliente(c),dado:c})),x=>{
+    el.value=x.nome;
+    if(depois)depois();
+  });
+}
+function acEscolher(k){
+  const x=acCtx.itens[k],cb=acCtx.aoEscolher;
+  acFechar();
+  if(x&&cb)cb(x);
+}
+function acTeclas(e,abrir){
   const pop=$('acPop');
   if(e.key==='ArrowDown'||e.key==='ArrowUp'){
-    if(!pop){acAbrir(i,el);return;}
+    if(!pop){if(typeof abrir==='function')abrir();return;}
     e.preventDefault();
     const n=acCtx.itens.length;if(!n)return;
     acCtx.hl=(acCtx.hl+(e.key==='ArrowDown'?1:-1)+n)%n;
@@ -4307,7 +4650,7 @@ function dicaItemNovo(it){
 }
 function renderItensVenda(){
   $('vItensBody').innerHTML=itensVenda.map((it,i)=>`<tr>
-    <td><input value="${esc(it.nome)}" placeholder="produto" autocomplete="off" oninput="itemVenda(${i},'nome',this.value);acAbrir(${i},this)" onfocus="acAbrir(${i},this)" onkeydown="acTeclas(event,${i},this)" onblur="acBlur()">${it.produtoId?'':(it.nome.trim()?dicaItemNovo(it):'')}${gradeSelHTML(i)}</td>
+    <td><input value="${esc(it.nome)}" placeholder="produto" autocomplete="off" oninput="itemVenda(${i},'nome',this.value);acAbrir(${i},this)" onfocus="acAbrir(${i},this)" onkeydown="acTeclas(event,()=>acAbrir(${i},this))" onblur="acBlur()">${it.produtoId?'':(it.nome.trim()?dicaItemNovo(it):'')}${gradeSelHTML(i)}</td>
     <td><input class="qtd" type="number" min="0" step="any" value="${it.qtd}" oninput="itemVenda(${i},'qtd',this.value)"></td>
     <td><input class="prc" type="number" min="0" step="0.01" value="${it.preco}" oninput="itemVenda(${i},'preco',this.value)"></td>
     <td class="num">${itemCobra(it)?fmt((+it.qtd||0)*(+it.preco||0)):'<span class="riscado">'+fmt((+it.qtd||0)*(+it.preco||0))+'</span><div class="st-aviso">'+esc(ROT_STATUS[it.status]||'')+'</div>'}</td>
@@ -4619,9 +4962,25 @@ function parcVenda(i,campo,val){
   if(campo==='venc'){renderParcelasVenda();return;}
   vAtualizaSoma();
 }
+/* A soma das parcelas tem que fechar com o valor. Antes o sistema ajustava
+   calado ao salvar ("será ajustado") e a pessoa só descobria a diferença
+   depois; agora ele mostra quanto passou ou faltou e pergunta antes. */
+function confirmarSomaParcelas(parcelas,alvo,oQue){
+  const soma=r2(parcelas.reduce((s,p)=>s+(+p.valor||0),0)),dif=r2(soma-alvo);
+  if(Math.abs(dif)<0.01)return true;
+  return confirm('As parcelas somam '+fmt(soma)+', mas '+oQue+' é '+fmt(alvo)+'.\n\n'
+    +(dif>0?'⚠️ Está '+fmt(dif)+' A MAIS.':'⚠️ Está '+fmt(-dif)+' A MENOS.')+'\n\n'
+    +'OK = ajustar a última parcela para fechar a conta\n'
+    +'Cancelar = voltar e corrigir as parcelas');
+}
+function textoSomaParcelas(soma,alvo,rotAlvo){
+  const dif=r2(soma-alvo),ok=Math.abs(dif)<0.01;
+  return `Soma das parcelas: <b class="${ok?'pos':'neg'}">${fmt(soma)}</b> / ${rotAlvo} ${fmt(alvo)}`
+    +(ok?'':` — <b class="neg">${dif>0?fmt(dif)+' a mais':fmt(-dif)+' a menos'}</b>. Ajuste as parcelas ou use "↻ dividir igual".`);
+}
 function vAtualizaSoma(){
-  const soma=r2(parcelasVenda.reduce((s,p)=>s+(+p.valor||0),0)),total=totalVenda(),ok=Math.abs(soma-total)<0.01;
-  $('vParcSoma').innerHTML=`Soma das parcelas: <b class="${ok?'pos':'neg'}">${fmt(soma)}</b> / total ${fmt(total)}${ok?'':' — será ajustado ao salvar'}`;
+  const soma=r2(parcelasVenda.reduce((s,p)=>s+(+p.valor||0),0)),total=totalVenda();
+  $('vParcSoma').innerHTML=textoSomaParcelas(soma,total,'total');
 }
 function aplicarEstoque(v,sinal){
   v.itens.forEach(it=>{
@@ -4711,6 +5070,7 @@ function salvarVenda(){
       parc=parcelasVenda.map(p=>({id:p.id||novoId(),valor:r2(p.valor),venc:p.venc||'',recebido:0,desconto:0,pago:false,pagoEm:null,formaRecebId:null,lancId:null}));
     else
       parc=[{id:novoId(),valor:total,venc:$('vVencUnico').value||'',recebido:0,desconto:0,pago:false,pagoEm:null,formaRecebId:null,lancId:null}];
+    if(!confirmarSomaParcelas(parc,total,'o total da venda'))return;
     ajustarSomaParcelas(parc,total);parc.forEach(sincParc);
     receber={parcelas:parc,obs:$('vObsFiado').value.trim()};
   }
@@ -5528,10 +5888,9 @@ function parcPlano(i,campo,val){
 }
 function plSoma(){
   const alvo=plTotalAParcelar(),desc=plDescontoInformado();
-  const soma=r2(parcelasPlano.reduce((s,p)=>s+(+p.valor||0),0)),ok=Math.abs(soma-alvo)<0.01;
-  $('plSoma').innerHTML=`Soma das parcelas: <b class="${ok?'pos':'neg'}">${fmt(soma)}</b> / a parcelar ${fmt(alvo)}`
-    +(desc>0.005?` <span class="mut">(já sem os ${fmt(desc)} de desconto)</span>`:'')
-    +(ok?'':' — será ajustado ao salvar');
+  const soma=r2(parcelasPlano.reduce((s,p)=>s+(+p.valor||0),0));
+  $('plSoma').innerHTML=textoSomaParcelas(soma,alvo,'a parcelar')
+    +(desc>0.005?` <span class="mut">(já sem os ${fmt(desc)} de desconto)</span>`:'');
 }
 function salvarPlano(){
   const nome=$('plCliente').value,bruto=totalEmAbertoDe(nome);
@@ -6507,7 +6866,10 @@ function avisoBackup(){
 function iniciar(){
   const primeiro=carregar();
   const baixados=autoBaixarRecebiveis();
-  document.querySelectorAll('#nav button, #navCel button[data-tab]').forEach(b=>b.onclick=()=>trocarTab(b.dataset.tab));
+  document.querySelectorAll('#nav button, #navCel button[data-tab]').forEach(b=>b.onclick=()=>{
+    if(b.dataset.cfg)ui.cfgTab=b.dataset.cfg;   // atalho que já abre numa aba de Configurações
+    trocarTab(b.dataset.tab);
+  });
   // barra do celular: botão do meio registra venda; "Mais" abre o resto
   if($('fabVenda'))$('fabVenda').onclick=()=>abrirNovaVenda();
   if($('btMais'))$('btMais').onclick=abrirMais;
@@ -7936,7 +8298,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-09-14 20:52';
+const VERSAO_APP='2026-09-19 13:44';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
