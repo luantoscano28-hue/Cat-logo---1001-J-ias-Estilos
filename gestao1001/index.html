@@ -487,7 +487,22 @@ tr.zerado:hover td{opacity:1}
 .combo-pop{padding:.35rem}
 .combo-busca{width:100%;margin-bottom:.35rem}
 .combo-itens{max-height:210px;overflow-y:auto}
-@media(max-width:700px){.combo-bt{font-size:16px;padding:.55rem .6rem}}
+@media(max-width:700px){
+  .combo-bt{font-size:16px;padding:.55rem .6rem}
+  /* no celular a lista sobe de baixo, como o menu de tres pontos: teclado e
+     rolagem nao mexem mais nela (era o que fazia a lista sumir ao tocar) */
+  .combo-fundo{position:fixed;inset:0;z-index:998;background:rgba(20,18,12,.45)}
+  .combo-pop.folha{left:0;right:0;top:auto;bottom:0;min-width:0;max-width:none;
+    max-height:min(72vh,70%);display:flex;flex-direction:column;overflow:hidden;
+    border-radius:16px 16px 0 0;padding:.5rem .5rem calc(.5rem + env(safe-area-inset-bottom));
+    animation:sobeFolha .16s ease-out}
+  .combo-pop.folha .combo-cab{flex:none;font-size:.72rem;font-weight:700;letter-spacing:.09em;
+    text-transform:uppercase;color:var(--texto2);padding:.15rem .3rem .45rem}
+  .combo-pop.folha .combo-busca{font-size:16px;padding:.6rem .65rem;margin-bottom:.4rem;flex:none}
+  .combo-pop.folha .combo-itens{flex:1;min-height:0;max-height:none}
+  .combo-pop.folha .ac-item{padding:.8rem .6rem}
+  .combo-pop.folha .ac-nome{font-size:1rem}
+}
 /* alterar vários produtos de uma vez: opções em lista clicável */
 #dlgLote{max-width:520px}
 .lote-lista{display:grid;gap:.4rem;max-height:46vh;overflow-y:auto;margin-top:.2rem}
@@ -1982,10 +1997,23 @@ function renderDatalists(){
    Lista curta continua como select comum — trocar ali só atrapalharia.
    ============================================================ */
 const MIN_OPCOES_BUSCA=8;
-let comboAberto=null;
+let comboAberto=null,comboFolha=false;
+function telaEstreita(){try{return !!(window.matchMedia&&matchMedia('(max-width:700px)').matches);}catch(e){return false;}}
 function fecharCombo(){
   const p=$('comboPop');if(p)p.remove();
-  comboAberto=null;
+  const f=$('comboFundo');if(f)f.remove();
+  comboAberto=null;comboFolha=false;
+}
+function rotuloDoCampo(sel){
+  // nome do campo para o cabeçalho da folha: no celular a janela fica escura
+  // atrás e sem isso a pessoa não sabe o que está escolhendo
+  const cx=sel.closest('label')||sel.closest('.campo');
+  if(!cx)return '';
+  let s='';
+  Array.prototype.forEach.call(cx.childNodes,n=>{if(n.nodeType===3)s+=n.textContent;});
+  if(!s.trim()){const l=cx.querySelector('label');if(l)s=l.textContent;}
+  s=s.split('—')[0].replace(/\s+/g,' ').trim();
+  return s.length>44?s.slice(0,44)+'…':s;
 }
 function rotuloDoSelect(sel){
   const o=sel.options[sel.selectedIndex];
@@ -2020,16 +2048,28 @@ function abrirCombo(sel,bt){
   const jaAberto=comboAberto===sel;
   fecharCombo();
   if(jaAberto)return;
-  comboAberto=sel;
+  comboAberto=sel;comboFolha=telaEstreita();
+  const onde=bt.closest('dialog')||document.body;
   const pop=document.createElement('div');
-  pop.id='comboPop';pop.className='ac-pop combo-pop';
-  pop.innerHTML='<input class="combo-busca" placeholder="🔎 digite para achar" autocomplete="off"><div class="combo-itens"></div>';
-  (bt.closest('dialog')||document.body).appendChild(pop);
-  const r=bt.getBoundingClientRect(),larg=Math.max(230,r.width);
-  pop.style.left=Math.max(4,Math.min(r.left,window.innerWidth-larg-8))+'px';
-  pop.style.minWidth=larg+'px';
-  // abre para cima quando não cabe embaixo (campo no fim de uma janela comprida)
-  pop.style.top=(r.bottom+2+250>window.innerHeight&&r.top>260?Math.max(4,r.top-252):r.bottom+2)+'px';
+  pop.id='comboPop';pop.className='ac-pop combo-pop'+(comboFolha?' folha':'');
+  const cab=comboFolha?rotuloDoCampo(sel):'';
+  pop.innerHTML=(cab?'<div class="combo-cab">'+esc(cab)+'</div>':'')
+    +'<input class="combo-busca" placeholder="🔎 digite para achar" autocomplete="off"><div class="combo-itens"></div>';
+  if(comboFolha){
+    // folha de baixo, igual ao menu de três pontos: tocar fora fecha
+    const fundo=document.createElement('div');
+    fundo.id='comboFundo';fundo.className='combo-fundo';
+    fundo.onclick=fecharCombo;
+    onde.appendChild(fundo);
+  }
+  onde.appendChild(pop);
+  if(!comboFolha){
+    const r=bt.getBoundingClientRect(),larg=Math.max(230,r.width);
+    pop.style.left=Math.max(4,Math.min(r.left,window.innerWidth-larg-8))+'px';
+    pop.style.minWidth=larg+'px';
+    // abre para cima quando não cabe embaixo (campo no fim de uma janela comprida)
+    pop.style.top=(r.bottom+2+250>window.innerHeight&&r.top>260?Math.max(4,r.top-252):r.bottom+2)+'px';
+  }
   const campo=pop.querySelector('.combo-busca'),lista=pop.querySelector('.combo-itens');
   let mostrando=[],marcado=0;
   function desenhar(){
@@ -2064,12 +2104,15 @@ function abrirCombo(sel,bt){
     }else if(e.key==='Enter'){e.preventDefault();escolher(marcado);}
     else if(e.key==='Escape'){e.stopPropagation();fecharCombo();bt.focus();}
   };
-  campo.onblur=()=>setTimeout(()=>{if(comboAberto===sel)fecharCombo();},180);
   desenhar();
-  campo.focus();
+  // no celular não damos foco: o teclado subiria tapando a lista toda.
+  // quem quiser filtrar toca na caixa de busca da folha.
+  if(!comboFolha){
+    campo.onblur=()=>setTimeout(()=>{if(comboAberto===sel)fecharCombo();},180);
+    campo.focus();
+  }
 }
-/* toda janela que abre passa pelos campos de escolha; rolar ou mudar o tamanho
-   da tela fecha a lista, que fica presa numa posição */
+/* toda janela que abre passa pelos campos de escolha */
 (function(){
   if(!window.HTMLDialogElement)return;
   const abrirModal=HTMLDialogElement.prototype.showModal;
@@ -2078,9 +2121,14 @@ function abrirCombo(sel,bt){
     try{ativarBuscaSelects(this);}catch(e){}
   };
 })();
-window.addEventListener('resize',fecharCombo);
+/* no computador a lista fica colada no botão: rolar ou mudar o tamanho da tela
+   deixaria ela solta no meio do nada, então fecha. No celular ela é folha de
+   baixo — e o teclado abrindo conta como "mudar o tamanho da tela": fechar ali
+   fazia a lista sumir no toque, que era o defeito. */
+window.addEventListener('resize',()=>{if(!comboFolha)fecharCombo();});
 window.addEventListener('scroll',e=>{
-  if(comboAberto&&!(e.target&&e.target.closest&&e.target.closest('#comboPop')))fecharCombo();
+  if(comboFolha||!comboAberto)return;
+  if(!(e.target&&e.target.closest&&e.target.closest('#comboPop')))fecharCombo();
 },true);
 function opcoes(lista,sel,rotulo){
   return lista.map(x=>`<option value="${x.id}"${x.id===sel?' selected':''}>${esc(rotulo?rotulo(x):x.nome)}</option>`).join('');
@@ -4004,7 +4052,7 @@ const ICONES_MENU_PROD={
 function svgMenuProd(d){
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
 }
-function menuEhFolha(){return !!(window.matchMedia&&matchMedia('(max-width:700px)').matches);}
+function menuEhFolha(){return telaEstreita();}   /* mesma regua da folha dos campos de escolha (part2) */
 function abrirMenuProduto(id,btn){
   const m=$('menuProduto');
   if(!m.hidden&&m.dataset.id===id){fecharMenuProduto();return;}
@@ -8320,7 +8368,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-09-21 21:14';
+const VERSAO_APP='2026-09-21 23:15';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
