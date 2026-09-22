@@ -1541,7 +1541,7 @@ function estruturaInicial(){
   const canalMaq={id:novoId(),nome:'Maquininha / celular',prazoDias:1,contaId:cxInfinity.id,padrao:true,bandeiras:bMaq.bandeiras,taxas:bMaq.taxas};
   const canalLink={id:novoId(),nome:'Link de pagamento',prazoDias:1,contaId:cxInfinity.id,padrao:false,bandeiras:bLink.bandeiras,taxas:bLink.taxas};
   return {
-    versao:21, criadoEm:hoje(), alteradoEm:null, ultimoBackup:null, nAlteracoes:0, seqCriacao:0,
+    versao:22, criadoEm:hoje(), alteradoEm:null, ultimoBackup:null, nAlteracoes:0, seqCriacao:0,
     config:{
       /* Nasce NEUTRA. Deixar aqui o WhatsApp e o Pix de alguém faria toda conta
          nova receber os pedidos e as cobranças no contato errado — e o dono da
@@ -1552,7 +1552,7 @@ function estruturaInicial(){
       fiscal:{diaInicio:11}, autoBaixaCartao:true, tema:'ouro',
       avisos:{diasAntes:1, notificar:false, ultimoAviso:''},
       categorias:idfy([{nome:'Aço'},{nome:'Folheado'},{nome:'Biju'},{nome:'Prata'},{nome:'Acessórios'}]),
-      colecoes:[],
+      colecoes:[], apagados:[],
       tipos:idfy([{nome:'Brinco'},{nome:'Colar'},{nome:'Anel'},{nome:'Pulseira'},{nome:'Bracelete'},{nome:'Conjunto'},{nome:'Choker'},{nome:'Pingente'},{nome:'Corrente'},{nome:'Tornozeleira'}]),
       fornecedores:idfy([{nome:'Limeira',contato:'',obs:''},{nome:'25 de Março',contato:'',obs:''},{nome:'Brás',contato:'',obs:''}]),
       locais:idfy([{nome:'Jovita'},{nome:'Heitor'},{nome:'Floresta'},{nome:'Feira Augusta'},{nome:'Online'}]),
@@ -1811,6 +1811,14 @@ function migrar(d){
   if(d.config.loja.logoLarga==null)d.config.loja.logoLarga='';
   if(d.config.loja.marcaModo==null)d.config.loja.marcaModo='redonda';
   d.versao=21;
+
+  /* ---- v22: cadastro apagado fica registrado ---- */
+  /* Sem esse registro a sincronização não sabia a diferença entre "foi apagado"
+     e "ainda não chegou neste aparelho": a configuração ia e voltava em bloco e
+     um aparelho atrasado derrubava os cadastros do outro (era o aviso "a
+     configuração da nuvem parece PIOR"). */
+  if(!Array.isArray(d.config.apagados))d.config.apagados=[];
+  d.versao=22;
   return d;
 }
 
@@ -2299,6 +2307,16 @@ function emUso(qual,id){
   if(qual==='catFin')return P.lancamentos.some(l=>l.catId===id);
   return false;
 }
+/* ---- cadastro apagado fica registrado ----
+   Sem isso o outro aparelho não tem como saber a diferença entre "foi apagado"
+   e "ainda não chegou aqui". Era o que fazia a sincronização ora ressuscitar
+   cadastro, ora sumir com ele. A marca viaja junto na configuração e é
+   descartada depois de 180 dias. */
+function registrarApagado(lista,id){
+  const c=C();
+  if(!Array.isArray(c.apagados))c.apagados=[];
+  if(!c.apagados.some(x=>x&&x.lista===lista&&x.id===id))c.apagados.push({lista,id,em:hoje()});
+}
 function removerCadItem(qual,id){
   /* coleção é agrupamento de marketing e acaba (Dia das Mães, Black...), então
      em vez de travar a remoção eu só desmarco os produtos e aviso quantos são */
@@ -2309,12 +2327,14 @@ function removerCadItem(qual,id){
       ? 'Remover a coleção "'+nm+'"?\n\n'+usados.length+' produto(s) vão deixar de fazer parte dela. Os produtos continuam cadastrados normalmente — só perdem essa etiqueta.'
       : 'Remover a coleção "'+nm+'"?'))return;
     usados.forEach(p=>{p.colecaoIds=(p.colecaoIds||[]).filter(x=>x!==id);});
+    registrarApagado('colecoes',id);
     C().colecoes=C().colecoes.filter(x=>x.id!==id);salvar();renderConfig();
     toast('Coleção removida'+(usados.length?' — '+usados.length+' produto(s) desmarcado(s)':''));
     return;
   }
   if(emUso(qual,id)){alert('Não dá pra remover: já existe registro usando este item. Você pode renomear no ✎.');return;}
   if(!confirm('Remover este item?'))return;
+  registrarApagado(qual,id);
   C()[qual]=C()[qual].filter(x=>x.id!==id);salvar();renderConfig();
 }
 function addForn(){const nm=$('addNome').value.trim();if(!nm)return;C().fornecedores.push({id:novoId(),nome:nm,contato:'',obs:''});salvar();renderConfig();}
@@ -2447,6 +2467,7 @@ function removerCanal(id){
   if((dados.vendas||[]).some(v=>v.canalId===id)||(dados.recebiveis||[]).some(r=>r.canalId===id)){
     alert('Não dá pra remover: já existem vendas nesse canal. Você pode renomear no ✎.');return;}
   if(!confirm('Remover o canal "'+c.nome+'"?'))return;
+  registrarApagado('canais',id);
   C().canais=(C().canais||[]).filter(x=>x.id!==id);
   C().formas.forEach(f=>{if(f.taxas)delete f.taxas[id];});
   if(C().canais.length&&!C().canais.some(x=>x.padrao))C().canais[0].padrao=true;
@@ -2484,6 +2505,7 @@ function editarInsumo(id){
 function removerInsumo(id){
   const x=acha(C().insumos,id);if(!x)return;
   if(!confirm('Remover o custo "'+x.nome+'"?\nAs vendas já registradas continuam com o custo que tinham.'))return;
+  registrarApagado('insumos',id);
   C().insumos=C().insumos.filter(i=>i.id!==id);salvar();renderConfig();
 }
 function novaCatFin(nat){
@@ -8298,7 +8320,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-09-19 13:44';
+const VERSAO_APP='2026-09-21 21:14';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -8866,17 +8888,9 @@ function appDesatualizado(meta){
 
 /* as listas de cadastro que, se sumirem, deixam o resto do sistema órfão */
 const CADASTROS=['contas','catFin','categorias','tipos','formas','fornecedores','locais','canais','colecoes','insumos'];
-function contarCadastros(c){
-  return CADASTROS.reduce((s,k)=>s+(((c||{})[k]||[]).length),0);
-}
-function configEncolheu(local,remota){
-  const a=contarCadastros(local),b=contarCadastros(remota);
-  return a>0&&b<a;
-}
-/* Quantos registros ficariam SEM CADASTRO se esta configuração fosse adotada.
-   Contar cadastros não basta: a configuração de fábrica tem quase a mesma
-   quantidade da real, só que com identificadores novos — foi assim que o caixa
-   zerou e os gráficos viraram "—" sem que a contagem denunciasse nada. */
+/* Quantos registros ficariam SEM CADASTRO com esta configuração. Serve de
+   aviso depois da juntada: se alguém apagou uma categoria no outro aparelho e
+   aqui existe produto usando ela, a pessoa precisa saber. */
 function orfaosCom(cfg){
   if(!cfg)return 0;
   const achou=(lista,id)=>!id||((cfg[lista]||[]).some(x=>x&&x.id===id));
@@ -8887,14 +8901,98 @@ function orfaosCom(cfg){
   (dados.clientes||[]).forEach(c=>{if(!achou('locais',c.localId))n++;});
   return n;
 }
-/* Trocar por uma configuração pior = a que deixa mais registros órfãos, ou a
-   que simplesmente tem menos cadastros. Qualquer um dos dois pede confirmação. */
-function configPior(local,remota){
-  return orfaosCom(remota)>orfaosCom(local)||configEncolheu(local,remota);
-}
 function resumoConfig(c){
   return CADASTROS.filter(k=>((c||{})[k]||[]).length)
     .map(k=>((c||{})[k]||[]).length+' '+k).join(', ')||'nenhum cadastro';
+}
+
+/* ============================================================
+   CONFIGURAÇÃO: JUNTADA ITEM A ITEM
+   Até aqui a configuração viajava num bloco só e valia "a última gravação
+   manda". Bastava um aparelho gravar com um cadastro a menos para o bloco
+   inteiro do outro ser substituído — daí o aviso "a configuração da nuvem
+   parece PIOR que a deste aparelho", que voltava toda hora. Agora cada
+   cadastro é confrontado pelo id, igual a vendas e produtos: o que cada
+   aparelho criou se soma, e só some o que foi apagado de verdade (a base
+   guardada no aparelho é que conta essa diferença).
+   ============================================================ */
+function hashCfg(v){return hashReg(v===undefined?null:v);}
+function fixarBaseConfig(cfg){
+  base.config=hashReg(cfg);
+  try{base.configConteudo=JSON.parse(JSON.stringify(cfg));}catch(e){base.configConteudo=null;}
+}
+/* Só some o cadastro que alguém apagou de propósito (tem a marca de apagado).
+   "Não está mais na nuvem" NÃO conta como apagado: pode ser o outro aparelho
+   que ainda não recebeu, e sumir por causa disso era justamente o estrago. */
+function mesclarListaConfig(local,remoto,baseL,foiApagado){
+  const apagado=id=>typeof foiApagado==='function'&&!!foiApagado(id);
+  const porId=l=>{const m={};(l||[]).forEach(x=>{if(x&&x.id)m[x.id]=x;});return m;};
+  const L=porId(local),R=porId(remoto),B=porId(baseL);
+  const saida=[],visto={};
+  const guardar=x=>{if(x&&x.id&&!visto[x.id]){visto[x.id]=1;saida.push(x);}};
+  (local||[]).forEach(x=>{
+    if(!x||!x.id||apagado(x.id))return;
+    if((x.id in R)&&hashCfg(x)===hashCfg(B[x.id]))guardar(R[x.id]); // não mexi aqui: vale o de lá
+    else guardar(x);                                                // mexi aqui, ou nasceu aqui
+  });
+  (remoto||[]).forEach(x=>{
+    if(!x||!x.id||visto[x.id]||(x.id in L)||apagado(x.id))return;
+    guardar(x);                                                     // nasceu no outro aparelho
+  });
+  return saida;
+}
+/* as marcas de apagado dos dois lados viram uma lista só; as velhas caem fora
+   para a configuração não crescer para sempre */
+function chaveApagado(lista,id){return lista+':'+id;}
+function mesclarApagados(local,remoto){
+  const limite=typeof isoAddDias==='function'?isoAddDias(hoje(),-180):'';
+  const vistos={},saida=[];
+  (local||[]).concat(remoto||[]).forEach(x=>{
+    if(!x||!x.lista||!x.id)return;
+    if(limite&&x.em&&x.em<limite)return;
+    const k=chaveApagado(x.lista,x.id);
+    if(vistos[k])return;
+    vistos[k]=1;saida.push(x);
+  });
+  return saida;
+}
+/* campo que não é lista (loja, fiscal, tema...): quem mexeu desde a última
+   sincronização manda; quem não mexeu adota o do outro */
+function mesclarValorConfig(local,remoto,baseV){
+  return hashCfg(local)===hashCfg(baseV)?remoto:local;
+}
+function mesclarConfig(local,remoto,baseCfg){
+  if(!remoto)return local;
+  if(!local)return remoto;
+  const b=baseCfg||{};
+  const saida=Object.assign({},remoto,local);
+  Object.keys(remoto).forEach(k=>{
+    if(CADASTROS.indexOf(k)>=0||!(k in local))return;
+    // "loja" guarda várias coisas independentes (nome, WhatsApp, logo, banners):
+    // vale a mesma regra, mas campo por campo, senão mexer no banner desfaria
+    // a troca de logo feita no outro aparelho
+    if(k==='loja'&&local.loja&&remoto.loja&&typeof local.loja==='object'&&typeof remoto.loja==='object'){
+      const lj=Object.assign({},remoto.loja,local.loja),bj=b.loja||{};
+      Object.keys(lj).forEach(c=>{
+        if(!(c in local.loja))return;
+        if(c in remoto.loja)lj[c]=mesclarValorConfig(local.loja[c],remoto.loja[c],bj[c]);
+      });
+      saida.loja=lj;return;
+    }
+    saida[k]=mesclarValorConfig(local[k],remoto[k],b[k]);
+  });
+  const apagados=mesclarApagados(local.apagados,remoto.apagados);
+  const fora={};apagados.forEach(x=>{fora[chaveApagado(x.lista,x.id)]=1;});
+  CADASTROS.forEach(k=>{
+    if(!(k in local)&&!(k in remoto))return;
+    saida[k]=mesclarListaConfig(local[k],remoto[k],b[k],id=>fora[chaveApagado(k,id)]);
+  });
+  saida.apagados=apagados;
+  return saida;
+}
+async function baixarConfigRemota(){
+  const linhas=await chamarApi('/rest/v1/config?id=eq.unico&select=dados');
+  return (linhas&&linhas[0]&&linhas[0].dados)||null;
 }
 
 /* Confronta as três versões de uma lista: a daqui, a do servidor, e a base.
@@ -8967,28 +9065,27 @@ async function sincronizarTudo(){
      órfãos e o caixa zera. Por isso é o único ponto onde NÃO vale a regra
      "na dúvida fica o local" — um aparelho recém-aberto sobrescreveria a
      configuração de verdade com a de fábrica. */
-  const hLocal=hashReg(dados.config),hBase=base.config;
+  const hLocal=hashReg(dados.config);
   const hRemoto=remoto.config?hashReg(remoto.config):null;
   if(hRemoto&&hRemoto!==hLocal){
     // quem não pode gravar a configuração sempre adota a da loja
     if(!podeEscrever('config')){dados.config=remoto.config;mudouAqui=true;}
-    else if(virgem||(hBase&&hBase===hLocal)){
-      // Rede de segurança: trocar por uma configuração visivelmente menor
-      // significa perder cadastros, e sem cadastro os lançamentos ficam órfãos
-      // (o caixa zera e os gráficos mostram "—"). Nunca fazer isso calado.
-      const orf=orfaosCom(remoto.config)-orfaosCom(dados.config);
-      if(configPior(dados.config,remoto.config)&&
-         !confirm('A configuração da nuvem parece PIOR que a deste aparelho.\n\n'
-           +(orf>0?'⚠️ '+orf+' registro(s) ficariam sem categoria/conta/forma de pagamento —\n'
-                  +'o caixa zera e os gráficos passam a mostrar "—".\n\n':'')
-           +resumoConfig(dados.config)+'  (aqui)\n'+resumoConfig(remoto.config)+'  (na nuvem)\n\n'
-           +'OK = aceitar a da nuvem mesmo assim\nCancelar = manter a deste aparelho e enviá-la para a nuvem')){
-        await enviarLote('config',[{id:'unico',dados:dados.config,atualizado_em:new Date().toISOString()}]);
-      }else{
-        dados.config=remoto.config;mudouAqui=true;
-      }
+    else if(virgem&&!base.configConteudo){
+      /* Aparelho recém-aberto e que nunca sincronizou: o que ele tem é a
+         configuração de fábrica. Juntar as duas só criaria "Aço" duas vezes —
+         aqui a da loja vale inteira. */
+      dados.config=remoto.config;mudouAqui=true;
+    }else{
+      const orfAntes=orfaosCom(dados.config);
+      const juntas=mesclarConfig(dados.config,remoto.config,base.configConteudo);
+      const hJuntas=hashReg(juntas);
+      if(hJuntas!==hLocal){dados.config=juntas;mudouAqui=true;}
+      if(hJuntas!==hRemoto)await enviarLote('config',[{id:'unico',dados:juntas,atualizado_em:new Date().toISOString()}]);
+      /* alguém apagou um cadastro no outro aparelho e aqui existe registro
+         usando ele: não trava nada, mas a pessoa precisa saber */
+      const orfDepois=orfaosCom(dados.config);
+      if(orfDepois>orfAntes)toast('⚠️ '+(orfDepois-orfAntes)+' registro(s) ficaram sem cadastro — alguém apagou uma categoria/conta/forma em outro aparelho.');
     }
-    else await enviarLote('config',[{id:'unico',dados:dados.config,atualizado_em:new Date().toISOString()}]);
   }else if(!hRemoto&&podeEscrever('config')){
     await enviarLote('config',[{id:'unico',dados:dados.config,atualizado_em:new Date().toISOString()}]);
   }
@@ -9002,7 +9099,7 @@ async function sincronizarTudo(){
   // a base passa a ser o estado atual, que agora é igual dos dois lados
   const catAntes=base.catalogo;
   base={};TABELAS.forEach(t=>{base[t.tab]=retratoDe(dados[t.lista]);});
-  base.config=hashReg(dados.config);base.catalogo=catAntes;
+  fixarBaseConfig(dados.config);base.catalogo=catAntes;
   await talvezPublicarCatalogo();
   gravarBase();
   return mudouAqui;
@@ -9025,8 +9122,18 @@ async function subirParaNuvem(){
   }
   const hCfg=hashReg(dados.config);
   if(hCfg!==base.config&&podeEscrever('config')){
+    /* Nunca jogar o bloco inteiro por cima: o outro aparelho pode ter criado um
+       cadastro que este ainda não viu. Baixa a configuração de lá (é uma linha
+       só, e isto só acontece quando um cadastro muda), junta item a item e
+       manda o resultado. */
+    let remota=null;
+    try{remota=await baixarConfigRemota();}catch(e){remota=null;}
+    if(remota&&hashReg(remota)!==hCfg){
+      const juntas=mesclarConfig(dados.config,remota,base.configConteudo);
+      if(hashReg(juntas)!==hCfg){dados.config=juntas;salvar(false);renderTudo();}
+    }
     await enviarLote('config',[{id:'unico',dados:dados.config,atualizado_em:new Date().toISOString()}]);
-    base.config=hCfg;
+    fixarBaseConfig(dados.config);
   }
   await talvezPublicarCatalogo();
   gravarBase();
@@ -9732,7 +9839,7 @@ async function forcarEnvioParaNuvem(){
     await subirParaNuvem();
     await enviarLote('config',[{id:'unico',dados:dados.config,atualizado_em:new Date().toISOString()}]);
     await enviarMeta();
-    base.config=hashReg(dados.config);gravarBase();
+    fixarBaseConfig(dados.config);gravarBase();
     NUVEM.desatualizado=false;NUVEM.ultimoSync=Date.now();
     toast('☁️ Nuvem atualizada com os dados deste aparelho ✓');
   }catch(e){
