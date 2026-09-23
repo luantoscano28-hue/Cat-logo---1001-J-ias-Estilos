@@ -8126,7 +8126,11 @@ var CATALOGO = __CATALOGO_JSON__;
     function buscarVitrine(){
       if(buscando)return;
       buscando=true;ultimaBusca=Date.now();
-      fetch(N.url+"/rest/v1/catalogo?id=eq.unico&select=dados&t="+Date.now(),{cache:"no-store",headers:{apikey:N.chave}})
+      /* Nada de carimbo na URL para "furar cache": o banco lê todo parâmetro
+         que não conhece como filtro de coluna e devolve erro 400 — a loja
+         ficava presa na lista embutida na página (aconteceu em 22/09/2026).
+         Quem evita o cache é o cache:"no-store", que é para isso mesmo. */
+      fetch(N.url+"/rest/v1/catalogo?id=eq.unico&select=dados",{cache:"no-store",headers:{apikey:N.chave}})
       .then(function(r){return r.ok?r.json():null;})
       .then(function(linhas){
         buscando=false;
@@ -8574,7 +8578,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-09-22 23:11';
+const VERSAO_APP='2026-09-22 23:28';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
