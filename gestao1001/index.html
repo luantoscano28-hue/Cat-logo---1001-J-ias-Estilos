@@ -2022,7 +2022,34 @@ function renderDatalists(){
    resto do sistema continua lendo e escrevendo o .value dele como sempre.
    Lista curta continua como select comum — trocar ali só atrapalharia.
    ============================================================ */
+/* ============================================================
+   BUSCA — a mesma régua no painel inteiro (e na loja)
+   Acento, letra maiúscula e espaço a mais não podem esconder um registro:
+   quem digita "brinco coracao black" precisa achar "Brinco Coração  Black
+   Cristais". Cada palavra é procurada separada e em qualquer ordem, em
+   todos os campos que a tela mandar (nome, apelido, tipo, observação...).
+   Nasceu de um caso real na loja em 22/09/2026 — ver CLAUDE.md.
+   ============================================================ */
+function chaveBusca(s){
+  let t=String(s==null?'':s).toLowerCase();
+  try{t=t.normalize('NFD').replace(/[̀-ͯ]/g,'');}catch(e){}
+  return t.replace(/\s+/g,' ').trim();
+}
+function termosBusca(q){return chaveBusca(q).split(' ').filter(Boolean);}
+/* alvo: um texto ou uma lista de textos (os vazios são ignorados) */
+function casaBusca(alvo,termos){
+  if(!termos||!termos.length)return true;
+  const t=chaveBusca(Array.isArray(alvo)?alvo.filter(Boolean).join(' '):alvo);
+  return termos.every(x=>t.indexOf(x)>=0);
+}
+
 const MIN_OPCOES_BUSCA=8;
+const DESC_VALOR_SELECT=(function(){
+  try{
+    const d=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value');
+    return (d&&d.get&&d.set)?d:null;
+  }catch(e){return null;}
+})();
 let comboAberto=null,comboFolha=false;
 function telaEstreita(){try{return !!(window.matchMedia&&matchMedia('(max-width:700px)').matches);}catch(e){return false;}}
 function fecharCombo(){
@@ -2067,6 +2094,16 @@ function ativarBuscaSelects(raiz){
     // lista refeita por outro trecho do sistema (ex.: mudou a forma de pagamento):
     // o botão tem que mostrar a opção certa sem ninguém precisar avisar
     try{new MutationObserver(()=>atualizarBotaoCombo(sel)).observe(sel,{childList:true,subtree:true});}catch(e){}
+    /* O sistema também preenche campos sozinho — escolher um cliente já
+       cadastrado preenche o local da venda, por exemplo. Isso mexe no .value do
+       select escondido, que não dispara evento nenhum: o botão continuava
+       mostrando "—" e parecia que nada tinha sido preenchido (23/09/2026). */
+    if(DESC_VALOR_SELECT)try{
+      Object.defineProperty(sel,'value',{configurable:true,
+        get(){return DESC_VALOR_SELECT.get.call(this);},
+        set(v){DESC_VALOR_SELECT.set.call(this,v);atualizarBotaoCombo(this);}});
+    }catch(e){}
+    sel.addEventListener('change',()=>atualizarBotaoCombo(sel));
     atualizarBotaoCombo(sel);
   });
 }
@@ -2099,8 +2136,8 @@ function abrirCombo(sel,bt){
   const campo=pop.querySelector('.combo-busca'),lista=pop.querySelector('.combo-itens');
   let mostrando=[],marcado=0;
   function desenhar(){
-    const q=campo.value.trim().toLowerCase();
-    mostrando=Array.prototype.filter.call(sel.options,o=>!q||o.textContent.toLowerCase().indexOf(q)>=0);
+    const termos=termosBusca(campo.value);
+    mostrando=Array.prototype.filter.call(sel.options,o=>casaBusca(o.textContent,termos));
     marcado=Math.max(0,mostrando.findIndex(o=>o.value===sel.value));
     lista.innerHTML=mostrando.length
       ? mostrando.map((o,k)=>`<div class="ac-item${k===marcado?' hl':''}" data-k="${k}">
@@ -2758,8 +2795,8 @@ function massaColecao(){
   const ps=produtosSel();
   LOTE.busca='';
   LOTE.itens=()=>{
-    const q=(LOTE.busca||'').trim().toLowerCase();
-    return cs.filter(c=>!q||c.nome.toLowerCase().includes(q)).map(c=>{
+    const termos=termosBusca(LOTE.busca);
+    return cs.filter(c=>casaBusca(c.nome,termos)).map(c=>{
       const n=ps.filter(p=>(p.colecaoIds||[]).indexOf(c.id)>=0).length;
       return {rot:c.nome,
         desc:n?n+' de '+ps.length+' já está(ão) nela':'nenhum dos selecionados está nela',
@@ -2800,8 +2837,8 @@ function massaCadastro(qual){
   if(!itens.length){toast('Nenhum(a) '+rot+' cadastrado(a).');return;}
   LOTE.busca='';
   LOTE.itens=()=>{
-    const q=(LOTE.busca||'').trim().toLowerCase();
-    return itens.filter(x=>!q||x.nome.toLowerCase().includes(q)).map(x=>({
+    const termos=termosBusca(LOTE.busca);
+    return itens.filter(x=>casaBusca(x.nome,termos)).map(x=>({
       rot:x.nome,
       desc:ps.filter(p=>p[campo]===x.id).length+' de '+ps.length+' já está(ão) assim',
       fn:()=>{
@@ -2892,18 +2929,18 @@ function renderColecoesChecks(prefixo,marcadas){
   resumoColecoes(prefixo);
 }
 function linhaColecao(prefixo,c,marcada){
-  return `<label data-nome="${esc(c.nome.toLowerCase())}"><input type="checkbox" value="${c.id}"${marcada?' checked':''}
+  return `<label data-nome="${esc(chaveBusca(c.nome))}"><input type="checkbox" value="${c.id}"${marcada?' checked':''}
     onchange="resumoColecoes('${prefixo}')"> ${esc(c.nome)}</label>`;
 }
 function abrirColecoes(prefixo){
   const pop=$(prefixo+'ColPop');if(pop)pop.hidden=!pop.hidden;
 }
 function filtrarColecoes(prefixo,q){
-  const t=(q||'').trim().toLowerCase();
+  const termos=termosBusca(q);
   Array.from($(prefixo+'ColLista').querySelectorAll('label')).forEach(l=>{
     // uma coleção marcada nunca some do filtro: sumir daria a impressão de ter
     // sido desmarcada, e ela seria perdida sem ninguém perceber
-    const casa=!t||(l.dataset.nome||'').indexOf(t)>=0||l.querySelector('input').checked;
+    const casa=casaBusca(l.dataset.nome||'',termos)||l.querySelector('input').checked;
     l.hidden=!casa;
   });
 }
@@ -3563,9 +3600,14 @@ function passaEstoque(p,filtro){
   }
 }
 function produtosFiltrados(){
-  const u=ui.p,q=u.busca.trim().toLowerCase();
+  const u=ui.p,termos=termosBusca(u.busca);
+  /* procura no nome e no que a peça é: tipo, material, fornecedor, coleções,
+     cor e os tamanhos da grade — "anel dourado 18" acha o que é isso tudo */
+  const textoDoProduto=p=>[p.nome,tipoNome(p.tipoId),nomeDe(C().categorias,p.catId,''),
+    nomeDe(C().fornecedores,p.fornId,''),colecoesDoProduto(p).join(' '),
+    coresDoProduto(p).map(c=>c.nome).join(' '),(p.variacoes||[]).map(v=>v.rotulo).join(' ')];
   let ps=dados.produtos.filter(p=>
-    (!q||p.nome.toLowerCase().includes(q))&&
+    casaBusca(textoDoProduto(p),termos)&&
     (!u.cat||p.catId===u.cat)&&
     (!u.tipo||p.tipoId===u.tipo)&&
     (!u.forn||p.fornId===u.forn)&&
@@ -4425,8 +4467,10 @@ function renderClientes(){
 }
 /* tabela separada: assim digitar na busca não recria o campo (senão perde o foco a cada letra) */
 function renderClientesTab(){
-  const u=ui.c,q=u.busca.trim().toLowerCase();
-  let cs=dados.clientes.filter(c=>!q||c.nome.toLowerCase().includes(q)||(c.apelido||'').toLowerCase().includes(q)).map(c=>Object.assign({o:c},aggCliente(c.id)));
+  const u=ui.c,termos=termosBusca(u.busca);
+  // acha também pelo apelido, pelo telefone e pelo local da pessoa
+  let cs=dados.clientes.filter(c=>casaBusca([c.nome,c.apelido,c.tel,localNome(c.localId)],termos))
+    .map(c=>Object.assign({o:c},aggCliente(c.id)));
   cs.sort((a,b)=>b.total-a.total);
   const linhas=cs.slice(0,u.lim).map(x=>{const c=x.o;return `<tr>
     <td><a href="javascript:void 0" style="color:var(--texto);text-decoration:none;font-weight:600" onclick="detalheCliente('${c.id}')">${esc(c.nome)}</a>${c.apelido?` <span class="mut" style="font-size:.75rem">(${esc(c.apelido)})</span>`:''}${c.localId?` <span class="mut" style="font-size:.75rem">📍${esc(localNome(c.localId))}</span>`:''}</td>
@@ -4808,10 +4852,12 @@ function acMostrar(el,itens,aoEscolher){
   (el.closest('dialog')||document.body).appendChild(pop);
 }
 function acAbrir(i,el){
-  const termo=el.value.trim().toLowerCase();
+  const termos=termosBusca(el.value);
   let lista=dados.produtos.filter(p=>p.status!=='oculto');
-  if(termo)lista=lista.filter(p=>p.nome.toLowerCase().includes(termo));
+  if(termos.length)lista=lista.filter(p=>casaBusca([p.nome,tipoNome(p.tipoId)],termos));
   lista.sort((a,b)=>a.nome.localeCompare(b.nome));
+  // quem casa pelo NOME vem antes de quem casou só pelo tipo (a lista mostra 8)
+  if(termos.length)lista.sort((a,b)=>(casaBusca(a.nome,termos)?0:1)-(casaBusca(b.nome,termos)?0:1));
   const dup={};lista.forEach(p=>{const k=p.nome.toLowerCase();dup[k]=(dup[k]||0)+1;});
   acMostrar(el,lista.slice(0,8).map(p=>({id:p.id,nome:p.nome,desc:acDescricao(p),
     realce:dup[p.nome.toLowerCase()]>1,dado:p})),x=>usarProdutoNoItem(i,x.dado));
@@ -4836,9 +4882,9 @@ function acDescricaoCliente(c){
   return partes.join(' · ');
 }
 function acClientes(el,depois){
-  const termo=el.value.trim().toLowerCase();
+  const termos=termosBusca(el.value);
   let lista=dados.clientes.slice();
-  if(termo)lista=lista.filter(c=>c.nome.toLowerCase().includes(termo));
+  if(termos.length)lista=lista.filter(c=>casaBusca([c.nome,c.apelido,c.tel],termos));
   lista.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   acMostrar(el,lista.slice(0,8).map(c=>({id:c.id,nome:c.nome,desc:acDescricaoCliente(c),dado:c})),x=>{
     el.value=x.nome;
@@ -5445,9 +5491,10 @@ function totalItensFiltrados(vs){
 }
 function limparFiltrosVendas(){ui.v.forn='';ui.v.tipo='';ui.v.cat='';ui.v.col='';renderVendas();}
 function vendasFiltradas(){
-  const u=ui.v,[ini,fim]=periodoDe(u),q=u.busca.trim().toLowerCase();
+  const u=ui.v,[ini,fim]=periodoDe(u),termos=termosBusca(u.busca);
+  // acha pelo cliente, pelas peças da venda e pela observação
   return dados.vendas.filter(v=>noPeriodo(v.data,ini,fim)
-      &&(!q||(v.clienteNome||'').toLowerCase().includes(q)||v.itens.some(i=>i.nome.toLowerCase().includes(q)))
+      &&casaBusca([v.clienteNome,(v.itens||[]).map(i=>i.nome).join(' '),v.obs],termos)
       &&vendaCasaAtributos(v,u))
     .sort(cmpDataDesc(gD,gId));
 }
@@ -5628,13 +5675,13 @@ function cabFiado(){
 }
 /* corpo separado do cabeçalho: assim digitar na busca não recria o campo (senão perde o foco a cada letra) */
 function renderFiadoCorpo(){
-  const u=ui.f,modo=u.filtro||'todos',loc=u.local||'',q=u.busca.trim().toLowerCase();
+  const u=ui.f,modo=u.filtro||'todos',loc=u.local||'',termos=termosBusca(u.busca);
   let pend=fiadosPendentes();
   if(modo!=='todos')pend=pend.filter(v=>recParcelas(v).some(p=>parcNoFiltro(p,modo)));
   if(loc)pend=pend.filter(v=>localDaVenda(v)===loc);
   const grupos={};pend.forEach(v=>{const n=v.clienteNome||'(sem nome)';(grupos[n]=grupos[n]||[]).push(v);});
   let nomes=Object.keys(grupos).sort((a,b)=>somaFiltrada(grupos[b],modo)-somaFiltrada(grupos[a],modo));
-  if(q)nomes=nomes.filter(n=>n.toLowerCase().includes(q));
+  if(termos.length)nomes=nomes.filter(n=>casaBusca(n,termos));
   const totGeral=totalFiadoPendente();
   // com filtro ativo, o total mostrado é o das PARCELAS que aparecem (não o saldo inteiro das compras)
   const totFiltro=r2(nomes.reduce((s,n)=>s+somaFiltrada(grupos[n],modo),0));
@@ -5711,7 +5758,7 @@ function renderFiadoCorpo(){
   let pagosHtml='';
   if(u.mostrarPagos){
     let pgs=(dados.pagamentosFiado||[]).slice();
-    if(q)pgs=pgs.filter(p=>(p.clienteNome||'').toLowerCase().includes(q));
+    if(termos.length)pgs=pgs.filter(p=>casaBusca(p.clienteNome,termos));
     pgs.sort(cmpDataDesc(gD,gId));
     const lp=pgs.slice(0,300).map(p=>`<tr><td>${fmtData(p.data)}</td><td>${esc(p.clienteNome)}</td>
       <td class="mut">${p.alocacoes.length} parcela(s)${+p.acrescimo>0.005?` <span class="bd" style="border-color:var(--laranja);color:var(--laranja)">+${fmt(p.acrescimo)} acréscimo</span>`:''}</td><td>${esc(nomeDe(C().formas,p.formaId,'—'))}</td>
@@ -5726,7 +5773,7 @@ function renderFiadoCorpo(){
     // descontos concedidos: dívida que saiu sem dinheiro entrar — lista à parte pra não
     // se misturar com o que foi de fato recebido
     let ds=descontosFiado().slice();
-    if(q)ds=ds.filter(d=>(d.clienteNome||'').toLowerCase().includes(q));
+    if(termos.length)ds=ds.filter(d=>casaBusca(d.clienteNome,termos));
     if(ds.length){
       ds.sort(cmpDataDesc(gD,gId));
       const ld=ds.slice(0,300).map(d=>`<tr><td>${fmtData(d.data)}</td><td>${esc(d.clienteNome)}</td>
@@ -6563,8 +6610,10 @@ function acoesLanc(l){
   return '<span class="mut" style="font-size:.72rem">auto</span>';
 }
 function renderFinTab(){
-  const u=ui.l,[ini,fim]=periodoDe(u),q=u.busca.trim().toLowerCase();
-  const ls=dados.lancamentos.filter(l=>noPeriodo(l.data,ini,fim)&&(!u.tipo||l.tipo===u.tipo)&&(!q||(l.descricao||'').toLowerCase().includes(q)))
+  const u=ui.l,[ini,fim]=periodoDe(u),termos=termosBusca(u.busca);
+  // acha pela descrição e também pela conta do lançamento
+  const ls=dados.lancamentos.filter(l=>noPeriodo(l.data,ini,fim)&&(!u.tipo||l.tipo===u.tipo)
+      &&casaBusca([l.descricao,contaNome(l.contaId)],termos))
     .sort(cmpDataDesc(gD,gId));
   let ent=0,sai=0;ls.forEach(l=>{if(l.tipo==='entrada')ent+=+l.valor;else if(l.tipo==='saida')sai+=+l.valor;});
   const linhas=ls.slice(0,u.lim).map(l=>{
@@ -8578,7 +8627,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-09-22 23:28';
+const VERSAO_APP='2026-09-23 00:12';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
