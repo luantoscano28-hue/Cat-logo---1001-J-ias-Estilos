@@ -7772,14 +7772,31 @@ var CATALOGO = __CATALOGO_JSON__;
   }
 
   function produtosFiltrados(){
-    var q=estado.busca.trim().toLowerCase();
+    var termos=chaveBusca(estado.busca).split(" ").filter(function(x){return x;});
     return produtos.filter(function(p){
       if(estado.cat&&p.cat!==estado.cat)return false;
       if(estado.tipo&&p.tipo!==estado.tipo)return false;
       if(estado.col&&(p.cols||[]).indexOf(estado.col)<0)return false;
-      if(q&&p.nome.toLowerCase().indexOf(q)<0)return false;
+      if(termos.length){
+        var alvo=textoDoProduto(p);
+        for(var k=0;k<termos.length;k++)if(alvo.indexOf(termos[k])<0)return false;
+      }
       return true;
     });
+  }
+
+  /* Busca que não trai: acento, letra maiúscula e espaço a mais não podem
+     esconder a peça. Uma peça cadastrada como "Brinco Coração  Black" (com dois
+     espaços) não aparecia para quem digitava "brinco coracao black" — e a
+     cliente concluía que a loja não tinha. Agora cada palavra é procurada
+     separada, também no tipo, no material, nas coleções e nos tamanhos/cores. */
+  function chaveBusca(s){
+    var t=String(s==null?"":s).toLowerCase();
+    try{t=t.normalize("NFD").replace(/[\\u0300-\\u036f]/g,"");}catch(e){}
+    return t.replace(/\\s+/g," ").trim();
+  }
+  function textoDoProduto(p){
+    return chaveBusca([p.nome,p.tipo,p.cat,(p.cols||[]).join(" "),(p.variacoes||[]).join(" ")].join(" "));
   }
 
   function renderColecoes(){
@@ -8105,9 +8122,14 @@ var CATALOGO = __CATALOGO_JSON__;
       document.documentElement.classList.remove("lg-esperando");
     }
     if(esperando){document.documentElement.classList.add("lg-esperando");setTimeout(liberar,2500);}
-    fetch(N.url+"/rest/v1/catalogo?id=eq.unico&select=dados",{headers:{apikey:N.chave}})
+    var buscando=false,ultimaBusca=0;
+    function buscarVitrine(){
+      if(buscando)return;
+      buscando=true;ultimaBusca=Date.now();
+      fetch(N.url+"/rest/v1/catalogo?id=eq.unico&select=dados&t="+Date.now(),{cache:"no-store",headers:{apikey:N.chave}})
       .then(function(r){return r.ok?r.json():null;})
       .then(function(linhas){
+        buscando=false;
         if(!linhas||!linhas.length||!linhas[0].dados){liberar();return;}
         var novo=linhas[0].dados;
         if(!novo.produtos){liberar();return;}
@@ -8117,6 +8139,7 @@ var CATALOGO = __CATALOGO_JSON__;
         try{localStorage.setItem(CHAVE_VITRINE,texto);}catch(e){}
         // igual ao que já está na tela: não redesenha (o banner não volta ao começo)
         if(texto===vitrineGuardada){liberar();return;}
+        vitrineGuardada=texto;
         CATALOGO=novo;
         absorverCatalogo();   // sem isto, a tela continua com a lista antiga
         aplicarMarca();       // logo, nome e cores também podem ter mudado no painel
@@ -8127,7 +8150,18 @@ var CATALOGO = __CATALOGO_JSON__;
         render();
         liberar();
       })
-      .catch(function(){liberar();/* sem internet: fica o que já está na tela */});
+      .catch(function(){buscando=false;liberar();/* sem internet: fica o que já está na tela */});
+    }
+    buscarVitrine();
+    /* A aba do celular fica guardada em segundo plano e volta como estava: sem
+       isto, quem deixou a loja aberta continuava vendo a vitrine de antes, e
+       nem recarregar resolvia (a página voltava do cache). Ao voltar para a
+       tela, confere a vitrine de novo — no máximo uma vez a cada 20 s. */
+    document.addEventListener("visibilitychange",function(){
+      if(document.visibilityState!=="visible")return;
+      if(Date.now()-ultimaBusca<20000)return;
+      buscarVitrine();
+    });
   })();
 })();
 <\/script>
@@ -8540,7 +8574,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-09-22 22:31';
+const VERSAO_APP='2026-09-22 23:11';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
