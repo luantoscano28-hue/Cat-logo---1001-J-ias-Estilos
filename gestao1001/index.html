@@ -117,9 +117,16 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--acento);outline-off
 .mais-abas button.ativo{background:var(--nav-on);color:var(--nav-on-tx);border-color:transparent;font-weight:600}
 .mais-nuvem{font-size:.85rem;color:var(--texto2);display:flex;flex-wrap:wrap;gap:.35rem;align-items:center}
 
-.grade-row{display:flex;gap:.5rem;align-items:center;margin-bottom:.35rem}
+.grade-row{display:flex;gap:.5rem;align-items:center;margin-bottom:.35rem;flex-wrap:wrap}
 .grade-row .gr-rot{width:120px}
 .grade-row .gr-qt{width:90px;text-align:right}
+.grade-row .combo{flex:0 1 170px}
+/* cor criada na hora: nome + tom entram embaixo da linha, sem espremer o resto */
+.gr-outra{display:flex;gap:.4rem;align-items:center;flex-basis:100%;padding-left:1.1rem}
+.gr-outra input[type=color]{width:40px;height:32px;padding:.1rem;flex:none}
+.gr-outra input:not([type=color]){flex:1;min-width:0;max-width:230px}
+/* "controlar estoque separado por: [ ] tamanho [ ] cor" */
+.eixos{display:flex;align-items:center;gap:.55rem;flex-wrap:wrap;font-size:.85rem;color:var(--texto2)}
 .grade-sel{margin-top:.25rem;font-size:.82rem;padding:.22rem .4rem;max-width:200px}
 .grade-mini{font-size:.7rem;color:var(--texto2);margin-top:.1rem;line-height:1.3}
 .logo-prev{width:76px;height:76px;border-radius:50%;object-fit:cover;border:1px solid var(--borda);background:var(--painel3)}
@@ -512,12 +519,9 @@ tr.zerado:hover td{opacity:1}
 .lote-lista .lote-desc{font-size:.76rem;color:var(--texto2);font-weight:400;margin-top:.1rem}
 .lote-lista .bt.mini{flex:none}
 .lote-busca{width:100%;margin-bottom:.4rem}
-/* cor da peça: paleta das cores mais usadas + uma personalizada (nome + tom) */
-.paleta-cores{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.3rem}
-.cor-op{display:flex;align-items:center;gap:.35rem;background:var(--painel2);border:1px solid var(--borda);
-  border-radius:20px;padding:.25rem .65rem .25rem .3rem;font:inherit;font-size:.78rem;color:var(--texto);cursor:pointer}
-.cor-op:hover{border-color:var(--acento)}
-.cor-op.on{border-color:var(--acento);box-shadow:0 0 0 1px var(--acento) inset;font-weight:600}
+/* cor da peça: lista com as cores mais usadas + uma personalizada (nome + tom) */
+.cor-campo{display:flex;align-items:center;gap:.45rem;margin-top:.3rem}
+.cor-campo>select{flex:1;min-width:0}
 .cor-bolha{width:16px;height:16px;border-radius:50%;border:1px solid var(--borda);display:inline-block;flex:none}
 .cor-bolha.sem{background:repeating-linear-gradient(45deg,var(--painel3),var(--painel3) 3px,var(--painel) 3px,var(--painel) 6px)}
 .cor-bolha.mini{width:11px;height:11px;vertical-align:middle;margin-right:.25rem}
@@ -942,7 +946,7 @@ try{
     <label class="campo">Fornecedor <span class="sel-add"><select id="pForn"></select><button type="button" class="bt mini" title="novo fornecedor" onclick="novoCadInline('fornecedores','pForn')">+</button></span></label>
     <label class="campo">Status <select id="pStatus"><option value="ativo">À venda</option><option value="esgotado">Esgotado</option><option value="oculto">Oculto na loja</option></select></label>
     <div class="campo span2">
-      <span>Cor <span class="mut" style="font-size:.76rem">— escolha na paleta ou crie a sua</span></span>
+      <span>Cor <span class="mut" style="font-size:.76rem">— escolha na lista ou crie a sua</span></span>
       <div id="pCor"></div>
     </div>
     <label class="campo">Preço de venda (R$) <input type="number" id="pPreco" min="0" step="0.01"></label>
@@ -964,7 +968,11 @@ try{
       </div>
     </div>
     <div class="campo span2" id="pCustoResumo"></div>
-    <label class="linha span2" id="pGradeToggleBox"><input type="checkbox" id="pTemGrade" onchange="pGradeMudou()"> Controlar estoque por tamanho (grade) — ideal p/ anel e aliança</label>
+    <div class="eixos span2" id="pGradeToggleBox">Controlar estoque separado por:
+      <label class="linha"><input type="checkbox" id="pTemGrade" onchange="pGradeMudou()"> tamanho</label>
+      <label class="linha"><input type="checkbox" id="pTemGradeCor" onchange="pGradeMudou()"> cor</label>
+      <span class="mut" style="font-size:.74rem">— tamanho p/ anel e aliança; cor p/ a mesma peça em cores diferentes</span>
+    </div>
     <label class="campo" id="pEstoqueBox">Estoque atual <input type="number" id="pEstoque" step="any" placeholder="vazio = não controlar"></label>
     <label class="linha span2"><input type="checkbox" id="pAvisarEstoque" onchange="pAvisarMudou()"> Avisar quando o estoque estiver baixo
       <span class="mut" style="font-size:.76rem">— marque só nas peças que você repõe</span></label>
@@ -977,9 +985,10 @@ try{
       <div id="pColecoes" class="chk-tags"></div>
     </div>
     <div class="campo span2" id="pGradeBox" hidden>
-      <span>Grade de tamanhos (informe quantas peças de cada tamanho)</span>
+      <span id="pGradeTitulo">Grade de tamanhos (informe quantas peças de cada tamanho)</span>
       <div id="pGradeRows" style="margin-top:.3rem"></div>
-      <button type="button" class="bt mini" onclick="addGradeRow()">+ tamanho</button>
+      <button type="button" class="bt mini" id="pGradeAdd" onclick="addGradeRow()">+ tamanho</button>
+      <button type="button" class="bt mini" id="pGradeTodas" hidden onclick="montarTodasCombinacoes('p')" title="cruza os tamanhos e as cores já listados">⧉ montar todas as combinações</button>
       <span class="grade-mini" id="pGradeTotal"></span>
     </div>
     <label class="campo span2">Descrição (aparece na loja) <textarea id="pDesc"></textarea></label>
@@ -1009,7 +1018,7 @@ try{
       <option value="entrada">Entrada (compra/reposição)</option>
       <option value="saida">Saída (perda/uso)</option>
       <option value="ajuste">Ajuste (definir valor exato)</option></select></label>
-    <label class="campo" id="mVarBox" hidden>Tamanho <select id="mVar"></select></label>
+    <label class="campo" id="mVarBox" hidden><span id="mVarRotulo">Tamanho</span> <select id="mVar"></select></label>
     <label class="campo"><span id="mQtdeRotulo">Quantidade</span><input type="number" id="mQtde" step="any" required></label>
     <label class="linha span2" id="mCompraBox"><input type="checkbox" id="mCompra"> Foi uma compra — lançar a saída de dinheiro no Financeiro</label>
     <label class="campo" id="mValorBox" hidden>Valor pago (R$) <input type="number" id="mValor" min="0" step="0.01"></label>
@@ -1113,18 +1122,22 @@ try{
     <label class="campo">Tipo <span class="sel-add"><select id="qpTipo"></select><button type="button" class="bt mini" title="novo tipo" onclick="novoCadInline('tipos','qpTipo')">+</button></span></label>
     <label class="campo">Preço de venda (R$) <input type="number" id="qpPreco" min="0" step="0.01"></label>
     <label class="campo">Custo unitário (R$) <input type="number" id="qpCusto" min="0" step="0.01" placeholder="opcional"></label>
-    <label class="linha span2"><input type="checkbox" id="qpTemGrade" onchange="qpGradeMudou()"> Controlar estoque por tamanho (grade) — ideal p/ anel e aliança</label>
+    <div class="eixos span2">Controlar estoque separado por:
+      <label class="linha"><input type="checkbox" id="qpTemGrade" onchange="qpGradeMudou()"> tamanho</label>
+      <label class="linha"><input type="checkbox" id="qpTemGradeCor" onchange="qpGradeMudou()"> cor</label>
+    </div>
     <label class="campo" id="qpEstoqueBox">Estoque atual <input type="number" id="qpEstoque" step="any" placeholder="opcional"></label>
     <label class="campo">Fornecedor <span class="sel-add"><select id="qpForn"></select><button type="button" class="bt mini" title="novo fornecedor" onclick="novoCadInline('fornecedores','qpForn')">+</button></span></label>
     <label class="campo">Status <select id="qpStatus"><option value="ativo">À venda</option><option value="esgotado">Esgotado</option><option value="oculto">Oculto na loja</option></select></label>
     <div class="campo span2">
-      <span>Cor <span class="mut" style="font-size:.76rem">— escolha na paleta ou crie a sua</span></span>
+      <span>Cor <span class="mut" style="font-size:.76rem">— escolha na lista ou crie a sua</span></span>
       <div id="qpCor"></div>
     </div>
     <div class="campo span2" id="qpGradeBox" hidden>
-      <span>Grade de tamanhos (informe quantas peças de cada tamanho)</span>
+      <span id="qpGradeTitulo">Grade de tamanhos (informe quantas peças de cada tamanho)</span>
       <div id="qpGradeRows" style="margin-top:.3rem"></div>
-      <button type="button" class="bt mini" onclick="addQpGradeRow()">+ tamanho</button>
+      <button type="button" class="bt mini" id="qpGradeAdd" onclick="addQpGradeRow()">+ tamanho</button>
+      <button type="button" class="bt mini" id="qpGradeTodas" hidden onclick="montarTodasCombinacoes('qp')" title="cruza os tamanhos e as cores já listados">⧉ montar todas as combinações</button>
       <span class="grade-mini" id="qpGradeTotal"></span>
     </div>
     <label class="linha span2"><input type="checkbox" id="qpAvisarEstoque"> Avisar quando o estoque estiver baixo
@@ -1556,7 +1569,7 @@ function estruturaInicial(){
   const canalMaq={id:novoId(),nome:'Maquininha / celular',prazoDias:1,contaId:cxInfinity.id,padrao:true,bandeiras:bMaq.bandeiras,taxas:bMaq.taxas};
   const canalLink={id:novoId(),nome:'Link de pagamento',prazoDias:1,contaId:cxInfinity.id,padrao:false,bandeiras:bLink.bandeiras,taxas:bLink.taxas};
   return {
-    versao:22, criadoEm:hoje(), alteradoEm:null, ultimoBackup:null, nAlteracoes:0, seqCriacao:0,
+    versao:23, criadoEm:hoje(), alteradoEm:null, ultimoBackup:null, nAlteracoes:0, seqCriacao:0,
     config:{
       /* Nasce NEUTRA. Deixar aqui o WhatsApp e o Pix de alguém faria toda conta
          nova receber os pedidos e as cobranças no contato errado — e o dono da
@@ -1833,7 +1846,20 @@ function migrar(d){
      um aparelho atrasado derrubava os cadastros do outro (era o aviso "a
      configuração da nuvem parece PIOR"). */
   if(!Array.isArray(d.config.apagados))d.config.apagados=[];
-  d.versao=22;
+  /* ---- v23: grade passa a ter eixos (tamanho e/ou cor) ---- */
+  /* A grade sempre foi uma lista de variações com rótulo livre; o sistema é que
+     chamava tudo de "tamanho". Agora cada variação guarda tamanho e cor à parte
+     (o rótulo continua existindo, montado a partir dos dois), e o produto diz
+     em p.eixos o que ele controla. O que já existia vira grade só de tamanho. */
+  (d.produtos||[]).forEach(p=>{
+    if(!p||!Array.isArray(p.variacoes)||!p.variacoes.length)return;
+    if(!Array.isArray(p.eixos))p.eixos=['tamanho'];
+    p.variacoes.forEach(v=>{
+      if(v.tamanho===undefined)v.tamanho=v.rotulo||'';
+      if(v.cor===undefined)v.cor=null;
+    });
+  });
+  d.versao=23;
   return d;
 }
 
@@ -2007,9 +2033,9 @@ function fecharCombo(){
 function rotuloDoCampo(sel){
   // nome do campo para o cabeçalho da folha: no celular a janela fica escura
   // atrás e sem isso a pessoa não sabe o que está escolhendo
+  if(sel.dataset.rotulo)return sel.dataset.rotulo;   // campo fora de rótulo (ex.: linha da grade)
   const cx=sel.closest('label')||sel.closest('.campo');
-  if(!cx)return '';
-  let s='';
+  if(!cx)return '';  let s='';
   Array.prototype.forEach.call(cx.childNodes,n=>{if(n.nodeType===3)s+=n.textContent;});
   if(!s.trim()){const l=cx.querySelector('label');if(l)s=l.textContent;}
   s=s.split('—')[0].replace(/\s+/g,' ').trim();
@@ -2078,7 +2104,7 @@ function abrirCombo(sel,bt){
     marcado=Math.max(0,mostrando.findIndex(o=>o.value===sel.value));
     lista.innerHTML=mostrando.length
       ? mostrando.map((o,k)=>`<div class="ac-item${k===marcado?' hl':''}" data-k="${k}">
-          <span class="ac-nome">${esc(o.textContent)}</span>${o.value===sel.value?'<span class="ac-cat">em uso</span>':''}</div>`).join('')
+          <span class="ac-nome">${o.dataset.cor?`<span class="cor-bolha mini" style="background:${esc(o.dataset.cor)}"></span>`:''}${esc(o.textContent)}</span>${o.value===sel.value?'<span class="ac-cat">em uso</span>':''}</div>`).join('')
       : '<div class="ac-item"><span class="ac-nome mut">Nada com esse nome.</span></div>';
   }
   function escolher(k){
@@ -2966,33 +2992,147 @@ function salvarColecao(){
   toast('Coleção salva ✓');
 }
 
-/* ---------- grade de tamanhos (variações) ---------- */
+/* ============================================================
+   GRADE — estoque separado por tamanho e/ou cor
+   A grade sempre foi uma lista de variações; o sistema é que chamava tudo de
+   "tamanho". Agora cada variação guarda tamanho e cor à parte, e o produto diz
+   em p.eixos o que ele controla. O rótulo ("18 · Dourado") continua existindo,
+   montado a partir dos dois: venda, ajuste, mesclagem e loja seguem lendo ele.
+   ============================================================ */
 function temGrade(p){return !!(p&&p.variacoes&&p.variacoes.length);}
 function somaGrade(p){return r2((p.variacoes||[]).reduce((s,v)=>s+(+v.estoque||0),0));}
 function gradeResumo(p){return (p.variacoes||[]).map(v=>esc(v.rotulo)+':'+fmtN(v.estoque)).join(' · ');}
+function eixosDe(p){
+  if(p&&Array.isArray(p.eixos)&&p.eixos.length)return p.eixos.slice();
+  return temGrade(p)?['tamanho']:[];     // cadastro antigo: grade só de tamanho
+}
+function tamanhoDaLinha(g){return String((g&&(g.tamanho!==undefined?g.tamanho:g.rotulo))||'').trim();}
+function corDaLinha(g){return g&&g.cor&&g.cor.hex?g.cor:null;}
+function rotuloVariacao(v){
+  return [tamanhoDaLinha(v),(v&&v.cor&&v.cor.nome)||''].filter(Boolean).join(' · ');
+}
 let gradeRows=[];
 function tipoEhAnel(tipoId){const t=nomeDe(C().tipos,tipoId,'').toLowerCase();return /anel|alian/.test(t);}
 function pTipoMudou(){
   // sugere grade automaticamente p/ anel/aliança (sem forçar)
-  if(!$('pTemGrade').checked&&tipoEhAnel($('pTipo').value)&&!gradeRows.length){
+  if(!eixosDoForm('p').length&&tipoEhAnel($('pTipo').value)&&!gradeRows.length){
     $('pTemGrade').checked=true;pGradeMudou();
   }
 }
-function pGradeMudou(){
-  const on=$('pTemGrade').checked;
-  $('pGradeBox').hidden=!on;$('pEstoqueBox').style.display=on?'none':'';
-  if(on&&!gradeRows.length){gradeRows=[{id:novoId(),rotulo:'',estoque:0}];renderGradeRows();}
+function linhasGrade(pref){return pref==='qp'?qpGradeRows:gradeRows;}
+function eixosDoForm(pref){
+  return [$(pref+'TemGrade').checked&&'tamanho',$(pref+'TemGradeCor').checked&&'cor'].filter(Boolean);
 }
-function renderGradeRows(){
-  $('pGradeRows').innerHTML=gradeRows.map((g,i)=>`<div class="grade-row">
-    <input class="gr-rot" placeholder="tamanho (ex.: 18)" value="${esc(g.rotulo)}" oninput="gradeSet(${i},'rotulo',this.value)">
-    <input class="gr-qt" type="number" step="any" placeholder="qtd" value="${g.estoque}" oninput="gradeSet(${i},'estoque',this.value)">
-    <button type="button" class="bt mini perigo" onclick="removerGradeRow(${i})">✕</button></div>`).join('');
-  $('pGradeTotal').textContent='Total na grade: '+fmtN(gradeRows.reduce((s,g)=>s+(+g.estoque||0),0))+' peça(s)';
+function gradeMudou(pref){
+  const on=eixosDoForm(pref).length>0;
+  $(pref+'GradeBox').hidden=!on;
+  $(pref+'EstoqueBox').style.display=on?'none':'';
+  if(on&&!linhasGrade(pref).length)linhasGrade(pref).push({id:novoId(),tamanho:'',cor:null,estoque:0});
+  if(on)renderLinhasGrade(pref);
 }
-function gradeSet(i,campo,val){gradeRows[i][campo]=campo==='estoque'?(+val||0):val;$('pGradeTotal').textContent='Total na grade: '+fmtN(gradeRows.reduce((s,g)=>s+(+g.estoque||0),0))+' peça(s)';}
-function addGradeRow(){gradeRows.push({id:novoId(),rotulo:'',estoque:0});renderGradeRows();}
-function removerGradeRow(i){gradeRows.splice(i,1);if(!gradeRows.length){$('pTemGrade').checked=false;pGradeMudou();}else renderGradeRows();}
+function totalDaGrade(pref){
+  $(pref+'GradeTotal').textContent='Total na grade: '
+    +fmtN(linhasGrade(pref).reduce((s,g)=>s+(+g.estoque||0),0))+' peça(s)';
+}
+function renderLinhasGrade(pref){
+  const eixos=eixosDoForm(pref),porTam=eixos.indexOf('tamanho')>=0,porCor=eixos.indexOf('cor')>=0;
+  $(pref+'GradeTitulo').textContent=porTam&&porCor
+    ?'Grade por tamanho e cor (informe quantas peças de cada combinação)'
+    :porCor?'Grade por cor (informe quantas peças de cada cor)'
+           :'Grade de tamanhos (informe quantas peças de cada tamanho)';
+  $(pref+'GradeAdd').textContent=porTam&&porCor?'+ combinação':(porCor?'+ cor':'+ tamanho');
+  $(pref+'GradeTodas').hidden=!(porTam&&porCor);
+  $(pref+'GradeRows').innerHTML=linhasGrade(pref).map((g,i)=>{
+    const cor=corDaLinha(g),outra=!!cor&&!corEhPadrao(cor);
+    return `<div class="grade-row">
+      ${porTam?`<input class="gr-rot" placeholder="tamanho (ex.: 18)" value="${esc(tamanhoDaLinha(g))}" oninput="gradeLinhaSet('${pref}',${i},'tamanho',this.value)">`:''}
+      ${porCor?`<span class="cor-bolha${cor?'':' sem'}"${cor?` style="background:${esc(cor.hex)}"`:''}></span>
+      <select class="gr-cor" data-busca="1" data-rotulo="Cor desta linha" onchange="gradeLinhaSet('${pref}',${i},'cor',this.value)">
+        <option value=""${cor?'':' selected'}>escolha a cor</option>
+        ${opcoesCor(cor&&!outra?cor.nome:'')}
+        <option value="${COR_OUTRA}"${outra?' selected':''}>outra cor…</option>
+      </select>`:''}
+      <input class="gr-qt" type="number" step="any" placeholder="qtd" value="${g.estoque}" oninput="gradeLinhaSet('${pref}',${i},'estoque',this.value)">
+      <button type="button" class="bt mini perigo" onclick="removerLinhaGrade('${pref}',${i})">✕</button>
+      ${outra?`<div class="gr-outra">
+        <input type="color" value="${esc(cor.hex)}" oninput="gradeCorOutra('${pref}',${i},'hex',this.value)" title="tom da cor">
+        <input maxlength="24" placeholder="nome da cor (ex.: vinho)" value="${esc(cor.nome||'')}" oninput="gradeCorOutra('${pref}',${i},'nome',this.value)">
+      </div>`:''}
+    </div>`;
+  }).join('');
+  totalDaGrade(pref);
+  ativarBuscaSelects($(pref+'GradeRows'));
+}
+function gradeLinhaSet(pref,i,campo,val){
+  const g=linhasGrade(pref)[i];if(!g)return;
+  if(campo==='rotulo')campo='tamanho';
+  if(campo==='estoque'){g.estoque=+val||0;totalDaGrade(pref);return;}
+  if(campo==='tamanho'){g.tamanho=val;g.rotulo=rotuloVariacao(g);return;}
+  if(campo==='cor'){
+    if(val===COR_OUTRA)g.cor={nome:(corDaLinha(g)&&!corEhPadrao(g.cor)&&g.cor.nome)||'',hex:(g.cor&&g.cor.hex)||'#c9a227'};
+    else{const c=CORES_PADRAO.find(x=>x[0]===val);g.cor=c?{nome:c[0],hex:c[1]}:null;}
+    g.rotulo=rotuloVariacao(g);
+    renderLinhasGrade(pref);   // muda a bolinha e pode abrir os campos da cor criada
+  }
+}
+/* digitar o nome/tom da cor criada não pode redesenhar a linha: o cursor se perderia */
+function gradeCorOutra(pref,i,campo,val){
+  const g=linhasGrade(pref)[i];if(!g||!g.cor)return;
+  g.cor[campo]=campo==='nome'?String(val).trim():val;
+  g.rotulo=rotuloVariacao(g);
+  const linha=$(pref+'GradeRows').children[i],b=linha&&linha.querySelector('.cor-bolha');
+  if(b&&campo==='hex'){b.classList.remove('sem');b.style.background=val;}
+}
+function addLinhaGrade(pref){
+  linhasGrade(pref).push({id:novoId(),tamanho:'',cor:null,estoque:0});
+  renderLinhasGrade(pref);
+}
+function removerLinhaGrade(pref,i){
+  const rows=linhasGrade(pref);rows.splice(i,1);
+  if(!rows.length){$(pref+'TemGrade').checked=false;$(pref+'TemGradeCor').checked=false;gradeMudou(pref);}
+  else renderLinhasGrade(pref);
+}
+/* atalho para a mesma peça em vários tamanhos E várias cores: cruza o que já
+   está na lista e completa as combinações que faltam (com quantidade zero) */
+function montarTodasCombinacoes(pref){
+  const rows=linhasGrade(pref);
+  const tams=[...new Set(rows.map(tamanhoDaLinha).filter(Boolean))];
+  const cores={};rows.forEach(g=>{const c=corDaLinha(g);if(c&&!cores[c.nome||c.hex])cores[c.nome||c.hex]=c;});
+  const lista=Object.keys(cores).map(k=>cores[k]);
+  if(!tams.length||!lista.length){toast('Escreva ao menos um tamanho e escolha ao menos uma cor primeiro.');return;}
+  let novas=0;
+  tams.forEach(t=>lista.forEach(c=>{
+    if(rows.some(g=>tamanhoDaLinha(g)===t&&(corDaLinha(g)||{}).nome===c.nome))return;
+    const v={id:novoId(),tamanho:t,cor:{nome:c.nome,hex:c.hex},estoque:0};
+    v.rotulo=rotuloVariacao(v);rows.push(v);novas++;
+  }));
+  renderLinhasGrade(pref);
+  toast(novas?novas+' combinação(ões) a mais — informe as quantidades':'Todas as combinações já estavam na lista');
+}
+/* devolve as variações prontas, ou null quando tem algo pra corrigir (já avisa) */
+function variacoesDoForm(pref,eixos){
+  const porTam=eixos.indexOf('tamanho')>=0,porCor=eixos.indexOf('cor')>=0,vs=[];
+  for(const g of linhasGrade(pref)){
+    const tam=porTam?tamanhoDaLinha(g):'',cor=porCor?corDaLinha(g):null;
+    if(!tam&&!cor)continue;                       // linha em branco: só ignora
+    if(porTam&&!tam){toast('Informe o tamanho de cada linha da grade.');return null;}
+    if(porCor&&!cor){toast('Escolha a cor de cada linha da grade.');return null;}
+    const v={id:g.id||novoId(),tamanho:tam,cor:cor?{nome:cor.nome||'cor personalizada',hex:cor.hex}:null,estoque:r2(g.estoque)};
+    v.rotulo=rotuloVariacao(v);
+    if(vs.some(x=>x.rotulo.toLowerCase()===v.rotulo.toLowerCase())){
+      toast('Tem duas linhas iguais na grade: '+v.rotulo);return null;
+    }
+    vs.push(v);
+  }
+  if(!vs.length){toast(porCor&&!porTam?'Adicione ao menos uma cor na grade.':'Adicione ao menos um tamanho na grade.');return null;}
+  return vs;
+}
+/* nomes usados pelo HTML: cada diálogo tem o seu estado */
+function pGradeMudou(){gradeMudou('p');}
+function renderGradeRows(){renderLinhasGrade('p');}
+function gradeSet(i,campo,val){gradeLinhaSet('p',i,campo,val);}
+function addGradeRow(){addLinhaGrade('p');}
+function removerGradeRow(i){removerLinhaGrade('p',i);}
 
 /* ---------- logo da loja ---------- */
 function carregarLogo(inp){
@@ -3027,24 +3167,38 @@ function iniciarPaletaCor(pref,cor){
   CORSEL[pref]=cor&&cor.hex?{nome:cor.nome||'',hex:cor.hex}:null;
   renderPaletaCor(pref);
 }
+const COR_OUTRA='__outra';
+/* A paleta em bolinhas ocupava duas fileiras inteiras do cadastro. Virou lista:
+   o <select> tem opção demais, então o próprio painel o transforma em campo com
+   busca (e, no celular, em folha de baixo). A bolinha do lado mostra a escolha. */
+function opcoesCor(sel){
+  return CORES_PADRAO.map(([nome,hex])=>
+    `<option value="${esc(nome)}" data-cor="${hex}"${sel===nome?' selected':''}>${esc(nome)}</option>`).join('');
+}
 function renderPaletaCor(pref){
   const box=$(pref+'Cor');if(!box)return;
   const atual=CORSEL[pref],outra=!!atual&&!corEhPadrao(atual);
-  box.innerHTML=`<div class="paleta-cores">
-      <button type="button" class="cor-op${atual?'':' on'}" onclick="escolherCor('${pref}','','')">
-        <span class="cor-bolha sem"></span><span>sem cor</span></button>
-      ${CORES_PADRAO.map(([nome,hex])=>`<button type="button" class="cor-op${atual&&atual.nome===nome?' on':''}" onclick="escolherCor('${pref}','${nome}','${hex}')">
-        <span class="cor-bolha" style="background:${hex}"></span><span>${nome}</span></button>`).join('')}
-      <button type="button" class="cor-op${outra?' on':''}" onclick="corOutra('${pref}')">
-        <span class="cor-bolha" style="background:${outra?esc(atual.hex):'conic-gradient(#c9a227,#e489ac,#3b6ba5,#2f7d5b,#c9a227)'}"></span><span>outra cor…</span></button>
-    </div>
-    <div class="cor-outra" id="${pref}CorOutra"${outra?'':' hidden'}>
+  const escolhida=outra?COR_OUTRA:(atual?atual.nome:'');
+  box.innerHTML=`<div class="cor-campo">
+      <span class="cor-bolha${atual?'':' sem'}" id="${pref}CorBolha"${atual?` style="background:${esc(atual.hex)}"`:''}></span>
+      <select id="${pref}CorSel" data-busca="1" data-rotulo="Cor da peça" onchange="corSelMudou('${pref}')">
+        <option value=""${escolhida?'':' selected'}>sem cor</option>
+        ${opcoesCor(escolhida)}
+        <option value="${COR_OUTRA}"${outra?' selected':''}>outra cor…</option>
+      </select>
+    </div>    <div class="cor-outra" id="${pref}CorOutra"${outra?'':' hidden'}>
       <input type="color" id="${pref}CorHex" value="${outra?esc(atual.hex):'#c9a227'}" oninput="corOutraMudou('${pref}')" title="tom da cor">
       <input id="${pref}CorNome" maxlength="24" placeholder="nome da cor (ex.: vinho, grafite)" value="${outra?esc(atual.nome):''}" oninput="corOutraMudou('${pref}')">
     </div>`;
+  ativarBuscaSelects(box);
 }
-function escolherCor(pref,nome,hex){
-  CORSEL[pref]=nome?{nome,hex}:null;
+function corSelMudou(pref){
+  const s=$(pref+'CorSel');if(!s)return;
+  if(s.value===COR_OUTRA){corOutra(pref);return;}
+  const c=CORES_PADRAO.find(x=>x[0]===s.value);
+  escolherCor(pref,c?c[0]:'',c?c[1]:'');
+}
+function escolherCor(pref,nome,hex){  CORSEL[pref]=nome?{nome,hex}:null;
   renderPaletaCor(pref);
 }
 function corOutra(pref){
@@ -3055,19 +3209,28 @@ function corOutra(pref){
 }
 function corOutraMudou(pref){
   const n=$(pref+'CorNome'),h=$(pref+'CorHex');
-  if(n&&h)CORSEL[pref]={nome:n.value.trim(),hex:h.value};
-}
-function lerCor(pref){
+  if(!n||!h)return;
+  CORSEL[pref]={nome:n.value.trim(),hex:h.value};
+  const b=$(pref+'CorBolha');
+  if(b){b.classList.remove('sem');b.style.background=h.value;}
+}function lerCor(pref){
   const c=CORSEL[pref];
   if(!c||!c.hex)return null;
   return {nome:(c.nome||'').trim()||'cor personalizada',hex:c.hex};
 }
+/* cores da peça: a do cadastro e, quando o estoque é controlado por cor,
+   as da grade (uma peça pode existir em três cores ao mesmo tempo) */
+function coresDoProduto(p){
+  const m={};
+  const por=c=>{if(c&&c.hex&&!m[c.nome||c.hex])m[c.nome||c.hex]=c;};
+  if(p){por(p.cor);(p.variacoes||[]).forEach(v=>por(v.cor));}
+  return Object.keys(m).map(k=>m[k]);
+}
 /* bolinha da cor ao lado do nome, na lista e na janela de mesclar */
 function bolhaCor(p){
-  return p&&p.cor&&p.cor.hex
-    ? `<span class="cor-bolha mini" title="${esc(p.cor.nome||'')}" style="background:${esc(p.cor.hex)}"></span>`:'';
+  return coresDoProduto(p).slice(0,3).map(c=>
+    `<span class="cor-bolha mini" title="${esc(c.nome||'')}" style="background:${esc(c.hex)}"></span>`).join('');
 }
-
 function renderProdutos(){
   const u=ui.p;
   if(!dados.produtos.length){
@@ -3102,10 +3265,10 @@ function renderProdutos(){
    só aumentaria a lista */
 function coresUsadas(){
   const m={};
-  dados.produtos.forEach(p=>{if(p.cor&&p.cor.nome&&!m[p.cor.nome])m[p.cor.nome]=p.cor;});
+  dados.produtos.forEach(p=>coresDoProduto(p).forEach(c=>{if(c.nome&&!m[c.nome])m[c.nome]=c;}));
   return Object.keys(m).sort((a,b)=>a.localeCompare(b,'pt-BR')).map(k=>m[k]);
 }
-function barraFiltrosProdutos(){
+function produtoTemCor(p,nome){return coresDoProduto(p).some(c=>(c.nome||'')===nome);}function barraFiltrosProdutos(){
   const u=ui.p,cores=coresUsadas();
   const op=(v,rot)=>`<option value="${v}"${u.estoque===v?' selected':''}>${rot}</option>`;
   return `<div class="barra">
@@ -3217,9 +3380,16 @@ function planoGradeJuntar(fica,sai){
   const norm=r=>String(r==null?'':r).trim().toLowerCase().replace(/\s+/g,' ');
   const vars=(fica.variacoes||[]).map(v=>Object.assign({},v,{estoque:+v.estoque||0,doFica:+v.estoque||0,doSai:0,nova:false}));
   const mapa={};
-  const achar=rot=>{
+  /* tamanho e cor viajam junto com o rótulo: variação criada aqui precisa
+     nascer completa, senão a grade do sobrevivente perderia a cor do repetido */
+  const achar=(rot,de)=>{
     let v=vars.find(x=>norm(x.rotulo)===norm(rot));
-    if(!v){v={id:novoId(),rotulo:String(rot==null?'':rot).trim(),estoque:0,doFica:0,doSai:0,nova:true};vars.push(v);}
+    if(!v){
+      v={id:novoId(),rotulo:String(rot==null?'':rot).trim(),
+        tamanho:de?tamanhoDaLinha(de):String(rot==null?'':rot).trim(),cor:(de&&de.cor)||null,
+        estoque:0,doFica:0,doSai:0,nova:true};
+      vars.push(v);
+    }
     return v;
   };
   const simples=temGrade(fica)?sai:fica;
@@ -3234,7 +3404,7 @@ function planoGradeJuntar(fica,sai){
       else v.doSai=r2(v.doSai+qtd);
     }
   }
-  if(temGrade(sai))sai.variacoes.forEach(sv=>{const v=achar(sv.rotulo);v.doSai=r2(v.doSai+(+sv.estoque||0));mapa[sv.id]=v.id;});
+  if(temGrade(sai))sai.variacoes.forEach(sv=>{const v=achar(sv.rotulo,sv);v.doSai=r2(v.doSai+(+sv.estoque||0));mapa[sv.id]=v.id;});
   // tamanhos numéricos em ordem; "sem tamanho" sempre por último
   const semT=v=>norm(v.rotulo)==='sem tamanho'?1:0;
   const numero=v=>parseFloat(String(v.rotulo).trim().replace(',','.'));
@@ -3313,6 +3483,8 @@ function juntarProdutos(idFica,idSai,opc){
   if(!fica.fornId&&sai.fornId)fica.fornId=sai.fornId;
   if(!fica.descricao&&sai.descricao)fica.descricao=sai.descricao;
   if(!fica.cor&&sai.cor)fica.cor=sai.cor;
+  // grade juntada herda os eixos dos dois (um controlava cor, o outro tamanho)
+  if(grade)fica.eixos=[...new Set(eixosDe(fica).concat(eixosDe(sai)))];
   if(!fica.video&&sai.video)fica.video=sai.video;
   fica.fotos=(fica.fotos||[]).concat(sai.fotos||[]).slice(0,3);
   fica.colecaoIds=[...new Set((fica.colecaoIds||[]).concat(sai.colecaoIds||[]))];
@@ -3398,7 +3570,7 @@ function produtosFiltrados(){
     (!u.tipo||p.tipoId===u.tipo)&&
     (!u.forn||p.fornId===u.forn)&&
     (!u.col||(u.col==='__sem'?!((p.colecaoIds||[]).length):produtoNaColecao(p,u.col)))&&
-    (!u.cor||((p.cor&&p.cor.nome)||'')===u.cor)&&
+    (!u.cor||produtoTemCor(p,u.cor))&&
     (!u.status||p.status===u.status)&&
     passaEstoque(p,u.estoque)&&
     (!u.ini||(cadastradoEm(p)&&cadastradoEm(p)>=u.ini))&&
@@ -3814,7 +3986,8 @@ function pAvisarMudou(){
 function abrirNovoProduto(){
   $('formProduto').reset();preencherSelectsProduto();
   $('dlgProdutoTitulo').textContent='Novo produto';$('pId').value='';$('pStatus').value='ativo';$('pMinimo').value=0;
-  $('pTemGrade').checked=false;gradeRows=[];$('pGradeBox').hidden=true;$('pEstoqueBox').style.display='';
+  $('pTemGrade').checked=false;$('pTemGradeCor').checked=false;gradeRows=[];
+  $('pGradeBox').hidden=true;$('pEstoqueBox').style.display='';
   // desmarcado por padrão: a maioria das peças é compra única e não se repõe
   $('pAvisarEstoque').checked=false;pAvisarMudou();renderColecoesChecks('p',[]);
   $('pInsProprios').checked=false;$('pInsBox').hidden=true;$('pInsWrap').hidden=true;insRows=[];renderInsumosProduto();
@@ -3837,19 +4010,21 @@ function editarProduto(id){
   // o bloco só reaparece pra quem já usa embalagem própria — senão fica fora do caminho
   $('pInsWrap').hidden=!temInsumosProprios(p);
   $('pInsBox').hidden=!temInsumosProprios(p);renderInsumosProduto();
-  const grade=temGrade(p);
-  $('pTemGrade').checked=grade;gradeRows=grade?p.variacoes.map(v=>Object.assign({},v)):[];
-  $('pGradeBox').hidden=!grade;$('pEstoqueBox').style.display=grade?'none':'';if(grade)renderGradeRows();
+  const grade=temGrade(p),eixos=eixosDe(p);
+  $('pTemGrade').checked=eixos.indexOf('tamanho')>=0;
+  $('pTemGradeCor').checked=eixos.indexOf('cor')>=0;
+  gradeRows=grade?p.variacoes.map(v=>Object.assign({},v)):[];
+  gradeMudou('p');
   iniciarPaletaCor('p',p.cor);
   prodFotos=(p.fotos||[]).slice();prodVideo=p.video||'';renderMidiaProduto();
   dlgProduto.showModal();
 }
 function salvarProduto(){
-  const id=$('pId').value,est=$('pEstoque').value,usaGrade=$('pTemGrade').checked;
+  const id=$('pId').value,est=$('pEstoque').value,eixos=eixosDoForm('p'),usaGrade=eixos.length>0;
   let variacoes=[],estoqueFinal;
   if(usaGrade){
-    variacoes=gradeRows.filter(g=>String(g.rotulo).trim()!=='').map(g=>({id:g.id||novoId(),rotulo:String(g.rotulo).trim(),estoque:r2(g.estoque)}));
-    if(!variacoes.length){toast('Adicione ao menos um tamanho na grade.');return;}
+    variacoes=variacoesDoForm('p',eixos);
+    if(!variacoes)return;
     estoqueFinal=r2(variacoes.reduce((s,v)=>s+(+v.estoque||0),0));
   }else{estoqueFinal=est===''?null:r2(est);}
   const o={nome:$('pNome').value.trim(),catId:$('pCat').value,tipoId:$('pTipo').value||null,fornId:$('pForn').value||null,
@@ -3859,7 +4034,7 @@ function salvarProduto(){
     insumosProprios:$('pInsProprios').checked,
     insumos:$('pInsProprios').checked?insRows.filter(x=>String(x.nome||'').trim()!==''||(+x.valor||0)>0)
       .map(x=>({id:x.id||novoId(),nome:String(x.nome||'').trim()||'insumo',valor:r2(x.valor)||0})):[],
-    cor:lerCor('p'),fotos:prodFotos.slice(),video:prodVideo,variacoes};
+    cor:lerCor('p'),fotos:prodFotos.slice(),video:prodVideo,variacoes,eixos:usaGrade?eixos:[]};
   if(!o.nome){toast('Informe o nome.');return;}
   if(!confirmarNomeRepetido(o.nome,id||null))return;
   if(id){
@@ -3924,12 +4099,15 @@ function passoEstoqueMesclaHTML(sai,fica){
     <h4 style="margin:.9rem 0 .2rem">Estoque de “${esc(fica.nome)}” depois de mesclar</h4>
     <p class="mut" style="font-size:.8rem;margin:0 0 .5rem">Fica o estoque que ele já tem. O de “${esc(sai.nome)}” <b>não é somado</b> — mude o número se precisar.</p>`;
   if(g){
+    // a grade pode ser de tamanho, de cor ou das duas coisas: o título acompanha
+    const eixos=[...new Set(eixosDe(fica).concat(eixosDe(sai)))];
+    const rotGrade=eixos.indexOf('cor')>=0?(eixos.indexOf('tamanho')>=0?'Tamanho e cor':'Cor'):'Tamanho';
     h+=`<div class="rolagem"><table class="mescla-grade" id="mesclaGrade">
-      <thead><tr><th>Tamanho</th><th class="num">hoje</th><th class="num">no repetido</th><th class="num">vai ficar</th></tr></thead>
+      <thead><tr><th>${rotGrade}</th><th class="num">hoje</th><th class="num">no repetido</th><th class="num">vai ficar</th></tr></thead>
       <tbody>${g.variacoes.map(v=>`<tr><td>${esc(v.rotulo)}</td><td class="num">${fmtN(v.doFica)}</td><td class="num">${fmtN(v.doSai)}</td>
         <td class="num"><input type="number" min="0" step="1" inputmode="numeric" data-var="${v.id}" data-soma="${r2(v.doFica+v.doSai)}" value="${v.doFica}"></td></tr>`).join('')}</tbody>
     </table></div>
-    <p class="mut" style="font-size:.76rem;margin:.3rem 0 0">Tamanho que ficar com 0 e não tiver venda não é criado.</p>`;
+    <p class="mut" style="font-size:.76rem;margin:.3rem 0 0">Linha que ficar com 0 e não tiver venda não é criada.</p>`;
   }else{
     const soma=(fica.estoque==null&&sai.estoque==null)?'':r2((+fica.estoque||0)+(+sai.estoque||0));
     h+=`<label class="campo">Estoque
@@ -4116,29 +4294,11 @@ function removerFotoQuick(i){qpFotos.splice(i,1);renderMidiaQuick();}
    Espelha a do cadastro completo, mas com estado próprio: os dois diálogos
    podem estar abertos ao mesmo tempo (o rápido abre por cima da venda). */
 let qpGradeRows=[];
-function qpGradeMudou(){
-  const on=$('qpTemGrade').checked;
-  $('qpGradeBox').hidden=!on;$('qpEstoqueBox').style.display=on?'none':'';
-  if(on&&!qpGradeRows.length){qpGradeRows=[{id:novoId(),rotulo:'',estoque:0}];}
-  if(on)renderQpGradeRows();
-}
-function renderQpGradeRows(){
-  $('qpGradeRows').innerHTML=qpGradeRows.map((g,i)=>`<div class="grade-row">
-    <input class="gr-rot" placeholder="tamanho (ex.: 18)" value="${esc(g.rotulo)}" oninput="qpGradeSet(${i},'rotulo',this.value)">
-    <input class="gr-qt" type="number" step="any" placeholder="qtd" value="${g.estoque}" oninput="qpGradeSet(${i},'estoque',this.value)">
-    <button type="button" class="bt mini perigo" onclick="removerQpGradeRow(${i})">✕</button></div>`).join('');
-  $('qpGradeTotal').textContent='Total na grade: '+fmtN(qpGradeRows.reduce((s,g)=>s+(+g.estoque||0),0))+' peça(s)';
-}
-function qpGradeSet(i,campo,val){
-  qpGradeRows[i][campo]=campo==='estoque'?(+val||0):val;
-  $('qpGradeTotal').textContent='Total na grade: '+fmtN(qpGradeRows.reduce((s,g)=>s+(+g.estoque||0),0))+' peça(s)';
-}
-function addQpGradeRow(){qpGradeRows.push({id:novoId(),rotulo:'',estoque:0});renderQpGradeRows();}
-function removerQpGradeRow(i){
-  qpGradeRows.splice(i,1);
-  if(!qpGradeRows.length){$('qpTemGrade').checked=false;qpGradeMudou();}
-  else renderQpGradeRows();
-}
+function qpGradeMudou(){gradeMudou('qp');}
+function renderQpGradeRows(){renderLinhasGrade('qp');}
+function qpGradeSet(i,campo,val){gradeLinhaSet('qp',i,campo,val);}
+function addQpGradeRow(){addLinhaGrade('qp');}
+function removerQpGradeRow(i){removerLinhaGrade('qp',i);}
 function abrirQuickProd(idx){
   $('formQuickProd').reset();$('qpIdx').value=idx;
   $('qpCat').innerHTML=opcoes(C().categorias);
@@ -4154,11 +4314,11 @@ function abrirQuickProd(idx){
     $('qpCusto').value=np.custo!=null?np.custo:'';
     $('qpEstoque').value=np.estoque!=null?np.estoque:'';
   }
-  const comGrade=!!(np&&np.variacoes&&np.variacoes.length);
-  $('qpTemGrade').checked=comGrade;
+  const comGrade=!!(np&&np.variacoes&&np.variacoes.length),eixosNp=eixosDe(np||null);
+  $('qpTemGrade').checked=eixosNp.indexOf('tamanho')>=0;
+  $('qpTemGradeCor').checked=eixosNp.indexOf('cor')>=0;
   qpGradeRows=comGrade?np.variacoes.map(v=>Object.assign({},v)):[];
-  $('qpGradeBox').hidden=!comGrade;$('qpEstoqueBox').style.display=comGrade?'none':'';
-  if(comGrade)renderQpGradeRows();
+  gradeMudou('qp');
   $('qpAvisarEstoque').checked=np?np.avisarEstoque===true:false;
   renderColecoesChecks('qp',(np&&np.colecaoIds)||[]);
   iniciarPaletaCor('qp',np&&np.cor);
@@ -4171,18 +4331,17 @@ function abrirQuickProd(idx){
 function salvarQuickProd(){
   const nome=$('qpNome').value.trim();if(!nome){toast('Informe o nome.');return;}
   if(!confirmarNomeRepetido(nome,null))return;
-  const est=$('qpEstoque').value;
+  const est=$('qpEstoque').value,eixos=eixosDoForm('qp');
   let variacoes=[],estoqueFinal;
-  if($('qpTemGrade').checked){
-    variacoes=qpGradeRows.filter(g=>String(g.rotulo).trim()!=='')
-      .map(g=>({id:g.id||novoId(),rotulo:String(g.rotulo).trim(),estoque:r2(g.estoque)}));
-    if(!variacoes.length){toast('Adicione ao menos um tamanho na grade.');return;}
+  if(eixos.length){
+    variacoes=variacoesDoForm('qp',eixos);
+    if(!variacoes)return;
     estoqueFinal=r2(variacoes.reduce((s,v)=>s+(+v.estoque||0),0));
   }else{estoqueFinal=est===''?null:r2(est);}
   const p={id:novoId(),criadoEm:hoje(),nome,catId:$('qpCat').value,tipoId:$('qpTipo').value||null,fornId:$('qpForn').value||null,
     status:$('qpStatus').value||'ativo',preco:r2($('qpPreco').value)||0,custo:$('qpCusto').value===''?null:r2($('qpCusto').value),
     estoque:estoqueFinal,minimo:0,descricao:'',avisarEstoque:$('qpAvisarEstoque').checked,colecaoIds:lerColecoesChecks('qp'),
-    cor:lerCor('qp'),fotos:qpFotos.slice(),video:'',variacoes};
+    cor:lerCor('qp'),fotos:qpFotos.slice(),video:'',variacoes,eixos:eixos.length?eixos:[]};
   const idx=+$('qpIdx').value,it=itensVenda[idx];
   if(it){
     it.novoProd=p;it.produtoId=null;it.nome=nome;
@@ -4203,9 +4362,10 @@ function abrirMov(id){
   const p=prodPorId(id);if(!p)return;
   $('formMov').reset();$('mProdutoId').value=id;
   $('mForn').innerHTML='<option value="">—</option>'+opcoes(C().fornecedores);
-  const grade=temGrade(p);
+  const grade=temGrade(p),eixos=eixosDe(p);
   $('mVarBox').hidden=!grade;
-  if(grade)$('mVar').innerHTML=p.variacoes.map(v=>`<option value="${v.id}">Tam ${esc(v.rotulo)} (atual: ${fmtN(v.estoque)})</option>`).join('');
+  $('mVarRotulo').textContent=eixos.indexOf('cor')>=0?(eixos.indexOf('tamanho')>=0?'Tamanho e cor':'Cor'):'Tamanho';
+  if(grade)$('mVar').innerHTML=p.variacoes.map(v=>`<option value="${v.id}">${esc(v.rotulo)} (atual: ${fmtN(v.estoque)})</option>`).join('');
   $('mProdutoNome').innerHTML='<b>'+esc(p.nome)+'</b> — estoque atual: <b>'+(p.estoque==null?'não controlado':fmtN(p.estoque))+'</b>'+(grade?' <span class="grade-mini">'+gradeResumo(p)+'</span>':'');
   $('mQtde').value=p.estoque==null?'':1;movTipoMudou();dlgMov.showModal();
 }
@@ -4709,7 +4869,7 @@ function gradeSelHTML(i){
      tamanhos já foram digitados e a pessoa precisa escolher qual está vendendo */
   const p=it.produtoId?prodPorId(it.produtoId):it.novoProd;
   if(!temGrade(p))return '';
-  return `<select class="grade-sel" onchange="itemVenda(${i},'variacao',this.value)">${p.variacoes.map(v=>`<option value="${v.id}" ${v.id===it.variacaoId?'selected':''}>Tam ${esc(v.rotulo)} (${fmtN(v.estoque)})</option>`).join('')}</select>`;
+  return `<select class="grade-sel" onchange="itemVenda(${i},'variacao',this.value)">${p.variacoes.map(v=>`<option value="${v.id}" ${v.id===it.variacaoId?'selected':''}>${esc(v.rotulo)} (${fmtN(v.estoque)})</option>`).join('')}</select>`;
 }
 /* produto que ainda não existe no estoque: o texto é o mesmo do cliente novo,
    porque o comportamento passou a ser o mesmo — só entra ao salvar a venda */
@@ -7071,10 +7231,19 @@ function catalogoLoja(embutir){
     const video=p.video
       ?((typeof ehEnderecoNuvem==='function'&&ehEnderecoNuvem(p.video))?p.video:(embutir?p.video:('videos/'+p.id+'.mp4')))
       :'';
-    const variacoes=temGrade(p)?(p.variacoes||[]).filter(v=>+v.estoque>0).map(v=>v.rotulo):[];
+    const disp=temGrade(p)?(p.variacoes||[]).filter(v=>+v.estoque>0):[];
+    const variacoes=disp.map(v=>v.rotulo);
+    /* o cliente precisa saber o que está escolhendo: a mesma lista serve para
+       tamanho ("18"), cor ("Dourado") e os dois juntos ("18 · Dourado") */
+    const eixos=eixosDe(p);
+    const rotuloEscolha=eixos.indexOf('tamanho')>=0&&eixos.indexOf('cor')>=0?'Tamanho e cor'
+      :(eixos.indexOf('cor')>=0?'Cor':'Tamanho');
+    // peça de cor única mostra a cor como etiqueta, com a bolinha
+    const corUnica=(eixos.indexOf('cor')<0&&p.cor&&p.cor.hex)?{nome:p.cor.nome||'',hex:p.cor.hex}:null;
     return {id:p.id,nome:p.nome,cat:nomeDe(cfg.categorias,p.catId,''),tipo:p.tipoId?nomeDe(cfg.tipos,p.tipoId,''):'',
       cols:colecoesDoProduto(p),
-      preco:p.preco,esgotado:esgotado,descricao:p.descricao||'',fotos:fotos,video:video,variacoes:variacoes};
+      preco:p.preco,esgotado:esgotado,descricao:p.descricao||'',fotos:fotos,video:video,variacoes:variacoes,
+      escolha:rotuloEscolha,cor:corUnica};
   });
   const cats=[...new Set(prods.map(p=>p.cat).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
   // tipo da peça (Anel, Colar, Bracelete...): vira a 2ª fileira de filtros
@@ -7302,6 +7471,7 @@ a{color:inherit}
 .modal .preco{font-size:1.3rem;color:var(--acento2);font-weight:700;margin-bottom:.6rem}
 .modal .tags{margin-bottom:.5rem}
 .modal .tags span{display:inline-block;background:var(--painel2);border:1px solid var(--borda);border-radius:20px;padding:.1rem .6rem;font-size:.72rem;color:var(--texto2);margin:0 .25rem .25rem 0}
+.modal .tags i.bolinha{display:inline-block;width:9px;height:9px;border-radius:50%;border:1px solid var(--borda);margin-right:.3rem;vertical-align:middle}
 .modal .desc{font-size:.87rem;color:var(--texto2);line-height:1.5;margin-bottom:.8rem;white-space:pre-wrap}
 .tam-wrap{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.9rem}
 .tam-wrap button{background:var(--painel2);border:1px solid var(--borda);color:var(--texto);border-radius:8px;padding:.4rem .7rem;font-size:.85rem;cursor:pointer}
@@ -7789,6 +7959,8 @@ var CATALOGO = __CATALOGO_JSON__;
     for(var c=0;c<(p.cols||[]).length;c++)tags.push(p.cols[c]);
     var th="";
     for(var ti=0;ti<tags.length;ti++)th+="<span>"+esc(tags[ti])+"</span>";
+    // peça de cor única: etiqueta com a bolinha da cor
+    if(p.cor&&p.cor.hex)th+="<span><i class=\\"bolinha\\" style=\\"background:"+esc(p.cor.hex)+"\\"></i>"+esc(p.cor.nome||"")+"</span>";
     $("lgMdTags").innerHTML=th;
     $("lgMdEsgotado").innerHTML=p.esgotado?"<div class=\\"esgot-aviso\\">No momento sem estoque — chame no WhatsApp pra saber quando chega.</div>":"";
     $("lgMdDesc").textContent=p.descricao||"";
@@ -7798,7 +7970,7 @@ var CATALOGO = __CATALOGO_JSON__;
         var t=p.variacoes[k];
         tw+="<button class=\\""+(t===tamSel?"on":"")+"\\" data-tam=\\""+esc(t)+"\\">"+esc(t)+"</button>";
       }
-      $("lgMdTamWrap").innerHTML="<div style=\\"font-size:.78rem;color:var(--texto2);margin-bottom:.35rem\\">Tamanho</div><div class=\\"tam-wrap\\">"+tw+"</div>";
+      $("lgMdTamWrap").innerHTML="<div style=\\"font-size:.78rem;color:var(--texto2);margin-bottom:.35rem\\">"+esc(p.escolha||"Tamanho")+"</div><div class=\\"tam-wrap\\">"+tw+"</div>";
     }else{
       $("lgMdTamWrap").innerHTML="";
     }
@@ -8368,7 +8540,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-09-21 23:15';
+const VERSAO_APP='2026-09-22 22:31';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -9227,8 +9399,24 @@ var syncTimer=null;
 function agendarSync(){
   if(!nuvemLigada())return;
   clearTimeout(syncTimer);
-  syncTimer=setTimeout(()=>sincronizarComNuvem(),2500);
+  syncTimer=setTimeout(()=>{syncTimer=null;sincronizarComNuvem();},2500);
 }
+/* O celular congela os temporizadores da aba que sai da tela: quem cadastrava
+   uma peça e já trocava de aplicativo deixava a subida esperando — às vezes
+   horas, até reabrir o painel. Então, ao sair da tela, manda na hora o que
+   estava pendente; ao voltar (ou quando a internet volta), sincroniza de novo. */
+function sincronizarPendenteAgora(){
+  if(!syncTimer)return false;
+  clearTimeout(syncTimer);syncTimer=null;
+  sincronizarComNuvem();
+  return true;
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden'){sincronizarPendenteAgora();return;}
+  // de volta à tela: só vale a pena se ficou algo pendente ou faz tempo
+  if(syncTimer||!NUVEM.ultimoSync||Date.now()-NUVEM.ultimoSync>60000)sincronizarComNuvem();
+});
+window.addEventListener('online',()=>sincronizarComNuvem());
 
 /* ============================================================
    FOTOS E VÍDEOS NO ARMAZENAMENTO DA NUVEM
@@ -9334,11 +9522,27 @@ async function publicarCatalogo(){
 async function talvezPublicarCatalogo(){
   if(typeof catalogoLoja!=='function')return;
   if(!temCatalogo())return;        // plano sem loja online: nada a publicar
-  if(!podeEscrever('loja'))return; // quem só consulta a loja não republica
+  /* Quem mexe no estoque também atualiza a vitrine. Antes só "loja" podia, e a
+     estoquista cadastrava a peça pelo celular sem que ela aparecesse na loja:
+     a vitrine só era reescrita quando o dono abria o painel — horas depois.
+     Atualizar a vitrine não é personalizar a loja: é mostrar o estoque que ela
+     já tem permissão de mudar. O banco aplica a mesma regra (supabase-corrige-
+     catalogo-estoque.sql); sem ele o envio volta 403 e nada quebra. */
+  if(!podeEscrever('loja')&&!podeEscrever('estoque'))return;
+  if(NUVEM.vitrineBloqueada)return;   // já levou "não pode" nesta sessão
   let atual;
   try{atual=hashReg(catalogoPublicavel());}catch(e){return;}
   if(atual===base.catalogo)return;
-  await publicarCatalogo();
+  try{
+    await publicarCatalogo();
+  }catch(e){
+    /* Banco ainda sem a regra nova: quem só tem "estoque" leva 403 ao republicar.
+       Isso não pode derrubar a sincronização — os produtos já subiram e a vitrine
+       sai quando o dono abrir o painel. Marca e não insiste nesta sessão. */
+    const regra=e&&(e.status===403||/row-level security|policy/i.test(String(e.msg||'')));
+    if(regra&&!podeEscrever('loja')){NUVEM.vitrineBloqueada=true;return;}
+    throw e;
+  }
 }
 
 /* ---------- levar pra nuvem as fotos que já estão guardadas no navegador ---------- */
