@@ -529,15 +529,28 @@ tr.zerado:hover td{opacity:1}
 .etiq-previa{margin-top:.7rem}
 .etiq-previa-caixa{margin-top:.3rem;padding:.8rem;background:#fff;border:1px dashed var(--borda);
   border-radius:8px;display:flex;justify-content:center;align-items:center;min-height:60px}
+.etiq-previa-caixa .etiqueta>*{flex:none}
 .etiq-previa-caixa .etiqueta{display:flex;flex-direction:column;align-items:center;justify-content:center;
   color:#000;line-height:1.05;overflow:hidden;box-shadow:0 0 0 1px #ddd}
-.etiq-previa-caixa .et-nome{font-size:6pt;font-weight:700;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.etiq-previa-caixa .et-num{font-family:"Courier New",monospace;font-size:5pt}
-.etiq-previa-caixa .et-linha{display:flex;gap:1.5mm;font-size:5.5pt}
+.etiq-previa-caixa .et-nome{font-size:1em;font-weight:700;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.etiq-previa-caixa .et-num{font-family:"Courier New",monospace;font-size:.82em}
+.etiq-previa-caixa .et-linha{display:flex;gap:1.5mm;font-size:1em}
 .etiq-previa-caixa .et-preco{font-weight:700}
 .etiq-previa-caixa .et-tam{border:.15mm solid #000;border-radius:1mm;padding:0 .6mm}
 /* o código na lista de produtos */
 .cod-peca{font-family:"Courier New",monospace;font-size:.7rem;color:var(--texto2)}
+/* bipar o código na venda */
+.bipe-barra{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin:.2rem 0 .5rem}
+.bipe-barra input{flex:1;min-width:0;font-family:"Courier New",monospace}
+.bipe-barra small{flex-basis:100%;font-size:.74rem;min-height:.9rem}
+#dlgCamera{max-width:460px}
+.cam-caixa{position:relative;background:#000;border-radius:12px;overflow:hidden;aspect-ratio:4/3}
+.cam-caixa video{width:100%;height:100%;object-fit:cover;display:block}
+/* a faixa mostra onde o código precisa ficar: no meio, atravessando as barras */
+.cam-mira{position:absolute;left:8%;right:8%;top:50%;height:22%;transform:translateY(-50%);
+  border:2px solid var(--ouro);border-radius:8px;box-shadow:0 0 0 999px rgba(0,0,0,.35)}
+.cam-lidos{display:flex;flex-direction:column;gap:.25rem;margin-top:.4rem;max-height:120px;overflow-y:auto}
+.cam-lidos div{font-size:.82rem;color:var(--verde)}
 /* cor da peça: lista com as cores mais usadas + uma personalizada (nome + tom) */
 .cor-campo{display:flex;align-items:center;gap:.45rem;margin-top:.3rem}
 .cor-campo>select{flex:1;min-width:0}
@@ -901,6 +914,16 @@ try{
     <label class="campo span2" id="vTelBox" hidden>Telefone do novo cliente (opcional, ajuda na cobrança) <input id="vTelNovo" placeholder="(11) 9...."></label>
   </div>
   <h4 class="mt">Itens da venda</h4>
+  <!-- bipar: o leitor de pistola "digita" o código e dá Enter sozinho; a câmera
+       do celular faz o mesmo pelo botão do lado -->
+  <div class="bipe-barra" id="vBipeBox">
+    <span class="sel-add" style="flex:1;min-width:0">
+      <input id="vBipe" placeholder="🏷️ bipar ou digitar o código da etiqueta" autocomplete="off"
+        inputmode="numeric" onkeydown="if(event.key==='Enter'){event.preventDefault();biparNaVenda(this.value);}">
+      <button type="button" class="bt mini" id="vBipeCam" onclick="abrirCamera()" title="ler com a câmera">📷</button>
+    </span>
+    <small class="mut" id="vBipeHint"></small>
+  </div>
   <div class="rolagem"><table class="itens-venda" id="vItens">
     <thead><tr><th style="width:40%">Produto</th><th>Qtd</th><th>Preço un.</th><th class="num">Subtotal</th><th></th></tr></thead>
     <tbody id="vItensBody"></tbody>
@@ -1267,6 +1290,15 @@ try{
 </dialog>
 <!-- alterar vários produtos de uma vez: lista clicável no lugar das caixinhas
      numeradas do navegador -->
+<!-- ====== LEITOR DE CÓDIGO PELA CÂMERA ====== -->
+<dialog id="dlgCamera">
+  <h3 style="margin-top:0">📷 Aponte para o código de barras</h3>
+  <div class="cam-caixa"><video id="camVideo" playsinline muted></video><div class="cam-mira"></div></div>
+  <p class="mut" id="camAviso" style="font-size:.84rem;min-height:1.2rem;margin:.5rem 0 0"></p>
+  <div id="camLidos" class="cam-lidos"></div>
+  <div class="rodape"><button type="button" class="bt primario" onclick="fecharCamera()">Pronto</button></div>
+</dialog>
+
 <!-- ====== ETIQUETAS COM CÓDIGO DE BARRAS ====== -->
 <dialog id="dlgEtiquetas">
   <h3 style="margin-top:0">🏷️ Etiquetas com código de barras</h3>
@@ -4772,7 +4804,7 @@ function abrirNovaVenda(){
   $('vDividir').checked=false;$('vParcBox').hidden=true;$('vVencUnicoBox').style.display='';
   $('vVencUnico').value='';$('vNparc').value=2;$('vTaxaManual').value='';acFechar();
   pintarAvisoDia('vData','vDataAviso');pintarAvisoDia('vVencUnico','vVencAviso');
-  renderItensVenda();vClienteMudou();vFormaMudou();recalcVenda();dlgVenda.showModal();
+  renderItensVenda();vClienteMudou();vFormaMudou();recalcVenda();atualizarBarraBipe();dlgVenda.showModal();
   setTimeout(()=>$('vCliente').focus(),50);
 }
 function editarVenda(id){
@@ -4804,7 +4836,7 @@ function editarVenda(id){
   if(dividido)renderParcelasVenda();
   pintarPlanoVenda(vendaPlanoAtual?v:null);
   pintarAvisoDia('vData','vDataAviso');pintarAvisoDia('vVencUnico','vVencAviso');
-  recalcVenda();dlgVenda.showModal();
+  recalcVenda();atualizarBarraBipe();dlgVenda.showModal();
 }
 /* mostra (sem deixar editar) as parcelas herdadas do parcelamento do total */
 function pintarPlanoVenda(v){
@@ -8667,7 +8699,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-09-24 22:15';
+const VERSAO_APP='2026-09-24 22:48';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -10344,17 +10376,34 @@ function ean13De(n){
   const base=COD_INTERNO+String(Math.max(1,Math.floor(+n||0))).padStart(11,'0');
   return base+digitoEan13(base);
 }
-function soDigitos(s){return String(s==null?'':s).replace(/\D/g,'');}
-/* aceita o que vier: código bipado inteiro, sem o último dígito, ou o número
-   curto digitado na mão (é ele que vai impresso embaixo das barras) */
-function numeroDoCodigo(txt){
-  const d=soDigitos(txt);
-  if(!d)return 0;
-  if(d.length===13&&d[0]===COD_INTERNO)return +d.slice(1,12);
-  if(d.length===12&&d[0]===COD_INTERNO)return +d.slice(1);
-  if(d.length>=13)return 0;            // código de fábrica (789...): não é nosso
-  return +d;
+/* EAN-8: o irmão curto, para etiqueta estreita. São 81 barras em vez de 113,
+   então cada barra fica bem mais gorda no mesmo espaço — numa etiqueta de
+   30 mm dá 0,37 mm por barra contra 0,26 mm do EAN-13, que é o limite da
+   norma. Jato de tinta espalha tinta; essa folga é o que salva a leitura.
+   Cabem 999.999 peças, muito além do que a loja vai ter. */
+function digitoEan8(sete){
+  let s=0;
+  for(let i=0;i<7;i++)s+=(+sete[i]||0)*((i%2)?1:3);
+  return String((10-(s%10))%10);
 }
+function ean8De(n){
+  const base=COD_INTERNO+String(Math.max(1,Math.floor(+n||0))).padStart(6,'0');
+  return base+digitoEan8(base);
+}
+function soDigitos(s){return String(s==null?'':s).replace(/\D/g,'');}
+/* Um mesmo texto pode ser mais de uma coisa: etiqueta antiga em EAN-13,
+   etiqueta nova em EAN-8 ou o número curto digitado na mão. Devolve os
+   candidatos na ordem, e quem procura testa um por um. */
+function numerosPossiveis(txt){
+  const d=soDigitos(txt),n=[];
+  if(!d)return n;
+  if(d.length===13&&d[0]===COD_INTERNO)n.push(+d.slice(1,12));
+  if(d.length===12&&d[0]===COD_INTERNO)n.push(+d.slice(1));
+  if(d.length===8&&d[0]===COD_INTERNO)n.push(+d.slice(1,7));
+  if(d.length<=7)n.push(+d);           // o número curto impresso na etiqueta
+  return n.filter(x=>x>0);
+}
+function numeroDoCodigo(txt){return numerosPossiveis(txt)[0]||0;}
 
 /* ---------- quem tem qual número ---------- */
 function codsDoProduto(p){
@@ -10411,16 +10460,16 @@ function corrigirCodigosRepetidos(){
 }
 /* de volta: qual peça (e qual tamanho/cor) é este código */
 function acharPorCod(txt){
-  const n=numeroDoCodigo(txt);
-  if(!n)return null;
-  for(const p of dados.produtos){
-    if(!temGrade(p)){if(codDoProduto(p)===n)return {p,v:null};continue;}
-    const m=codsDoProduto(p);
-    for(const v of (p.variacoes||[]))if(+m[v.id]===n)return {p,v};
+  const cand=numerosPossiveis(txt);
+  for(const n of cand){
+    for(const p of dados.produtos){
+      if(!temGrade(p)){if(codDoProduto(p)===n)return {p,v:null};continue;}
+      const m=codsDoProduto(p);
+      for(const v of (p.variacoes||[]))if(+m[v.id]===n)return {p,v};
+    }
   }
   return null;
 }
-
 /* ---------- desenhar as barras ----------
    Tabelas do EAN-13. Cada dígito vira 7 barras/espaços; o primeiro dígito não
    é desenhado: ele fica escondido na combinação de tabelas (L/G) dos outros. */
@@ -10428,7 +10477,8 @@ var EAN_L=['0001101','0011001','0010011','0111101','0100011','0110001','0101111'
 var EAN_G=['0100111','0110011','0011011','0100001','0011101','0111001','0000101','0010001','0001001','0010111'];
 var EAN_R=['1110010','1100110','1101100','1000010','1011100','1001110','1010000','1000100','1001000','1110100'];
 var EAN_PAR=['LLLLLL','LLGLGG','LLGGLG','LLGGGL','LGLLGG','LGGLLG','LGGGLL','LGLGLG','LGLGGL','LGGLGL'];
-var COD_QUIETO=9;             // margem em branco obrigatória dos dois lados
+var COD_QUIETO=9;             // margem em branco obrigatória dos dois lados (EAN-13)
+var COD_QUIETO8=7;            // o EAN-8 exige menos
 
 function padraoEan13(ean){
   const d=soDigitos(ean);
@@ -10440,17 +10490,37 @@ function padraoEan13(ean){
   for(let j=7;j<=12;j++)bits+=EAN_R[+d[j]];
   return bits+'101';
 }
-function larguraEmModulos(){return 95+COD_QUIETO*2;}   // 113
-/* SVG em milímetros: o leitor se importa com a largura de cada barra, não com
+function padraoEan8(ean){
+  const d=soDigitos(ean);
+  if(d.length!==8)return '';
+  let bits='101';
+  for(let i=0;i<4;i++)bits+=EAN_L[+d[i]];
+  bits+='01010';
+  for(let j=4;j<8;j++)bits+=EAN_R[+d[j]];
+  return bits+'101';
+}
+/* quanto espaço cada tipo ocupa, já com a margem branca que o leitor exige */
+function modulosDoTipo(tipo){return tipo==='ean8'?(67+COD_QUIETO8*2):(95+COD_QUIETO*2);}
+function larguraEmModulos(tipo){return modulosDoTipo(tipo||'ean13');}   // 113 | 81
+/* Etiqueta estreita não comporta EAN-13 com barra grossa o bastante; nesse
+   caso o painel usa EAN-8 sozinho. Dá para forçar um dos dois nos ajustes. */
+function tipoDoCodigo(e){
+  e=e||etiqCfg();
+  const t=e.tipoCodigo||'auto';
+  if(t==='ean13'||t==='ean8')return t;
+  return (larguraUtilEtiqueta(e)/modulosDoTipo('ean13'))>=COD_MIN_MODULO?'ean13':'ean8';
+}
+function codigoDaPeca(n,tipo){return (tipo||tipoDoCodigo())==='ean8'?ean8De(n):ean13De(n);}/* SVG em milímetros: o leitor se importa com a largura de cada barra, não com
    a resolução da tela. `modulo` é a largura de UMA barra, em mm. */
 function barrasSVG(ean,modulo,alturaMM){
-  const bits=padraoEan13(ean);
+  const d=soDigitos(ean),ehCurto=d.length===8;
+  const bits=ehCurto?padraoEan8(d):padraoEan13(d);
   if(!bits)return '';
-  const mod=+modulo||0.33,alt=+alturaMM||8,total=larguraEmModulos();
-  /* barras vizinhas viram UM retângulo só. Desenhar uma por módulo deixaria
+  const quieto=ehCurto?COD_QUIETO8:COD_QUIETO;
+  const mod=+modulo||0.33,alt=+alturaMM||8,total=bits.length+quieto*2;  /* barras vizinhas viram UM retângulo só. Desenhar uma por módulo deixaria
      um fio de branco entre elas (ou obrigaria a engordar cada barra, o que
      estraga a proporção que o leitor usa para decidir o que é barra grossa) */
-  let r='',i=0,x=COD_QUIETO;
+  let r='',i=0,x=quieto;
   while(i<bits.length){
     if(bits[i]==='0'){i++;x++;continue;}
     let n=0;while(i+n<bits.length&&bits[i+n]==='1')n++;
@@ -10474,7 +10544,7 @@ function etiquetaDaLinha(p){
     return `<div class="cod-peca" title="código de barras de cada tamanho/cor">🏷️ ${cods.length} código(s)</div>`;
   }
   const n=codDoProduto(p);
-  return n?`<div class="cod-peca" title="código de barras ${esc(ean13De(n))}">🏷️ ${n}</div>`:'';
+  return n?`<div class="cod-peca" title="código de barras ${esc(codigoDaPeca(n))}">🏷️ ${n}</div>`:'';
 }
 
 /* ============================================================
@@ -10488,10 +10558,28 @@ var ETIQ_PADRAO={
   largura:48, altura:22,          // mm de cada etiqueta
   margemTopo:12, margemEsq:8,     // mm até a primeira etiqueta
   espacoH:2, espacoV:3,           // mm entre etiquetas
-  mostrarNome:true, mostrarPreco:true, mostrarTamanho:true,
+  mostrarNome:true, mostrarPreco:true, mostrarTamanho:true, tipoCodigo:'auto',
   alturaBarras:8, copias:1
 };
 var FOLHAS={carta:{nome:'Carta (216 × 279 mm)',l:216,a:279},a4:{nome:'A4 (210 × 297 mm)',l:210,a:297}};
+/* Ponto de partida das folhas mais vendidas. Não é chute que resolve: o
+   gabarito é que confirma o encaixe. Mas começar perto economiza folha. */
+var MODELOS_ETIQ={
+  a4_30x8:{nome:'A4 · 30 × 8 mm (210 por folha)',
+    dica:'Etiqueta pequena, 6 colunas × 35 linhas, sem espaço entre elas. Cabe o código e o número — não cabe o nome.',
+    cfg:{papel:'a4',colunas:6,linhas:35,largura:30,altura:8,margemTopo:8.5,margemEsq:15,
+      espacoH:0,espacoV:0,alturaBarras:5,mostrarNome:false,mostrarPreco:false,mostrarTamanho:false,tipoCodigo:'auto'}},
+  joia_rabicho:{nome:'Joia · rabicho (40 por folha)',
+    dica:'A etiqueta comprida que dá a volta na peça. Confira a medida no gabarito antes da primeira impressão.',
+    cfg:{papel:'carta',colunas:4,linhas:10,largura:48,altura:22,margemTopo:12,margemEsq:8,
+      espacoH:2,espacoV:3,alturaBarras:8,mostrarNome:true,mostrarPreco:true,mostrarTamanho:true,tipoCodigo:'auto'}}
+};
+function usarModeloEtiqueta(k){
+  const m=MODELOS_ETIQ[k];if(!m)return;
+  Object.assign(etiqCfg(),m.cfg);
+  salvar();renderEtiquetas();
+  toast('Medidas do modelo aplicadas — confira com o gabarito ✓');
+}
 
 function etiqCfg(){
   const c=C();
@@ -10508,11 +10596,44 @@ function etiqSet(campo,valor){
   renderEtiquetas();
 }
 /* largura de cada barra que sobra depois de descontar a margem interna */
-function moduloDaEtiqueta(e){
-  const util=Math.max(4,(+e.largura||0)-4);
-  return util/larguraEmModulos();
+/* A margem branca que o leitor exige já está contada nos módulos; o que sobra
+   aqui é só folga de corte, para a barra não encostar na borda da etiqueta.
+   Em etiqueta pequena, 4 mm fixos comiam 13% do espaço — melhor proporcional. */
+/* Tamanho da letra pelo espaço que SOBRA depois do código de barras, não pela
+   altura da etiqueta: numa etiqueta de 15 mm com barra de 8 mm restam 6 mm
+   para três linhas, e prender a letra à altura total deixava tudo miúdo à toa.
+   O mínimo de 4 pt é o que ainda dá para ler numa etiqueta de joia. */
+function linhasDeTexto(e){
+  return 1+((e||{}).mostrarNome?1:0)+(((e||{}).mostrarPreco||(e||{}).mostrarTamanho)?1:0);  // o número sempre entra
 }
-
+/* O código de barras não pode empurrar o texto para fora da etiqueta: se a
+   altura pedida não couber, ele encolhe até sobrar 1,6 mm por linha de texto
+   (o mínimo para uma letra de 4 pt caber). Melhor barra um pouco mais baixa
+   do que nome cortado pela metade. */
+function alturaBarrasReal(e){
+  e=e||etiqCfg();
+  const teto=Math.max(3,(+e.altura||0)-1.2-linhasDeTexto(e)*1.6);
+  return Math.max(3,Math.min(+e.alturaBarras||0,teto));
+}
+/* Conta fechada em vez de proporção chutada, porque etiqueta cortada só se
+   descobre depois de imprimir: altura = recheio + barras + margem do nome +
+   a bordinha do tamanho + (linhas × letra × entrelinha). Isola-se a letra.
+   1 pt = 0,3528 mm; entrelinha 1,05; 0,25 mm de folga para o arredondamento. */
+function ptDaEtiqueta(e){
+  e=e||etiqCfg();
+  const linhas=linhasDeTexto(e);
+  const livre=(+e.altura||0)-0.8-alturaBarrasReal(e)-(e.mostrarNome?0.3:0)-(e.mostrarTamanho?0.3:0)-0.25;
+  const pt=Math.max(0,livre)/(linhas*0.3528*1.05);
+  return Math.max(4,Math.min(8,Math.floor(pt*10)/10));
+}
+function larguraUtilEtiqueta(e){
+  const l=+((e||{}).largura)||0;
+  return Math.max(4,l-Math.min(3,l*0.07));
+}
+function moduloDaEtiqueta(e){
+  e=e||etiqCfg();
+  return larguraUtilEtiqueta(e)/modulosDoTipo(tipoDoCodigo(e));
+}
 var ETIQ={escopo:'sel',busca:''};
 function abrirEtiquetas(){
   if(!podeLer('estoque'))return;
@@ -10575,14 +10696,23 @@ function renderEtiquetas(){
     </div>`:''}
     <div class="etiq-resumo">
       <b>${fmtN(etiq.length)}</b> etiqueta(s) · <b>${fmtN(folhas)}</b> folha(s)
-      · barras de <b>${r2mm(mod)} mm</b>
+      · ${tipoDoCodigo(e)==='ean8'?'EAN-8':'EAN-13'} · barras de <b>${r2mm(mod)} mm</b>
       ${mod<COD_MIN_MODULO?`<span class="bd fiadoP" title="barras muito finas podem não ser lidas">⚠️ fino demais — aumente a largura da etiqueta</span>`:'<span class="linkok">✓ boa para leitura</span>'}
     </div>
     <details class="etiq-ajuste"${etiq.length?'':' open'}>
       <summary>Medidas da folha de etiqueta — ajuste uma vez e não mexe mais</summary>
+      <div class="barra" style="margin:.2rem 0 .5rem">
+        <span class="mut" style="font-size:.8rem">Folha pronta:</span>
+        ${Object.keys(MODELOS_ETIQ).map(k=>`<button type="button" class="bt mini" onclick="usarModeloEtiqueta('${k}')"
+          title="${esc(MODELOS_ETIQ[k].dica)}">${esc(MODELOS_ETIQ[k].nome)}</button>`).join('')}
+      </div>
       <div class="fgrid" style="margin-top:.5rem">
         <label class="campo">Papel <select onchange="etiqSet('papel',this.value)">
           ${Object.keys(FOLHAS).map(k=>`<option value="${k}"${e.papel===k?' selected':''}>${FOLHAS[k].nome}</option>`).join('')}
+        </select></label>
+        <label class="campo">Tipo do código <select onchange="etiqSet('tipoCodigo',this.value)">
+          ${[['auto','Automático (escolhe pelo tamanho)'],['ean13','EAN-13 (13 dígitos)'],['ean8','EAN-8 (cabe em etiqueta estreita)']]
+            .map(o=>`<option value="${o[0]}"${(e.tipoCodigo||'auto')===o[0]?' selected':''}>${o[1]}</option>`).join('')}
         </select></label>
         ${num('Colunas','colunas')}
         ${num('Linhas','linhas')}
@@ -10626,13 +10756,16 @@ function corrigirRepetidosDaTela(){
 /* o desenho de UMA etiqueta — o mesmo na prévia e na folha */
 function etiquetaHTML(x,e){
   if(!x)return '';
-  const ean=ean13De(x.cod),mod=moduloDaEtiqueta(e);
+  const ean=codigoDaPeca(x.cod,tipoDoCodigo(e)),mod=moduloDaEtiqueta(e);
+  const altBarras=alturaBarrasReal(e);
   const nome=e.mostrarNome?`<div class="et-nome">${esc(x.p.nome)}</div>`:'';
   const tam=(e.mostrarTamanho&&x.rotulo)?`<span class="et-tam">${esc(x.rotulo)}</span>`:'';
   const preco=(e.mostrarPreco&&+x.p.preco>0)?`<span class="et-preco">${fmt(x.p.preco)}</span>`:'';
   const linha=(tam||preco)?`<div class="et-linha">${tam}${preco}</div>`:'';
-  return `<div class="etiqueta" style="width:${r2mm(e.largura)}mm;height:${r2mm(e.altura)}mm">
-    ${nome}${barrasSVG(ean,mod,e.alturaBarras)}<div class="et-num">${esc(ean)}</div>${linha}</div>`;
+  /* a prévia usa as MESMAS letras da folha: se ficou apertado aqui, ficou lá */
+  const pt=ptDaEtiqueta(e);
+  return `<div class="etiqueta" style="width:${r2mm(e.largura)}mm;height:${r2mm(e.altura)}mm;font-size:${pt}pt">
+    ${nome}${barrasSVG(ean,mod,altBarras)}<div class="et-num">${esc(ean)}</div>${linha}</div>`;
 }
 /* ---------- a folha pronta para imprimir ---------- */
 function folhaEtiquetasHTML(etiq,e,gabarito){
@@ -10660,11 +10793,16 @@ function folhaEtiquetasHTML(etiq,e,gabarito){
      do tema do painel (e preto puro gasta só o cartucho preto) */
   .etiqueta{display:flex;flex-direction:column;align-items:center;justify-content:center;
     overflow:hidden;line-height:1.05;padding:.4mm;color:#000;background:#fff}
-  .et-nome{font-size:${Math.max(4,Math.min(7,(+e.altura||20)/4))}pt;font-weight:700;max-width:100%;
+  /* nada encolhe: numa etiqueta baixa demais o flex espremia o código de barras
+     caladinho, e barra achatada é barra que o leitor não lê. Melhor transbordar
+     (a tela avisa e a prévia mostra) do que imprimir errado sem ninguém ver. */
+  .etiqueta>*{flex:none}
+
+  .et-nome{font-size:${ptDaEtiqueta(e)}pt;font-weight:700;max-width:100%;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;color:#000;margin-bottom:.3mm}
   .bc{display:block}
-  .et-num{font-family:"Courier New",monospace;font-size:${Math.max(3.5,Math.min(6,(+e.altura||20)/5))}pt;letter-spacing:.2px;color:#000}
-  .et-linha{display:flex;gap:1.5mm;align-items:baseline;font-size:${Math.max(4,Math.min(7,(+e.altura||20)/4.5))}pt;color:#000}
+  .et-num{font-family:"Courier New",monospace;font-size:${r2mm(ptDaEtiqueta(e)*0.82)}pt;letter-spacing:.2px;color:#000}
+  .et-linha{display:flex;gap:1.5mm;align-items:baseline;font-size:${ptDaEtiqueta(e)}pt;color:#000}
   .et-preco{font-weight:700;color:#000}
   .et-tam{border:.15mm solid #000;border-radius:1mm;padding:0 .6mm;color:#000}
   @media screen{body{background:#555;padding:8mm}.folha{background:#fff;margin:0 auto 8mm;box-shadow:0 2mm 6mm rgba(0,0,0,.4)}}
@@ -10681,6 +10819,125 @@ function imprimirEtiquetas(gabarito){
   }
   w.document.open();w.document.write(html);w.document.close();
 }
+
+/* ============================================================
+   BIPAR NA VENDA
+   Dois caminhos, porque nenhum funciona em todo lugar:
+   1) o campo de texto — leitor de pistola "digita" o código e dá Enter
+      sozinho, e quem não tem leitor digita o número curto da etiqueta.
+      Esse caminho funciona em QUALQUER aparelho e não depende de permissão.
+   2) a câmera do celular, pelo BarcodeDetector do próprio navegador (não
+      instala nada, não manda foto para lugar nenhum). Onde o navegador não
+      tiver, o botão da câmera some e o campo de texto continua valendo.
+   ============================================================ */
+function podeUsarCamera(){
+  return !!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia&&window.BarcodeDetector);
+}
+/* um bip curto: com o celular na mão longe do olho, o som é o que confirma */
+function bipSom(ok){
+  try{
+    const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;
+    CAM.audio=CAM.audio||new Ctx();
+    const a=CAM.audio,o=a.createOscillator(),g=a.createGain();
+    o.type='square';o.frequency.value=ok?1320:220;
+    g.gain.value=.05;o.connect(g);g.connect(a.destination);
+    o.start();o.stop(a.currentTime+(ok?.08:.2));
+  }catch(e){}
+}
+/* acha a peça do código e coloca na venda. Bipar a mesma peça de novo soma
+   quantidade, que é o que acontece quando se passa duas iguais no leitor. */
+function biparNaVenda(txt,silencioso){
+  const campo=$('vBipe'),hint=$('vBipeHint');
+  const achou=acharPorCod(txt);
+  if(campo)campo.value='';
+  if(!achou){
+    if(!silencioso)bipSom(false);
+    const d=soDigitos(txt);
+    if(hint)hint.innerHTML=`<span class="neg">Não achei o código ${esc(d||String(txt||''))}.</span> Confira se a etiqueta é desta loja.`;
+    else toast('Não achei esse código.');
+    return null;
+  }
+  const p=achou.p,v=achou.v;
+  const ja=itensVenda.find(i=>i.produtoId===p.id&&(i.variacaoId||null)===(v?v.id:null));
+  if(ja)ja.qtd=(+ja.qtd||0)+1;
+  else itensVenda.push({nome:p.nome,produtoId:p.id,qtd:1,preco:+p.preco||0,
+    custo:p.custo!=null?+p.custo:0,variacaoId:v?v.id:null,tamanho:v?v.rotulo:''});
+  renderItensVenda();recalcVenda();
+  if(!silencioso)bipSom(true);
+  if(hint)hint.innerHTML=`<span class="linkok">✓ ${esc(p.nome)}${v?' · '+esc(v.rotulo):''}</span>`+
+    (ja?` <span class="mut">(agora ${fmtN(ja.qtd)})</span>`:'');
+  if(campo&&!CAM.aberta)campo.focus();
+  return achou;
+}
+/* a barra de bipar some para quem não tem código nenhum cadastrado — não faz
+   sentido oferecer o que ainda não existe */
+function atualizarBarraBipe(){
+  const box=$('vBipeBox');if(!box)return;
+  const temCod=dados.produtos.some(p=>!faltaCod(p)||codDoProduto(p)>0);
+  box.hidden=!temCod;
+  const bt=$('vBipeCam');if(bt)bt.hidden=!podeUsarCamera();
+  const hint=$('vBipeHint');if(hint)hint.innerHTML='';
+  const campo=$('vBipe');if(campo)campo.value='';
+}
+
+/* ---------- a câmera ---------- */
+var CAM={aberta:false,stream:null,timer:null,detector:null,ultimo:'',quando:0,lidos:0};
+async function abrirCamera(){
+  if(!podeUsarCamera()){
+    toast('Este navegador não lê código pela câmera — digite o número da etiqueta.');
+    return;
+  }
+  CAM.lidos=0;CAM.ultimo='';
+  $('camLidos').innerHTML='';
+  $('camAviso').textContent='Ligando a câmera…';
+  dlgCamera.showModal();
+  CAM.aberta=true;
+  try{
+    CAM.detector=new BarcodeDetector({formats:['ean_13','ean_8','code_128','code_39']});
+    CAM.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}});
+    const vid=$('camVideo');
+    vid.srcObject=CAM.stream;
+    await vid.play();
+    $('camAviso').textContent='Aponte para o código — a faixa dourada tem que cruzar as barras.';
+    CAM.timer=setInterval(lerDaCamera,250);
+  }catch(e){
+    $('camAviso').innerHTML='<span class="neg">Não consegui usar a câmera.</span> '+
+      'Se o navegador pediu permissão, é só liberar — ou digite o número da etiqueta.';
+  }
+}
+async function lerDaCamera(){
+  if(!CAM.aberta||!CAM.detector)return;
+  const vid=$('camVideo');
+  if(!vid||!vid.videoWidth)return;
+  let achados=[];
+  try{achados=await CAM.detector.detect(vid);}catch(e){return;}
+  if(!achados||!achados.length)return;
+  const cod=String(achados[0].rawValue||'');
+  // a câmera lê o mesmo código muitas vezes por segundo: só conta uma vez
+  if(cod===CAM.ultimo&&Date.now()-CAM.quando<1500)return;
+  CAM.ultimo=cod;CAM.quando=Date.now();
+  const achou=biparNaVenda(cod,true);
+  if(achou){
+    bipSom(true);CAM.lidos++;
+    $('camLidos').insertAdjacentHTML('afterbegin',
+      `<div>✓ ${esc(achou.p.nome)}${achou.v?' · '+esc(achou.v.rotulo):''}</div>`);
+  }else{
+    bipSom(false);
+    $('camLidos').insertAdjacentHTML('afterbegin',
+      `<div class="neg">✕ ${esc(soDigitos(cod))} não é uma etiqueta desta loja</div>`);
+  }
+}
+function fecharCamera(){
+  CAM.aberta=false;
+  if(CAM.timer){clearInterval(CAM.timer);CAM.timer=null;}
+  if(CAM.stream){try{CAM.stream.getTracks().forEach(t=>t.stop());}catch(e){}CAM.stream=null;}
+  const vid=$('camVideo');if(vid)vid.srcObject=null;
+  try{dlgCamera.close();}catch(e){}
+  if(CAM.lidos)toast(CAM.lidos+' peça(s) bipada(s) ✓');
+  const campo=$('vBipe');if(campo)campo.focus();
+}
+/* fechar pelo Esc não passa pelo botão: a câmera precisa desligar do mesmo jeito */
+try{dlgCamera.addEventListener('close',()=>{if(CAM.aberta)fecharCamera();});}catch(e){}
 
 </script>
 </body>
