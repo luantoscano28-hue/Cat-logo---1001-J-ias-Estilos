@@ -5530,10 +5530,18 @@ function parcNoFiltro(p,modo){
 /* parcelas de uma venda que aparecem no filtro atual (só as em aberto) */
 function parcelasNoFiltro(v,modo){return recParcelas(v).filter(p=>!parcPago(p)&&(!modo||modo==='todos'||parcNoFiltro(p,modo)));}
 function somaFiltrada(vendas,modo){return r2((vendas||[]).reduce((s,v)=>s+parcelasNoFiltro(v,modo).reduce((a,p)=>a+parcAberto(p),0),0));}
+/* O local do CLIENTE manda — é ele quem aparece no 📍 ao lado do nome em todo
+   lugar (fiado, detalhe do cliente). Mudar o local do cliente (ex.: "Jovita"
+   virou "Heitor") tem que valer para as dívidas antigas dele também, senão o
+   filtro de local mostra uma coisa e a etiqueta do cliente mostra outra —
+   foi exatamente o que o Luan viu em 24/09/2026: filtrando por "Jovita",
+   uma cliente já mudada para "Heitor" continuava aparecendo. O que a venda
+   guardou (`v.localId`) só serve de lembrança para quem nunca virou cadastro
+   de cliente (comprador avulso) ou para o cliente que já foi excluído. */
 function localDaVenda(v){
-  if(v.localId)return v.localId;
   const c=v.clienteId?clientePorId(v.clienteId):dados.clientes.find(x=>x.nome===v.clienteNome);
-  return c?c.localId:null;
+  if(c)return c.localId||null;
+  return v.localId||null;
 }
 function somaGrupoFiado(itens){return r2(itens.reduce((s,v)=>s+recAberto(v),0));}
 /* ============================================================
@@ -8627,7 +8635,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-09-23 00:12';
+const VERSAO_APP='2026-09-24 21:49';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
