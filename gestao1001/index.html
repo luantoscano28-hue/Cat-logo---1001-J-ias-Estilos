@@ -519,6 +519,25 @@ tr.zerado:hover td{opacity:1}
 .lote-lista .lote-desc{font-size:.76rem;color:var(--texto2);font-weight:400;margin-top:.1rem}
 .lote-lista .bt.mini{flex:none}
 .lote-busca{width:100%;margin-bottom:.4rem}
+/* etiquetas com código de barras: a prévia mostra a etiqueta no tamanho real */
+#dlgEtiquetas{max-width:680px}
+.etiq-num{min-width:0}
+.etiq-num input{width:100%}
+.etiq-resumo{background:var(--painel2);border:1px solid var(--borda);border-radius:10px;
+  padding:.5rem .7rem;margin:.6rem 0;font-size:.86rem;display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.etiq-ajuste summary{cursor:pointer;font-size:.86rem;color:var(--texto2);padding:.3rem 0}
+.etiq-previa{margin-top:.7rem}
+.etiq-previa-caixa{margin-top:.3rem;padding:.8rem;background:#fff;border:1px dashed var(--borda);
+  border-radius:8px;display:flex;justify-content:center;align-items:center;min-height:60px}
+.etiq-previa-caixa .etiqueta{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:#000;line-height:1.05;overflow:hidden;box-shadow:0 0 0 1px #ddd}
+.etiq-previa-caixa .et-nome{font-size:6pt;font-weight:700;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.etiq-previa-caixa .et-num{font-family:"Courier New",monospace;font-size:5pt}
+.etiq-previa-caixa .et-linha{display:flex;gap:1.5mm;font-size:5.5pt}
+.etiq-previa-caixa .et-preco{font-weight:700}
+.etiq-previa-caixa .et-tam{border:.15mm solid #000;border-radius:1mm;padding:0 .6mm}
+/* o código na lista de produtos */
+.cod-peca{font-family:"Courier New",monospace;font-size:.7rem;color:var(--texto2)}
 /* cor da peça: lista com as cores mais usadas + uma personalizada (nome + tom) */
 .cor-campo{display:flex;align-items:center;gap:.45rem;margin-top:.3rem}
 .cor-campo>select{flex:1;min-width:0}
@@ -1248,6 +1267,18 @@ try{
 </dialog>
 <!-- alterar vários produtos de uma vez: lista clicável no lugar das caixinhas
      numeradas do navegador -->
+<!-- ====== ETIQUETAS COM CÓDIGO DE BARRAS ====== -->
+<dialog id="dlgEtiquetas">
+  <h3 style="margin-top:0">🏷️ Etiquetas com código de barras</h3>
+  <p class="mut" style="margin:.1rem 0 .7rem;font-size:.84rem">Cada peça — e cada tamanho/cor, quando ela tem grade — ganha um número que nunca se repete.</p>
+  <div id="etiqCorpo"></div>
+  <div class="rodape">
+    <button type="button" class="bt" onclick="dlgEtiquetas.close()">Fechar</button>
+    <button type="button" class="bt" onclick="imprimirEtiquetas(true)" title="só os contornos, para conferir o encaixe numa folha comum">📐 Imprimir gabarito</button>
+    <button type="button" class="bt primario" id="etiqImprimir" onclick="imprimirEtiquetas(false)">🖨️ Imprimir etiquetas</button>
+  </div>
+</dialog>
+
 <dialog id="dlgLote">
   <h3 style="margin-top:0" id="loteTitulo">Alterar selecionados</h3>
   <p class="mut" id="loteSub" style="margin:.1rem 0 .7rem;font-size:.84rem"></p>
@@ -1580,7 +1611,7 @@ function estruturaInicial(){
       fiscal:{diaInicio:11}, autoBaixaCartao:true, tema:'ouro',
       avisos:{diasAntes:1, notificar:false, ultimoAviso:''},
       categorias:idfy([{nome:'Aço'},{nome:'Folheado'},{nome:'Biju'},{nome:'Prata'},{nome:'Acessórios'}]),
-      colecoes:[], apagados:[],
+      colecoes:[], apagados:[], seqCod:0,
       tipos:idfy([{nome:'Brinco'},{nome:'Colar'},{nome:'Anel'},{nome:'Pulseira'},{nome:'Bracelete'},{nome:'Conjunto'},{nome:'Choker'},{nome:'Pingente'},{nome:'Corrente'},{nome:'Tornozeleira'}]),
       fornecedores:idfy([{nome:'Limeira',contato:'',obs:''},{nome:'25 de Março',contato:'',obs:''},{nome:'Brás',contato:'',obs:''}]),
       locais:idfy([{nome:'Jovita'},{nome:'Heitor'},{nome:'Floresta'},{nome:'Feira Augusta'},{nome:'Online'}]),
@@ -3352,6 +3383,7 @@ function cabecalhoProdutos(){
   return `<div class="barra"><h2 style="margin:0">Produtos</h2><span class="esp"></span>
     ${al?`<span class="bd fiadoP">⚠️ ${al} com estoque baixo</span>`:''}
     ${dup?`<button class="bt" style="color:var(--laranja)" onclick="ui.p.dups=true;renderProdutos()" title="cadastros que parecem ser a mesma peça">🔀 ${dup} repetido(s)</button>`:''}
+    <button class="bt" onclick="abrirEtiquetas()" title="código de barras para imprimir e colar na peça">🏷️ Etiquetas</button>
     <button class="bt primario" onclick="abrirNovoProduto()">+ Novo produto</button></div>`;
 }
 function vendasDoProduto(id){return dados.vendas.reduce((n,v)=>n+v.itens.filter(i=>i.produtoId===id).reduce((s,i)=>s+(+i.qtd||0),0),0);}
@@ -3655,7 +3687,7 @@ function linhaProduto(p){
     return `<tr${produtoZerado(p)?' class="zerado"':''}>
       <td data-rot=""><input type="checkbox" ${ui.p.sel[p.id]?'checked':''} onchange="toggleProdSel('${p.id}',this.checked)"></td>
       <td class="capa" data-rot="">${th}</td>
-      <td class="titulo" data-rot="Produto">${bolhaCor(p)}${esc(p.nome)}${p.tipoId?` <span class="mut" style="font-size:.76rem">(${esc(tipoNome(p.tipoId))})</span>`:''}${cols.length?`<div style="margin-top:.15rem">${cols.map(n=>`<span class="tag-col">${esc(n)}</span>`).join('')}</div>`:''}${!produtoAvisa(p)?'<div class="mut" style="font-size:.68rem">🔕 sem aviso de estoque</div>':''}</td>
+      <td class="titulo" data-rot="Produto">${bolhaCor(p)}${esc(p.nome)}${p.tipoId?` <span class="mut" style="font-size:.76rem">(${esc(tipoNome(p.tipoId))})</span>`:''}${cols.length?`<div style="margin-top:.15rem">${cols.map(n=>`<span class="tag-col">${esc(n)}</span>`).join('')}</div>`:''}${!produtoAvisa(p)?'<div class="mut" style="font-size:.68rem">🔕 sem aviso de estoque</div>':''}${etiquetaDaLinha(p)}</td>
       <td data-rot="Material"><span class="bd cat">${esc(catNome(p.catId))}</span></td>
       <td class="num" data-rot="Preço">${+p.preco>0?fmt(p.preco):'—'}</td>
       <td class="num" data-rot="Custo">${p.custo!=null?fmt(p.custo):'<span class="mut">—</span>'}</td>
@@ -8635,7 +8667,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-09-24 21:49';
+const VERSAO_APP='2026-09-24 22:15';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -9294,6 +9326,12 @@ function mesclarConfig(local,remoto,baseCfg){
       });
       saida.loja=lj;return;
     }
+    /* contador dos códigos de barras: nunca "escolhe um lado" — fica o maior
+       dos dois. Se um aparelho gerou até o 40 e o outro até o 35 enquanto
+       estava sem internet, voltar para 35 faria o próximo código repetir um
+       que já está colado numa peça. (A tela de etiquetas ainda confere se
+       sobrou algum repetido antes de imprimir.) */
+    if(k==='seqCod'){saida[k]=Math.max(+local[k]||0,+remoto[k]||0);return;}
     saida[k]=mesclarValorConfig(local[k],remoto[k],b[k]);
   });
   const apagados=mesclarApagados(local.apagados,remoto.apagados);
@@ -10248,6 +10286,401 @@ window.addEventListener('focus',talvezResincronizar);
 /* Chamado aqui no fim, e não dentro de iniciar() (part5): iniciar() executa no
    topo do part5, quando as constantes deste arquivo ainda não existem. */
 iniciarNuvem();
+
+/* ============================================================
+   CÓDIGO DE BARRAS E ETIQUETAS
+   Os aplicativos de gerar código de barras só DESENHAM o número que você
+   digita — nenhum guarda o que já foi usado, então repetir é questão de
+   tempo. Aqui o painel é dono da sequência: cada peça (ou cada tamanho/cor,
+   quando a peça tem grade) recebe um número que nunca se repete, gravado no
+   cadastro. O código de barras é montado a partir desse número.
+
+   Por que EAN-13 começando com 2: a faixa 2xx é reservada pela GS1 para uso
+   interno de loja. Nenhum produto de fábrica usa, então não existe chance de
+   dar choque com o código de outra coisa — e, sendo EAN-13, qualquer leitor
+   lê (leitor de pistola barato, câmera de celular, tudo).
+
+   Onde o número mora: `p.cod` para a peça sem grade e `p.cods = {idDaVariação:
+   número}` para quem tem tamanho/cor. Ficam FORA da lista `variacoes` de
+   propósito: um painel desatualizado reconstrói `variacoes` ao salvar e
+   apagaria o que estivesse lá dentro — a etiqueta colada na peça passaria a
+   apontar para o nada. Num campo separado, ele nem encosta.
+
+   `var` em vez de `const` nas tabelas: iniciar() (part5) roda antes daqui.
+   ============================================================ */
+
+var COD_INTERNO='2';          // faixa da GS1 para uso interno da loja
+var COD_MIN_MODULO=0.26;      // mm por barra: abaixo disso o leitor começa a errar
+
+/* ---------- o número ---------- */
+/* Todos os números já colados em alguma peça. Dois aparelhos sem internet
+   podem ter avançado o contador por conta própria; ao sincronizar fica o
+   maior dos dois (part7), mas os números que cada um já distribuiu continuam
+   lá. Por isso todo número novo é conferido contra os que existem. */
+function numerosEmUso(){
+  const s=new Set();
+  (dados.produtos||[]).forEach(p=>{
+    if(+p.cod)s.add(+p.cod);
+    const m=(p.cods&&typeof p.cods==='object')?p.cods:{};
+    Object.keys(m).forEach(k=>{if(+m[k])s.add(+m[k]);});
+  });
+  return s;
+}
+function proximoNumeroCod(usados){
+  const c=C();
+  let n=(+c.seqCod||0)+1;
+  if(usados)while(usados.has(n))n++;
+  c.seqCod=n;
+  if(usados)usados.add(n);
+  return n;
+}
+function digitoEan13(doze){
+  let s=0;
+  for(let i=0;i<12;i++)s+=(+doze[i]||0)*((i%2)?3:1);
+  return String((10-(s%10))%10);
+}
+/* número curto (42) -> código de barras completo (2000000000428) */
+function ean13De(n){
+  const base=COD_INTERNO+String(Math.max(1,Math.floor(+n||0))).padStart(11,'0');
+  return base+digitoEan13(base);
+}
+function soDigitos(s){return String(s==null?'':s).replace(/\D/g,'');}
+/* aceita o que vier: código bipado inteiro, sem o último dígito, ou o número
+   curto digitado na mão (é ele que vai impresso embaixo das barras) */
+function numeroDoCodigo(txt){
+  const d=soDigitos(txt);
+  if(!d)return 0;
+  if(d.length===13&&d[0]===COD_INTERNO)return +d.slice(1,12);
+  if(d.length===12&&d[0]===COD_INTERNO)return +d.slice(1);
+  if(d.length>=13)return 0;            // código de fábrica (789...): não é nosso
+  return +d;
+}
+
+/* ---------- quem tem qual número ---------- */
+function codsDoProduto(p){
+  if(!p)return {};
+  if(!p.cods||typeof p.cods!=='object')p.cods={};
+  return p.cods;
+}
+function codDaVariacao(p,varId){return +codsDoProduto(p)[varId]||0;}
+function codDoProduto(p){return +(p&&p.cod)||0;}
+/* peça sem grade: um número. Com grade: um por tamanho/cor. */
+function itensComCod(p){
+  if(!p)return [];
+  if(temGrade(p))return (p.variacoes||[]).map(v=>({p,v,cod:codDaVariacao(p,v.id),rotulo:v.rotulo,estoque:+v.estoque||0}));
+  return [{p,v:null,cod:codDoProduto(p),rotulo:'',estoque:p.estoque==null?null:(+p.estoque||0)}];
+}
+function faltaCod(p){return itensComCod(p).some(x=>!x.cod);}
+/* devolve quantos números novos precisou criar */
+function garantirCodsDoProduto(p,usados){
+  if(!p)return 0;
+  let novos=0;
+  if(temGrade(p)){
+    const m=codsDoProduto(p);
+    (p.variacoes||[]).forEach(v=>{if(!(+m[v.id])){m[v.id]=proximoNumeroCod(usados);novos++;}});
+  }else if(!p.cod){p.cod=proximoNumeroCod(usados);novos++;}
+  return novos;
+}
+function gerarCodsFaltantes(lista){
+  const usados=numerosEmUso();
+  let novos=0;
+  (lista||[]).forEach(p=>{novos+=garantirCodsDoProduto(p,usados);});
+  if(novos)salvar();
+  return novos;
+}
+/* A etiqueta é física: dois números iguais em peças diferentes é o problema
+   que todo este código existe para evitar. Antes de imprimir, confere. */
+function codigosRepetidos(){
+  const vistos={},rep=[];
+  (dados.produtos||[]).forEach(p=>itensComCod(p).forEach(x=>{
+    if(!x.cod)return;
+    if(vistos[x.cod])rep.push(x);else vistos[x.cod]=x;
+  }));
+  return rep;
+}
+function corrigirCodigosRepetidos(){
+  const rep=codigosRepetidos();
+  if(!rep.length)return 0;
+  const usados=numerosEmUso();
+  rep.forEach(x=>{
+    const n=proximoNumeroCod(usados);
+    if(x.v)codsDoProduto(x.p)[x.v.id]=n;else x.p.cod=n;
+  });
+  salvar();
+  return rep.length;
+}
+/* de volta: qual peça (e qual tamanho/cor) é este código */
+function acharPorCod(txt){
+  const n=numeroDoCodigo(txt);
+  if(!n)return null;
+  for(const p of dados.produtos){
+    if(!temGrade(p)){if(codDoProduto(p)===n)return {p,v:null};continue;}
+    const m=codsDoProduto(p);
+    for(const v of (p.variacoes||[]))if(+m[v.id]===n)return {p,v};
+  }
+  return null;
+}
+
+/* ---------- desenhar as barras ----------
+   Tabelas do EAN-13. Cada dígito vira 7 barras/espaços; o primeiro dígito não
+   é desenhado: ele fica escondido na combinação de tabelas (L/G) dos outros. */
+var EAN_L=['0001101','0011001','0010011','0111101','0100011','0110001','0101111','0111011','0110111','0001011'];
+var EAN_G=['0100111','0110011','0011011','0100001','0011101','0111001','0000101','0010001','0001001','0010111'];
+var EAN_R=['1110010','1100110','1101100','1000010','1011100','1001110','1010000','1000100','1001000','1110100'];
+var EAN_PAR=['LLLLLL','LLGLGG','LLGGLG','LLGGGL','LGLLGG','LGGLLG','LGGGLL','LGLGLG','LGLGGL','LGGLGL'];
+var COD_QUIETO=9;             // margem em branco obrigatória dos dois lados
+
+function padraoEan13(ean){
+  const d=soDigitos(ean);
+  if(d.length!==13)return '';
+  const par=EAN_PAR[+d[0]];
+  let bits='101';
+  for(let i=1;i<=6;i++)bits+=(par[i-1]==='L'?EAN_L:EAN_G)[+d[i]];
+  bits+='01010';
+  for(let j=7;j<=12;j++)bits+=EAN_R[+d[j]];
+  return bits+'101';
+}
+function larguraEmModulos(){return 95+COD_QUIETO*2;}   // 113
+/* SVG em milímetros: o leitor se importa com a largura de cada barra, não com
+   a resolução da tela. `modulo` é a largura de UMA barra, em mm. */
+function barrasSVG(ean,modulo,alturaMM){
+  const bits=padraoEan13(ean);
+  if(!bits)return '';
+  const mod=+modulo||0.33,alt=+alturaMM||8,total=larguraEmModulos();
+  /* barras vizinhas viram UM retângulo só. Desenhar uma por módulo deixaria
+     um fio de branco entre elas (ou obrigaria a engordar cada barra, o que
+     estraga a proporção que o leitor usa para decidir o que é barra grossa) */
+  let r='',i=0,x=COD_QUIETO;
+  while(i<bits.length){
+    if(bits[i]==='0'){i++;x++;continue;}
+    let n=0;while(i+n<bits.length&&bits[i+n]==='1')n++;
+    r+='<rect x="'+x+'" y="0" width="'+n+'" height="100"/>';
+    x+=n;i+=n;
+  }
+  return '<svg class="bc" width="'+r2mm(total*mod)+'mm" height="'+r2mm(alt)+'mm" viewBox="0 0 '+total+' 100" '+
+    'preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">'+
+    '<rect x="0" y="0" width="'+total+'" height="100" fill="#fff"/><g fill="#000">'+r+'</g></svg>';
+}
+function r2mm(v){return Math.round((+v||0)*100)/100;}
+
+/* o número embaixo do nome, na lista de produtos — é por ele que a pessoa
+   confere se a peça já tem etiqueta, e é ele que dá para digitar na mão
+   quando a câmera não colabora */
+function etiquetaDaLinha(p){
+  if(!p)return '';
+  if(temGrade(p)){
+    const m=codsDoProduto(p),cods=(p.variacoes||[]).map(v=>+m[v.id]).filter(Boolean);
+    if(!cods.length)return '';
+    return `<div class="cod-peca" title="código de barras de cada tamanho/cor">🏷️ ${cods.length} código(s)</div>`;
+  }
+  const n=codDoProduto(p);
+  return n?`<div class="cod-peca" title="código de barras ${esc(ean13De(n))}">🏷️ ${n}</div>`:'';
+}
+
+/* ============================================================
+   ETIQUETAS PARA IMPRIMIR
+   A folha adesiva de etiqueta não é padronizada: cada fabricante tem a sua
+   medida. Em vez de adivinhar, o painel deixa tudo ajustável e imprime um
+   GABARITO (só os contornos) para conferir o encaixe antes de gastar folha.
+   ============================================================ */
+var ETIQ_PADRAO={
+  papel:'carta', colunas:4, linhas:10,
+  largura:48, altura:22,          // mm de cada etiqueta
+  margemTopo:12, margemEsq:8,     // mm até a primeira etiqueta
+  espacoH:2, espacoV:3,           // mm entre etiquetas
+  mostrarNome:true, mostrarPreco:true, mostrarTamanho:true,
+  alturaBarras:8, copias:1
+};
+var FOLHAS={carta:{nome:'Carta (216 × 279 mm)',l:216,a:279},a4:{nome:'A4 (210 × 297 mm)',l:210,a:297}};
+
+function etiqCfg(){
+  const c=C();
+  if(!c.etiqueta||typeof c.etiqueta!=='object')c.etiqueta={};
+  const e=Object.assign({},ETIQ_PADRAO,c.etiqueta);
+  c.etiqueta=e;
+  return e;
+}
+function etiqSet(campo,valor){
+  const e=etiqCfg();
+  e[campo]=(typeof ETIQ_PADRAO[campo]==='boolean')?!!valor:
+    (typeof ETIQ_PADRAO[campo]==='number'?(+valor||0):String(valor||''));
+  salvar();
+  renderEtiquetas();
+}
+/* largura de cada barra que sobra depois de descontar a margem interna */
+function moduloDaEtiqueta(e){
+  const util=Math.max(4,(+e.largura||0)-4);
+  return util/larguraEmModulos();
+}
+
+var ETIQ={escopo:'sel',busca:''};
+function abrirEtiquetas(){
+  if(!podeLer('estoque'))return;
+  ETIQ.busca='';
+  ETIQ.escopo=Object.keys(ui.p.sel||{}).length?'sel':'todos';
+  renderEtiquetas();
+  dlgEtiquetas.showModal();
+}
+/* de quais peças sairão etiquetas */
+function produtosDaEtiqueta(){
+  const sel=Object.keys(ui.p.sel||{});
+  if(ETIQ.escopo==='sel'&&sel.length)return sel.map(prodPorId).filter(Boolean);
+  if(ETIQ.escopo==='semcod')return dados.produtos.filter(p=>p.status!=='oculto'&&faltaCod(p));
+  if(ETIQ.escopo==='estoque')return dados.produtos.filter(p=>p.status!=='oculto'&&(temGrade(p)?somaGrade(p)>0:(+p.estoque>0)));
+  return dados.produtos.filter(p=>p.status!=='oculto');
+}
+/* uma etiqueta por peça — e por tamanho/cor, quando a peça tem grade */
+function etiquetasParaImprimir(){
+  const e=etiqCfg(),copias=Math.max(1,Math.min(20,+e.copias||1)),fora=[];
+  produtosDaEtiqueta().forEach(p=>{
+    itensComCod(p).forEach(x=>{
+      if(!x.cod)return;                       // sem número ainda: gera antes
+      for(let i=0;i<copias;i++)fora.push(x);
+    });
+  });
+  return fora;
+}
+function renderEtiquetas(){
+  const e=etiqCfg(),ps=produtosDaEtiqueta(),sem=ps.filter(faltaCod).length,rep=codigosRepetidos();
+  const etiq=etiquetasParaImprimir(),mod=moduloDaEtiqueta(e);
+  const porFolha=Math.max(1,(+e.colunas||1)*(+e.linhas||1));
+  const folhas=Math.ceil(etiq.length/porFolha)||0;
+  const selN=Object.keys(ui.p.sel||{}).length;
+  const num=(rot,campo,passo,dica)=>`<label class="campo etiq-num">${rot}
+    <input type="number" step="${passo||1}" value="${e[campo]}" oninput="etiqSet('${campo}',this.value)">
+    ${dica?`<small class="mut">${dica}</small>`:''}</label>`;
+  const chk=(rot,campo)=>`<label class="linha"><input type="checkbox" ${e[campo]?'checked':''}
+    onchange="etiqSet('${campo}',this.checked)"> ${rot}</label>`;
+  $('etiqCorpo').innerHTML=`
+    <div class="fgrid">
+      <div class="campo span2">
+        <span>Quais peças</span>
+        <div class="filtro-chips" style="margin-top:.3rem">
+          ${selN?`<button type="button" class="${ETIQ.escopo==='sel'?'on':''}" onclick="ETIQ.escopo='sel';renderEtiquetas()">selecionadas (${selN})</button>`:''}
+          <button type="button" class="${ETIQ.escopo==='estoque'?'on':''}" onclick="ETIQ.escopo='estoque';renderEtiquetas()">com estoque</button>
+          <button type="button" class="${ETIQ.escopo==='semcod'?'on':''}" onclick="ETIQ.escopo='semcod';renderEtiquetas()">ainda sem código</button>
+          <button type="button" class="${ETIQ.escopo==='todos'?'on':''}" onclick="ETIQ.escopo='todos';renderEtiquetas()">todas</button>
+        </div>
+      </div>
+    </div>
+    ${sem?`<div class="painel" style="border-color:var(--laranja);padding:.6rem .7rem;margin:.5rem 0">
+      <b style="color:var(--laranja)">${sem} peça(s) ainda sem código.</b>
+      <span class="mut">Cada peça (e cada tamanho/cor) recebe um número que nunca se repete.</span>
+      <div class="mt"><button type="button" class="bt primario" onclick="gerarCodsDaTela()">Gerar os códigos que faltam</button></div>
+    </div>`:''}
+    ${rep.length?`<div class="painel" style="border-color:var(--vermelho);padding:.6rem .7rem;margin:.5rem 0">
+      <b class="neg">⚠️ ${rep.length} código(s) repetido(s).</b>
+      <span class="mut">Pode acontecer se dois aparelhos criaram peças sem internet ao mesmo tempo. Corrija antes de imprimir — etiqueta repetida daria baixa na peça errada.</span>
+      <div class="mt"><button type="button" class="bt" onclick="corrigirRepetidosDaTela()">Dar um número novo aos repetidos</button></div>
+    </div>`:''}
+    <div class="etiq-resumo">
+      <b>${fmtN(etiq.length)}</b> etiqueta(s) · <b>${fmtN(folhas)}</b> folha(s)
+      · barras de <b>${r2mm(mod)} mm</b>
+      ${mod<COD_MIN_MODULO?`<span class="bd fiadoP" title="barras muito finas podem não ser lidas">⚠️ fino demais — aumente a largura da etiqueta</span>`:'<span class="linkok">✓ boa para leitura</span>'}
+    </div>
+    <details class="etiq-ajuste"${etiq.length?'':' open'}>
+      <summary>Medidas da folha de etiqueta — ajuste uma vez e não mexe mais</summary>
+      <div class="fgrid" style="margin-top:.5rem">
+        <label class="campo">Papel <select onchange="etiqSet('papel',this.value)">
+          ${Object.keys(FOLHAS).map(k=>`<option value="${k}"${e.papel===k?' selected':''}>${FOLHAS[k].nome}</option>`).join('')}
+        </select></label>
+        ${num('Colunas','colunas')}
+        ${num('Linhas','linhas')}
+        ${num('Largura da etiqueta','largura',0.5,'mm')}
+        ${num('Altura da etiqueta','altura',0.5,'mm')}
+        ${num('Margem de cima','margemTopo',0.5,'mm')}
+        ${num('Margem da esquerda','margemEsq',0.5,'mm')}
+        ${num('Espaço entre colunas','espacoH',0.5,'mm')}
+        ${num('Espaço entre linhas','espacoV',0.5,'mm')}
+        ${num('Altura das barras','alturaBarras',0.5,'mm')}
+        ${num('Cópias de cada etiqueta','copias')}
+      </div>
+      <div class="barra" style="margin-top:.4rem">
+        ${chk('Nome da peça','mostrarNome')}
+        ${chk('Preço','mostrarPreco')}
+        ${chk('Tamanho / cor','mostrarTamanho')}
+      </div>
+      <p class="mut" style="font-size:.78rem;margin:.4rem 0 0">💡 Antes de gastar folha adesiva, imprima o
+        <b>gabarito</b> numa folha comum e coloque contra a luz junto com a folha de etiqueta: dá para ver se
+        o encaixe está certo e corrigir as margens aqui.</p>
+    </details>
+    <div class="etiq-previa">
+      <span class="mut" style="font-size:.78rem">Como vai ficar cada etiqueta:</span>
+      <div class="etiq-previa-caixa">${etiq.length?etiquetaHTML(etiq[0],e):'<span class="mut">nenhuma etiqueta para imprimir</span>'}</div>
+    </div>`;
+  $('etiqImprimir').disabled=!etiq.length;
+}
+function gerarCodsDaTela(){
+  if(!podeEscrever('estoque')){toast('Seu acesso não permite alterar o estoque.');return;}
+  const n=gerarCodsFaltantes(produtosDaEtiqueta());
+  toast(n?n+' código(s) criado(s) ✓':'Todas já tinham código');
+  renderEtiquetas();
+  if(typeof renderProdutosTab==='function'&&ui.tab==='produtos')renderProdutosTab();
+}
+function corrigirRepetidosDaTela(){
+  if(!podeEscrever('estoque')){toast('Seu acesso não permite alterar o estoque.');return;}
+  const n=corrigirCodigosRepetidos();
+  toast(n?n+' código(s) trocado(s) ✓ — reimprima essas etiquetas':'Nenhum repetido');
+  renderEtiquetas();
+}
+/* o desenho de UMA etiqueta — o mesmo na prévia e na folha */
+function etiquetaHTML(x,e){
+  if(!x)return '';
+  const ean=ean13De(x.cod),mod=moduloDaEtiqueta(e);
+  const nome=e.mostrarNome?`<div class="et-nome">${esc(x.p.nome)}</div>`:'';
+  const tam=(e.mostrarTamanho&&x.rotulo)?`<span class="et-tam">${esc(x.rotulo)}</span>`:'';
+  const preco=(e.mostrarPreco&&+x.p.preco>0)?`<span class="et-preco">${fmt(x.p.preco)}</span>`:'';
+  const linha=(tam||preco)?`<div class="et-linha">${tam}${preco}</div>`:'';
+  return `<div class="etiqueta" style="width:${r2mm(e.largura)}mm;height:${r2mm(e.altura)}mm">
+    ${nome}${barrasSVG(ean,mod,e.alturaBarras)}<div class="et-num">${esc(ean)}</div>${linha}</div>`;
+}
+/* ---------- a folha pronta para imprimir ---------- */
+function folhaEtiquetasHTML(etiq,e,gabarito){
+  const pap=FOLHAS[e.papel]||FOLHAS.carta;
+  const porFolha=Math.max(1,(+e.colunas||1)*(+e.linhas||1));
+  const celulas=[];
+  for(let i=0;i<etiq.length;i+=porFolha)celulas.push(etiq.slice(i,i+porFolha));
+  if(gabarito)celulas.push(new Array(porFolha).fill(null));
+  const folhas=celulas.map(bloco=>`<div class="folha">${
+    bloco.map(x=>`<div class="celula${gabarito?' gab':''}">${gabarito?'':etiquetaHTML(x,e)}</div>`).join('')
+  }</div>`).join('');
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<title>Etiquetas — ${esc((C().loja&&C().loja.nome)||'1001')}</title>
+<style>
+  @page{size:${pap.l}mm ${pap.a}mm;margin:0}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .folha{width:${pap.l}mm;height:${pap.a}mm;padding:${r2mm(e.margemTopo)}mm 0 0 ${r2mm(e.margemEsq)}mm;
+    display:grid;grid-template-columns:repeat(${e.colunas},${r2mm(e.largura)}mm);
+    grid-auto-rows:${r2mm(e.altura)}mm;column-gap:${r2mm(e.espacoH)}mm;row-gap:${r2mm(e.espacoV)}mm;
+    page-break-after:always;overflow:hidden}
+  .celula{width:${r2mm(e.largura)}mm;height:${r2mm(e.altura)}mm;overflow:hidden}
+  .celula.gab{border:.2mm dashed #999}
+  /* cor escrita na unha em tudo: etiqueta é impressão, não pode herdar nada
+     do tema do painel (e preto puro gasta só o cartucho preto) */
+  .etiqueta{display:flex;flex-direction:column;align-items:center;justify-content:center;
+    overflow:hidden;line-height:1.05;padding:.4mm;color:#000;background:#fff}
+  .et-nome{font-size:${Math.max(4,Math.min(7,(+e.altura||20)/4))}pt;font-weight:700;max-width:100%;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;color:#000;margin-bottom:.3mm}
+  .bc{display:block}
+  .et-num{font-family:"Courier New",monospace;font-size:${Math.max(3.5,Math.min(6,(+e.altura||20)/5))}pt;letter-spacing:.2px;color:#000}
+  .et-linha{display:flex;gap:1.5mm;align-items:baseline;font-size:${Math.max(4,Math.min(7,(+e.altura||20)/4.5))}pt;color:#000}
+  .et-preco{font-weight:700;color:#000}
+  .et-tam{border:.15mm solid #000;border-radius:1mm;padding:0 .6mm;color:#000}
+  @media screen{body{background:#555;padding:8mm}.folha{background:#fff;margin:0 auto 8mm;box-shadow:0 2mm 6mm rgba(0,0,0,.4)}}
+</style></head><body onload="window.focus();window.print()">${folhas}</body></html>`;
+}
+function imprimirEtiquetas(gabarito){
+  const e=etiqCfg(),etiq=gabarito?[]:etiquetasParaImprimir();
+  if(!gabarito&&!etiq.length){toast('Nenhuma etiqueta para imprimir.');return;}
+  const html=folhaEtiquetasHTML(etiq,e,!!gabarito);
+  const w=window.open('','_blank');
+  if(!w){
+    toast('O navegador bloqueou a janela de impressão — libere os pop-ups para este site.');
+    return;
+  }
+  w.document.open();w.document.write(html);w.document.close();
+}
 
 </script>
 </body>
