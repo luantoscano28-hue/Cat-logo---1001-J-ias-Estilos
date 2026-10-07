@@ -1,0 +1,17 @@
+{
+  "name": "Caderneta",
+  "short_name": "Caderneta",
+  "description": "Vendas, fiado, estoque, financeiro e catálogo da loja — painel da 1001 Jóias & Estilos.",
+  "lang": "pt-BR",
+  "id": "/gestao1001/",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F6F5F0",
+  "theme_color": "#FBFAF6",
+  "icons": [
+    { "src": "icone-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icone-mascara-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
