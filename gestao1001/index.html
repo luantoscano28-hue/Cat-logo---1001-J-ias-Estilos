@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>1001 Joias e Estilos — Painel</title>
 <meta name="theme-color" content="#FBFAF6">
+<!-- app instalado (part9): nome embaixo do ícone no iPhone. O manifest e os
+     ícones entram por JS, só quando aberto pelo endereço da internet -->
+<meta name="apple-mobile-web-app-title" content="Caderneta">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,600&family=Figtree:wght@400;500;600;700;800&display=swap">
@@ -544,6 +549,15 @@ tr.zerado:hover td{opacity:1}
 .bipe-barra input{flex:1;min-width:0;font-family:"Courier New",monospace}
 .bipe-barra small{flex-basis:100%;font-size:.74rem;min-height:.9rem}
 #dlgCamera{max-width:460px}
+/* app no celular (part9) */
+.aviso.app-aviso{background:var(--painel2);border-color:var(--borda);color:var(--texto)}
+#dlgApp{max-width:460px}
+.app-passos{list-style:none;margin:.4rem 0 .8rem;padding:0;display:flex;flex-direction:column;gap:.8rem}
+.app-passos li{display:flex;gap:.7rem;align-items:flex-start;font-size:.92rem;line-height:1.45}
+.app-n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--nav-on);color:var(--nav-on-tx);font-weight:700;font-size:.82rem;display:flex;align-items:center;justify-content:center}
+.app-ic{width:18px;height:18px;vertical-align:-3px;color:var(--azul)}
+.app-nota{font-size:.82rem;line-height:1.45;color:var(--texto2);background:var(--painel2);border:1px solid var(--borda);border-radius:10px;padding:.55rem .7rem;margin:.5rem 0 0}
+.app-nota.alerta{color:var(--avisoTx);background:var(--aviso1);border-color:var(--aviso2)}
 .cam-caixa{position:relative;background:#000;border-radius:12px;overflow:hidden;aspect-ratio:4/3}
 .cam-caixa video{width:100%;height:100%;object-fit:cover;display:block}
 /* a faixa mostra onde o código precisa ficar: no meio, atravessando as barras */
@@ -864,6 +878,17 @@ try{
   <span>⚠️ <b>Faça um backup!</b> <span id="avisoBackupTexto"></span></span>
   <button class="bt mini" onclick="baixarBackup()">Baixar agora</button>
   <button class="bt mini" onclick="document.getElementById('avisoBackup').hidden=true">Depois</button>
+</div>
+<!-- app no celular (part9): versão nova publicada / sugestão de instalar.
+     Nunca as duas juntas — a de versão nova tem prioridade -->
+<div id="avisoVersao" class="aviso info" hidden>
+  <span>🆕 <b>Saiu uma versão nova do painel.</b> <span id="avisoVersaoTexto"></span></span>
+  <button class="bt mini primario" onclick="appAtualizar()">Atualizar agora</button>
+</div>
+<div id="avisoApp" class="aviso app-aviso" hidden>
+  <span>📲 <b>Instale o painel no celular:</b> ganha um ícone na tela inicial e abre direto, sem o navegador.</span>
+  <button class="bt mini primario" onclick="appInstalar()">Instalar</button>
+  <button class="bt mini" onclick="appAdiar()">Agora não</button>
 </div>
 
 <main>
@@ -1290,6 +1315,13 @@ try{
 </dialog>
 <!-- alterar vários produtos de uma vez: lista clicável no lugar das caixinhas
      numeradas do navegador -->
+<!-- ====== INSTALAR O APP: passo a passo de cada aparelho (part9) ====== -->
+<dialog id="dlgApp">
+  <h3 style="margin-top:0">📲 Instalar o painel</h3>
+  <div id="appPassos"></div>
+  <div class="rodape"><button type="button" class="bt primario" onclick="dlgApp.close()">Entendi</button></div>
+</dialog>
+
 <!-- ====== LEITOR DE CÓDIGO PELA CÂMERA ====== -->
 <dialog id="dlgCamera">
   <h3 style="margin-top:0">📷 Aponte para o código de barras</h3>
@@ -2312,7 +2344,8 @@ function renderConfig(){
           <span>${rot}</span>${aparenciaEscolhida()===id?'<span class="bd ok">em uso</span>':''}
         </button>`).join('')}</div>
       <p class="mut" style="font-size:.76rem;margin-top:.5rem">Automático segue o que estiver ligado no celular ou no computador.</p>
-    </div>`;
+    </div>
+    ${typeof painelApp==='function'?painelApp():''}`;
   } else if(ui.cfgTab==='lojaSite'){
     corpo=painelLojaSite();
   } else if(ui.cfgTab==='dados'){
@@ -5667,9 +5700,10 @@ function notificarCobranca(r){
   if(typeof Notification==='undefined'||Notification.permission!=='granted')return;
   if(notificarCobranca._dia===hoje())return;
   notificarCobranca._dia=hoje();
+  // avisarNoCelular (part9): no Android a notificação só sai pelo app (sw.js)
   try{
-    new Notification((C().loja.nome||'Caderneta')+' — cobrança',
-      {body:(r.vencidas.length?r.vencidas.length+' fiado(s) vencido(s). ':'')
+    avisarNoCelular((C().loja.nome||'Caderneta')+' — cobrança',
+      {tag:'cobranca',body:(r.vencidas.length?r.vencidas.length+' fiado(s) vencido(s). ':'')
         +(r.hj.length?r.hj.length+' vence(m) hoje. ':'')+'Total '+fmt(r.total)+'.'});
   }catch(e){}
 }
@@ -8699,7 +8733,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-09-24 22:48';
+const VERSAO_APP='2026-10-07 00:52';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -10938,6 +10972,233 @@ function fecharCamera(){
 }
 /* fechar pelo Esc não passa pelo botão: a câmera precisa desligar do mesmo jeito */
 try{dlgCamera.addEventListener('close',()=>{if(CAM.aberta)fecharCamera();});}catch(e){}
+
+/* ============================================================
+   APP NO CELULAR (v15)
+   O painel vira "app instalável": ícone na tela inicial, abre em tela cheia
+   sem a barra do navegador e abre mesmo sem internet. Não é app de loja
+   (Play Store/App Store) — é o mesmo painel, então cada melhoria publicada
+   chega sozinha, sem mandar versão nova para loja nenhuma.
+
+   As peças que fazem o navegador oferecer "instalar" moram FORA deste
+   arquivo, em fonte/app/ (o build copia para a pasta publicada):
+   manifest.webmanifest (nome, ícone, cores), sw.js (guarda o painel para abrir
+   sem internet) e os ícones (ferramentas/gerar-icones.ps1). Só valem pelo
+   endereço da internet: aberto pelo arquivo do computador, nada disto liga.
+
+   Aqui ficam: ligar essas peças, sugerir a instalação no celular (uma vez,
+   com "Agora não" que respeita duas semanas), o passo a passo de cada
+   aparelho e o aviso "saiu uma versão nova" para quem deixa o app aberto
+   dias seguidos (app instalado não tem botão de recarregar).
+   ============================================================ */
+// var (e não const): part5 chama iniciar() antes deste arquivo terminar de ler
+var APP = {prompt:null, reg:null, conferido:0, versaoNoAr:null, simular:null};
+var APP_ADIAR_DIAS = 14;
+var APP_CONFERIR_MS = 10*60*1000;   // no máximo uma conferência de versão a cada 10 min
+
+/* ---------- onde estamos ---------- */
+// APP.simular só existe para os testes (que rodam pelo arquivo, sem internet)
+function appNoNavegador(){
+  if(APP.simular&&'internet' in APP.simular)return !!APP.simular.internet;
+  return location.protocol.indexOf('http')===0;
+}
+function appInstalado(){
+  if(APP.simular&&'instalado' in APP.simular)return !!APP.simular.instalado;
+  try{
+    if(navigator.standalone===true)return true;   // iPhone
+    return ['standalone','fullscreen','minimal-ui'].some(m=>matchMedia('(display-mode: '+m+')').matches);
+  }catch(e){return false;}
+}
+function appAparelho(){
+  if(APP.simular&&APP.simular.aparelho)return APP.simular.aparelho;
+  const ua=navigator.userAgent||'';
+  if(/iPhone|iPad|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1))return 'iphone';
+  if(/Android/i.test(ua))return 'android';
+  return 'computador';
+}
+
+/* ---------- preferência do aparelho (não da loja: cada celular é um) ---------- */
+function appPref(){
+  try{return JSON.parse(localStorage.getItem('g1001_app')||'{}')||{};}catch(e){return {};}
+}
+function appGuardarPref(p){
+  try{localStorage.setItem('g1001_app',JSON.stringify(p));}catch(e){}
+}
+function appDiasDepois(n){
+  const d=new Date();d.setDate(d.getDate()+n);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+/* ---------- ligar as peças do app ---------- */
+function appLigarPecas(){
+  if(location.protocol.indexOf('http')!==0)return;   // pelo arquivo do computador não existe app
+  const cab=document.head;
+  const poe=(rel,href)=>{
+    if(cab.querySelector('link[rel="'+rel+'"]'))return;
+    const l=document.createElement('link');l.rel=rel;l.href=href;cab.appendChild(l);
+  };
+  poe('manifest','manifest.webmanifest');
+  poe('apple-touch-icon','icone-apple-180.png');
+  poe('icon','icone-192.png');
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').then(r=>{APP.reg=r;}).catch(()=>{});
+  }
+}
+
+/* ---------- os avisos no alto da tela ---------- */
+/* Versão nova tem prioridade: com as duas coisas valendo, só ela aparece —
+   duas faixas seguidas no celular empurram a tela inteira para baixo. */
+function appDeveSugerir(){
+  if(!appNoNavegador()||appInstalado())return false;
+  if(appAparelho()==='computador')return false;    // no computador fica só em Configurações
+  const p=appPref();
+  if(p.instalado)return false;
+  if(p.adiadoAte&&hoje()<p.adiadoAte)return false;
+  return true;
+}
+function appMostrarAvisos(){
+  const av=$('avisoVersao'),ai=$('avisoApp');
+  if(!av||!ai)return;
+  const versao=!!APP.versaoNoAr;
+  av.hidden=!versao;
+  if(versao)$('avisoVersaoTexto').textContent='É rapidinho e nada do que você fez se perde.';
+  ai.hidden=versao||!appDeveSugerir();
+}
+
+/* ---------- instalar ---------- */
+function appInstalar(){
+  if(APP.prompt){
+    const pr=APP.prompt;APP.prompt=null;
+    try{
+      pr.prompt();
+      Promise.resolve(pr.userChoice).then(c=>{
+        if(c&&c.outcome==='accepted')appFoiInstalado();
+        else appMostrarAvisos();
+      }).catch(()=>{});
+    }catch(e){appMostrarPassos();}
+    return;
+  }
+  appMostrarPassos();
+}
+function appFoiInstalado(){
+  const p=appPref();p.instalado=true;delete p.adiadoAte;appGuardarPref(p);
+  appMostrarAvisos();
+  toast('📲 Pronto! O painel está na tela inicial do aparelho.');
+  if(typeof ui!=='undefined'&&ui.tab==='config'&&typeof renderConfig==='function')renderConfig();
+}
+function appAdiar(){
+  const p=appPref();p.adiadoAte=appDiasDepois(APP_ADIAR_DIAS);appGuardarPref(p);
+  appMostrarAvisos();
+  const temConfig=typeof abaPermitida!=='function'||abaPermitida('config');
+  toast('Tudo bem — lembro de novo daqui a 2 semanas.'+(temConfig?' A opção também fica em Configurações → Geral.':''));
+}
+
+/* O passo a passo muda de aparelho para aparelho: o iPhone não tem botão de
+   instalar (só pelo Compartilhar), e no Android o botão automático só aparece
+   quando o Chrome decide — até lá, o caminho é pelo menu. */
+var APP_IC_COMPARTILHAR='<svg class="app-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
+var APP_IC_MENU='<svg class="app-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>';
+function appPassosHTML(aparelho){
+  const passo=(n,txt)=>`<li><span class="app-n">${n}</span><span>${txt}</span></li>`;
+  const semNuvem=typeof nuvemLigada==='function'&&!nuvemLigada();
+  if(aparelho==='iphone'){
+    return `<ol class="app-passos">
+      ${passo(1,'Toque no botão <b>Compartilhar</b> '+APP_IC_COMPARTILHAR+' — no Safari ele fica na barra de baixo; no Chrome, no alto, à direita.')}
+      ${passo(2,'Role a lista e toque em <b>Adicionar à Tela de Início</b>.')}
+      ${passo(3,'Toque em <b>Adicionar</b>. O ícone <b>Caderneta</b> aparece junto dos seus apps.')}
+    </ol>
+    <p class="app-nota">No iPhone, o app abre separado do Safari: na primeira vez, <b>entre de novo com seu e-mail e senha</b> — tudo o que está na nuvem aparece sozinho.</p>
+    ${semNuvem?'<p class="app-nota alerta">⚠️ Você usa o painel <b>sem a nuvem</b>. Os dados deste navegador não passam para o app: baixe um backup antes (Configurações → Backup / Dados) e restaure dentro do app.</p>':''}`;
+  }
+  if(aparelho==='android'){
+    return `<ol class="app-passos">
+      ${passo(1,'No Chrome, toque nos três pontinhos '+APP_IC_MENU+' no alto, à direita.')}
+      ${passo(2,'Toque em <b>Instalar app</b> (em alguns celulares aparece <b>Adicionar à tela inicial</b>).')}
+      ${passo(3,'Confirme em <b>Instalar</b>. O ícone <b>Caderneta</b> aparece junto dos seus apps.')}
+    </ol>
+    <p class="app-nota">Usa o navegador da Samsung? O menu fica embaixo (☰) → <b>Adicionar página a</b> → <b>Tela inicial</b>.</p>`;
+  }
+  return `<ol class="app-passos">
+      ${passo(1,'Abra o painel no <b>Chrome</b> ou no <b>Edge</b>, pelo endereço da internet.')}
+      ${passo(2,'Na barra de endereço, clique no ícone de <b>instalar</b> (um monitor com uma setinha) — ou procure <b>Instalar</b> no menu do navegador.')}
+      ${passo(3,'O painel ganha janela própria e um atalho na área de trabalho.')}
+    </ol>`;
+}
+function appMostrarPassos(){
+  const d=$('dlgApp');if(!d)return;
+  $('appPassos').innerHTML=appPassosHTML(appAparelho());
+  if(!d.open)d.showModal();
+}
+
+/* ---------- Configurações → Geral ---------- */
+function painelApp(){
+  let corpo;
+  if(appInstalado()){
+    corpo=`<p class="mut" style="font-size:.84rem"><span class="bd ok">em uso</span> Você está usando o painel <b>instalado</b> neste aparelho.</p>`;
+  }else if(!appNoNavegador()){
+    const dom=(C().loja&&C().loja.dominio)||'';
+    corpo=`<p class="mut" style="font-size:.84rem">Para instalar, abra o painel pelo <b>endereço da internet</b>${dom?' — <b>'+esc(dom)+'/gestao1001</b>':''} — no celular ou no computador. Aberto pelo arquivo do computador, como agora, não dá.</p>`;
+  }else{
+    corpo=`<p class="mut" style="font-size:.84rem;margin-bottom:.7rem">O painel ganha um <b>ícone na tela inicial</b>, abre em tela cheia, sem a barra do navegador, e <b>abre mesmo sem internet</b> — o que você mexer sem conexão sobe quando ela voltar.</p>
+      <div class="barra"><button class="bt primario" onclick="appInstalar()">📲 Instalar o painel neste aparelho</button></div>`;
+  }
+  return `<div class="painel"><h3>📲 App no celular</h3>${corpo}
+    <p class="mut" style="font-size:.76rem;margin-top:.5rem">Vale para cada aparelho: cada pessoa da equipe instala no seu. Melhorias novas chegam sozinhas no app.</p>
+  </div>`;
+}
+
+/* ---------- versão nova publicada ---------- */
+/* App instalado não tem botão de recarregar e fica dias aberto no celular.
+   Ao voltar para a tela, o painel pergunta ao site se a versão mudou. A
+   pergunta é "mudou?" (cache 'no-cache'): sem mudança o servidor responde
+   "igual" e nada é baixado. Endereço sem nenhum parâmetro a mais. */
+var APP_RE_VERSAO=new RegExp("VERSAO_APP='(\\d{4}-[^']+)'");
+async function appConferirVersao(forcar){
+  if(!appNoNavegador())return;
+  if(VERSAO_APP.indexOf('__')>=0)return;
+  if(!forcar&&Date.now()-APP.conferido<APP_CONFERIR_MS)return;
+  APP.conferido=Date.now();
+  try{
+    const r=await fetch('./',{cache:'no-cache'});
+    if(!r.ok)return;
+    const m=APP_RE_VERSAO.exec(await r.text());
+    if(m&&m[1]>VERSAO_APP){APP.versaoNoAr=m[1];appMostrarAvisos();}
+  }catch(e){}   // sem internet: fica para a próxima
+}
+function appAtualizar(){
+  $('avisoVersaoTexto').textContent='Atualizando…';
+  location.reload();
+}
+
+/* ---------- notificação no celular ---------- */
+/* No Android o "new Notification" do navegador é proibido (dá erro calado):
+   lá a notificação precisa sair pelo sw.js. Sem ele (arquivo do computador),
+   usa o jeito antigo. */
+function avisarNoCelular(titulo,opcoes){
+  const op=Object.assign({icon:'icone-192.png',badge:'icone-192.png'},opcoes||{});
+  if(APP.reg&&APP.reg.showNotification){
+    try{return APP.reg.showNotification(titulo,op);}catch(e){}
+  }
+  try{new Notification(titulo,op);}catch(e){}
+}
+
+/* ---------- começo ---------- */
+function appIniciar(){
+  window.addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault();          // o painel mostra o próprio aviso, na hora certa
+    APP.prompt=e;
+    appMostrarAvisos();
+  });
+  window.addEventListener('appinstalled',()=>{APP.prompt=null;appFoiInstalado();});
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible')appConferirVersao(false);
+  });
+  appLigarPecas();
+  // espera o painel montar e a pessoa se situar antes de sugerir qualquer coisa
+  setTimeout(appMostrarAvisos,4000);
+  setTimeout(()=>appConferirVersao(true),40000);
+}
+appIniciar();
 
 </script>
 </body>
