@@ -558,6 +558,15 @@ main.larga{max-width:1480px}
 .etiq-num input{width:100%}
 .etiq-resumo{background:var(--painel2);border:1px solid var(--borda);border-radius:10px;
   padding:.5rem .7rem;margin:.6rem 0;font-size:.86rem;display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+/* várias folhas de etiqueta (V8.1): cada uma com medidas e tipos de peça próprios */
+.etiq-folhas{background:var(--painel2);border:1px solid var(--borda);border-radius:10px;padding:.55rem .7rem;margin-bottom:.7rem}
+.etiq-rot{display:block;font-size:.8rem;color:var(--texto2);margin-bottom:.3rem}
+.etiq-folhas .etiq-nova{border-style:dashed}
+.etiq-folha-acoes{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem;margin-top:.45rem}
+.etiq-folha-acoes .mut{font-size:.74rem}
+.etiq-tipos{margin-top:.45rem}
+.etiq-tipos small{opacity:.65;margin-left:.15rem}
+.etiq-folha-nome{font-weight:600;color:var(--texto)}
 .etiq-ajuste summary{cursor:pointer;font-size:.86rem;color:var(--texto2);padding:.3rem 0}
 .etiq-previa{margin-top:.7rem}
 .etiq-previa-caixa{margin-top:.3rem;padding:.8rem;background:#fff;border:1px dashed var(--borda);
@@ -624,7 +633,9 @@ main.larga{max-width:1480px}
 .mini-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.6rem;margin-bottom:.8rem}
 .filtro-chips{display:flex;gap:.3rem;flex-wrap:wrap}
 .filtro-chips button{background:var(--painel2);border:1px solid var(--borda);color:var(--texto2);padding:.3rem .7rem;border-radius:18px;font-size:.82rem}
-.filtro-chips button.ativo{background:linear-gradient(180deg,var(--btp1),var(--btp2));color:var(--btpTx);border-color:transparent;font-weight:600}
+/* .on é o que a tela de etiquetas usa (part8) — sem ele o botão escolhido não
+   aparecia marcado (folha, "quais peças", tipos) */
+.filtro-chips button.ativo,.filtro-chips button.on{background:linear-gradient(180deg,var(--btp1),var(--btp2));color:var(--btpTx);border-color:transparent;font-weight:600}
 .parc-parcial{font-size:.72rem;color:var(--laranja)}
 .obs-int{font-size:.74rem;color:var(--ouro2);background:var(--painel3);border-left:2px solid var(--ouro);padding:.12rem .4rem;border-radius:0 5px 5px 0;margin-top:.25rem;display:inline-block}
 .riscado{text-decoration:line-through;color:var(--texto2)}
@@ -9291,7 +9302,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-10-07 01:38';
+const VERSAO_APP='2026-10-07 20:44';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -11167,12 +11178,88 @@ function usarModeloEtiqueta(k){
   toast('Medidas do modelo aplicadas — confira com o gabarito ✓');
 }
 
-function etiqCfg(){
+/* ---------- várias folhas de etiqueta (V8.1) ----------
+   A loja usa mais de uma folha adesiva: uma normal, para embalagem grande, e
+   uma menor, para a cartela de brinco. Cada folha guarda as PRÓPRIAS medidas e
+   o PRÓPRIO filtro de tipo de peça — escolher "Folha dos brincos" já mostra só
+   os brincos; "Folha normal", tudo menos os brincos.
+   Mora em config.etiqFolhas (sincroniza com a loja). A folha escolhida é do
+   APARELHO (localStorage), como a aparência: cada pessoa imprime numa. A antiga
+   config.etiqueta vira a primeira folha. */
+var LS_ETIQ_FOLHA='g1001_etiq_folha';
+function folhasEtiq(){
   const c=C();
-  if(!c.etiqueta||typeof c.etiqueta!=='object')c.etiqueta={};
-  const e=Object.assign({},ETIQ_PADRAO,c.etiqueta);
-  c.etiqueta=e;
-  return e;
+  if(!Array.isArray(c.etiqFolhas)||!c.etiqFolhas.length){
+    const base=(c.etiqueta&&typeof c.etiqueta==='object')?c.etiqueta:{};
+    c.etiqFolhas=[{id:novoId(),nome:'Folha normal',cfg:Object.assign({},ETIQ_PADRAO,base),filtro:{modo:'todos',tipos:[]}}];
+  }
+  return c.etiqFolhas;
+}
+function folhaEtiqAtual(){
+  const fs=folhasEtiq();
+  // a lista de produtos chama isto durante o iniciar(), antes do "var ETIQ" deste
+  // arquivo ter valor — por isso a guarda (mesma pegadinha do TDZ do part7)
+  const st=(typeof ETIQ==='object'&&ETIQ)?ETIQ:null;
+  let id=st&&st.folha;
+  if(!id){try{id=localStorage.getItem(typeof LS_ETIQ_FOLHA==='string'?LS_ETIQ_FOLHA:'g1001_etiq_folha');}catch(e){}}
+  let f=fs.find(x=>x&&x.id===id)||fs[0];
+  if(st)st.folha=f.id;
+  if(!f.filtro||typeof f.filtro!=='object')f.filtro={modo:'todos',tipos:[]};
+  if(!Array.isArray(f.filtro.tipos))f.filtro.tipos=[];
+  return f;
+}
+function etiqCfg(){
+  const f=folhaEtiqAtual();
+  f.cfg=Object.assign({},ETIQ_PADRAO,f.cfg||{});
+  return f.cfg;
+}
+function escolherFolhaEtiq(id){
+  if(!folhasEtiq().some(x=>x.id===id))return;
+  ETIQ.folha=id;
+  try{localStorage.setItem(LS_ETIQ_FOLHA,id);}catch(e){}
+  renderEtiquetas();
+}
+function novaFolhaEtiq(){
+  pedir({titulo:'Nova folha de etiqueta',ok:'Criar',
+    texto:'A folha nova começa com as mesmas medidas da que está aberta — depois é só ajustar.',
+    campos:[{id:'nome',rotulo:'Nome da folha',exemplo:'ex.: Folha dos brincos',pergunta:'Nome da nova folha de etiqueta:',obrigatorio:true}]},v=>{
+    const nome=String(v.nome||'').trim();if(!nome)return;
+    const f={id:novoId(),nome,cfg:Object.assign({},etiqCfg()),filtro:{modo:'todos',tipos:[]}};
+    folhasEtiq().push(f);salvar();
+    escolherFolhaEtiq(f.id);
+    toast('Folha "'+esc(nome)+'" criada ✓ — ajuste as medidas e quais peças vão nela');
+  });
+}
+function renomearFolhaEtiq(){
+  const f=folhaEtiqAtual();
+  pedir({titulo:'Renomear folha',campos:[{id:'nome',rotulo:'Nome da folha',valor:f.nome,pergunta:'Nome da folha:',obrigatorio:true}]},v=>{
+    f.nome=String(v.nome||'').trim()||f.nome;salvar();renderEtiquetas();
+  });
+}
+function excluirFolhaEtiq(){
+  const fs=folhasEtiq(),f=folhaEtiqAtual();
+  if(fs.length<2){toast('É preciso ter pelo menos uma folha.');return;}
+  confirmar('Excluir a folha "'+f.nome+'"? As medidas dela se perdem; as peças e os códigos não mudam.',
+    {titulo:'Excluir folha',ok:'Excluir',perigo:true},()=>{
+    C().etiqFolhas=fs.filter(x=>x.id!==f.id);ETIQ.folha=null;
+    try{localStorage.removeItem(LS_ETIQ_FOLHA);}catch(e){}
+    salvar();renderEtiquetas();toast('Folha excluída');
+  });
+}
+/* quais tipos de peça vão nesta folha: todos, só alguns, ou todos menos alguns */
+function filtroEtiqModo(modo){
+  const f=folhaEtiqAtual();f.filtro.modo=['todos','so','exceto'].indexOf(modo)>=0?modo:'todos';
+  salvar();renderEtiquetas();
+}
+function filtroEtiqTipo(tipoId){
+  const fl=folhaEtiqAtual().filtro,i=fl.tipos.indexOf(tipoId);
+  if(i>=0)fl.tipos.splice(i,1);else fl.tipos.push(tipoId);
+  salvar();renderEtiquetas();
+}
+function passaFiltroTipo(p,fl){
+  if(!fl||fl.modo==='todos'||!(fl.tipos||[]).length)return true;
+  const dentro=fl.tipos.indexOf(p.tipoId)>=0;
+  return fl.modo==='so'?dentro:!dentro;
 }
 /* medida digitada do jeito brasileiro: "38,6" vale 38.6 (o campo numérico do
    navegador recusava a vírgula e devolvia vazio) */
@@ -11240,7 +11327,7 @@ function moduloDaEtiqueta(e){
   e=e||etiqCfg();
   return larguraUtilEtiqueta(e)/modulosDoTipo(tipoDoCodigo(e));
 }
-var ETIQ={escopo:'sel',busca:''};
+var ETIQ={escopo:'sel',busca:'',folha:null};
 function abrirEtiquetas(){
   if(!podeLer('estoque'))return;
   ETIQ.busca='';
@@ -11250,6 +11337,9 @@ function abrirEtiquetas(){
 }
 /* de quais peças sairão etiquetas */
 function produtosDaEtiqueta(){
+  return produtosDoEscopo().filter(p=>passaFiltroTipo(p,folhaEtiqAtual().filtro));
+}
+function produtosDoEscopo(){
   const sel=Object.keys(ui.p.sel||{});
   if(ETIQ.escopo==='sel'&&sel.length)return sel.map(prodPorId).filter(Boolean);
   if(ETIQ.escopo==='semcod')return dados.produtos.filter(p=>p.status!=='oculto'&&faltaCod(p));
@@ -11272,7 +11362,7 @@ function etiqResumoHTML(e,etiq){
   const mod=moduloDaEtiqueta(e);
   const porFolha=Math.max(1,(+e.colunas||1)*(+e.linhas||1));
   const folhas=Math.ceil(etiq.length/porFolha)||0;
-  return `<b>${fmtN(etiq.length)}</b> etiqueta(s) · <b>${fmtN(folhas)}</b> folha(s)
+  return `<span class="etiq-folha-nome">${esc(folhaEtiqAtual().nome)}:</span> <b>${fmtN(etiq.length)}</b> etiqueta(s) · <b>${fmtN(folhas)}</b> folha(s)
       · ${tipoDoCodigo(e)==='ean8'?'EAN-8':'EAN-13'} · barras de <b>${r2mm(mod)} mm</b>
       ${mod<COD_MIN_MODULO?`<span class="bd fiadoP" title="barras muito finas podem não ser lidas">⚠️ fino demais — aumente a largura da etiqueta</span>`:'<span class="linkok">✓ boa para leitura</span>'}`;
 }
@@ -11296,7 +11386,24 @@ function renderEtiquetas(){
     ${dica?`<small class="mut">${dica}</small>`:''}</label>`;
   const chk=(rot,campo)=>`<label class="linha"><input type="checkbox" ${e[campo]?'checked':''}
     onchange="etiqSet('${campo}',this.checked)"> ${rot}</label>`;
+  const fs=folhasEtiq(),fa=folhaEtiqAtual(),fl=fa.filtro;
+  // quantas peças de cada tipo entram no "quais peças" escolhido (ajuda a marcar)
+  const doEscopo=produtosDoEscopo(),porTipo={};doEscopo.forEach(p=>{porTipo[p.tipoId||'']=(porTipo[p.tipoId||'']||0)+1;});
+  const tiposUsados=(C().tipos||[]).filter(t=>porTipo[t.id]||fl.tipos.indexOf(t.id)>=0);
+  const foraPeloTipo=doEscopo.length-ps.length;
   $('etiqCorpo').innerHTML=`
+    <div class="etiq-folhas">
+      <span class="etiq-rot">Folha de etiqueta</span>
+      <div class="filtro-chips">
+        ${fs.map(f=>`<button type="button" class="${f.id===fa.id?'on':''}" onclick="escolherFolhaEtiq('${f.id}')">${esc(f.nome)}</button>`).join('')}
+        <button type="button" class="etiq-nova" onclick="novaFolhaEtiq()">+ nova folha</button>
+      </div>
+      <div class="etiq-folha-acoes">
+        <button type="button" class="bt mini" onclick="renomearFolhaEtiq()">✎ renomear</button>
+        ${fs.length>1?'<button type="button" class="bt mini perigo" onclick="excluirFolhaEtiq()">excluir esta folha</button>':''}
+        <span class="mut">Cada folha guarda as próprias medidas e quais peças vão nela.</span>
+      </div>
+    </div>
     <div class="fgrid">
       <div class="campo span2">
         <span>Quais peças</span>
@@ -11306,6 +11413,19 @@ function renderEtiquetas(){
           <button type="button" class="${ETIQ.escopo==='semcod'?'on':''}" onclick="ETIQ.escopo='semcod';renderEtiquetas()">ainda sem código</button>
           <button type="button" class="${ETIQ.escopo==='todos'?'on':''}" onclick="ETIQ.escopo='todos';renderEtiquetas()">todas</button>
         </div>
+      </div>
+      <div class="campo span2">
+        <span>Tipo de peça nesta folha</span>
+        <div class="filtro-chips" style="margin-top:.3rem">
+          <button type="button" class="${fl.modo==='todos'?'on':''}" onclick="filtroEtiqModo('todos')">todos os tipos</button>
+          <button type="button" class="${fl.modo==='so'?'on':''}" onclick="filtroEtiqModo('so')">só estes…</button>
+          <button type="button" class="${fl.modo==='exceto'?'on':''}" onclick="filtroEtiqModo('exceto')">todos menos estes…</button>
+        </div>
+        ${fl.modo!=='todos'?`<div class="filtro-chips etiq-tipos">${tiposUsados.map(t=>{const on=fl.tipos.indexOf(t.id)>=0;
+            return `<button type="button" class="${on?'on':''}" onclick="filtroEtiqTipo('${t.id}')">${on?'✓ ':''}${esc(t.nome)} <small>${fmtN(porTipo[t.id]||0)}</small></button>`;}).join('')
+            ||'<span class="mut">Nenhum tipo nas peças escolhidas.</span>'}</div>
+          ${!fl.tipos.length?`<small class="mut">Toque nos tipos para marcar${fl.modo==='so'?' quais vão nesta folha':' quais NÃO vão nesta folha'}.</small>`:''}`:''}
+        ${foraPeloTipo>0?`<small class="mut">${fmtN(foraPeloTipo)} peça(s) de outros tipos ficaram de fora desta folha.</small>`:''}
       </div>
     </div>
     ${sem?`<div class="painel" style="border-color:var(--laranja);padding:.6rem .7rem;margin:.5rem 0">
@@ -11401,7 +11521,7 @@ function folhaEtiquetasHTML(etiq,e,gabarito){
     bloco.map(x=>`<div class="celula${gabarito?' gab':''}">${gabarito?'':etiquetaHTML(x,e)}</div>`).join('')
   }</div>`).join('');
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
-<title>Etiquetas — ${esc(nomeDaLoja())}</title>
+<title>Etiquetas — ${esc(nomeDaLoja())} — ${esc(folhaEtiqAtual().nome)}</title>
 <style>
   @page{size:${pap.l}mm ${pap.a}mm;margin:0}
   *{box-sizing:border-box}
