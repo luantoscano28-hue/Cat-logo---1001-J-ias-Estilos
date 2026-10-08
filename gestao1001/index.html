@@ -569,6 +569,9 @@ main.larga{max-width:1480px}
 .etiq-folha-nome{font-weight:600;color:var(--texto)}
 .etiq-nao-cabe{background:var(--aviso1);border:1px solid var(--aviso2);color:var(--avisoTx);border-radius:10px;
   padding:.5rem .7rem;margin:-.2rem 0 .6rem;font-size:.84rem;line-height:1.45}
+.etiq-dica-imp{margin-top:.7rem;padding:.5rem .7rem;border:1px solid var(--borda);border-radius:10px;
+  background:var(--painel2);font-size:.82rem;line-height:1.45}
+.etiq-dica-imp .mut{display:block;font-size:.76rem;margin-top:.15rem}
 .etiq-ajuste summary{cursor:pointer;font-size:.86rem;color:var(--texto2);padding:.3rem 0}
 .etiq-previa{margin-top:.7rem}
 .etiq-previa-caixa{margin-top:.3rem;padding:.8rem;background:#fff;border:1px dashed var(--borda);
@@ -9304,7 +9307,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-10-07 22:12';
+const VERSAO_APP='2026-10-07 23:06';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -11189,6 +11192,16 @@ function avisoPapelHTML(e){
   return `<div class="etiq-nao-cabe">⚠️ <b>Não cabe no papel:</b> as etiquetas ${f.join(' e ')} (${esc(s.papel.nome)}).
     Confira o <b>Papel</b> (meça a folha: A4 tem 29,7 cm de altura, Carta 27,9 cm), as margens, as colunas e as linhas.</div>`;
 }
+/* A margem da folha mora AQUI; na janela de impressão ela tem que ser "Nenhuma".
+   Caso real (07/10/2026): o Luan pôs as medidas da folha (16 / 5 / 5 / 13) também
+   nas margens da janela de impressão — somaram com as do painel, o navegador
+   encolheu a folha para 95% (o meio batia, as pontas não) e cortou a última linha. */
+function dicaImpressaoHTML(e){
+  const p=papelDaEtiq(e);
+  return `<div class="etiq-dica-imp">🖨️ Na janela de impressão escolha: <b>Papel ${esc(p.nome==='Personalizado'?fmtMm(p.l)+' × '+fmtMm(p.a)+' mm':p.nome)}</b> ·
+    <b>Margens: Nenhuma</b> · <b>Escala: Tamanho real</b> (100%).
+    <span class="mut">As margens da folha ficam só aqui no painel. Margem posta lá soma com a daqui: a folha sai encolhida, desalinha nas pontas e a última linha é cortada.</span></div>`;
+}
 function fmtMm(v){return String(r2mm(v)).replace('.',',');}
 /* Ponto de partida das folhas mais vendidas. Não é chute que resolve: o
    gabarito é que confirma o encaixe. Mas começar perto economiza folha. */
@@ -11197,16 +11210,16 @@ var MODELOS_ETIQ={
     dica:'Etiqueta pequena, 6 colunas × 35 linhas, sem espaço entre elas. Cabe o código e o número — não cabe o nome.',
     cfg:{papel:'a4',colunas:6,linhas:35,largura:30,altura:8,margemTopo:8.5,margemEsq:15,
       espacoH:0,espacoV:0,alturaBarras:5,mostrarNome:false,mostrarPreco:false,mostrarTamanho:false,mostrarCategoria:false,tipoCodigo:'auto'}},
-  /* a folha que o Luan comprou para a cartela de brinco (07/10/2026). A embalagem
-     diz "Carta", mas a folha mede ~30 cm de altura: é A4 (29,7 cm). Medidas do
-     gabarito da Pimaco A4349 (a Green Paper usa o mesmo código): margem de cima
-     13,5, dos lados 8, 2 mm entre colunas, nada entre linhas — 8 + 7 × 26 + 6 × 2 + 8
-     = 210 e 13,5 + 18 × 15 + 13,5 = 297. A 1ª tentativa (lados 5, espaço 3) andava
-     1 mm a mais por coluna e cortava as colunas das pontas. */
+  /* a folha que o Luan comprou para a cartela de brinco (07/10/2026), medida na
+     régua: 16,5 mm em cima, 12 embaixo, 5 de cada lado — 5 + 7 × 26 + 6 × 3 + 5 = 210
+     e 16,5 + 18 × 15 + 12 = 298,5 (~30 cm). NÃO é igual à Pimaco A4349 de mesmo código
+     (13,5 / 8 / 2): a v18.1 usou a da Pimaco e estava errada para esta folha.
+     Papel A4: a impressora conta da borda de cima, a sobra embaixo não importa.
+     Conferido impresso em 07/10/2026 (barras de 3 mm, como ele imprimiu). */
   a4_26x15:{nome:'A4 · 26 × 15 mm (126 por folha)',
-    dica:'Green Paper GP.A4349 / Pimaco A4349 (126 por folha): 7 colunas × 18 linhas, margem de cima 13,5 mm, lados 8 mm, 2 mm entre colunas.',
-    cfg:{papel:'a4',colunas:7,linhas:18,largura:26,altura:15,margemTopo:13.5,margemEsq:8,
-      espacoH:2,espacoV:0,alturaBarras:5,tipoCodigo:'auto'}},
+    dica:'Green Paper GP.A4349 (126 por folha): 7 colunas × 18 linhas, margem de cima 16,5 mm, lados 5 mm, 3 mm entre colunas. A ponta de 16,5 mm entra primeiro na impressora.',
+    cfg:{papel:'a4',colunas:7,linhas:18,largura:26,altura:15,margemTopo:16.5,margemEsq:5,
+      espacoH:3,espacoV:0,alturaBarras:3,tipoCodigo:'auto'}},
   joia_rabicho:{nome:'Joia · rabicho (40 por folha)',
     dica:'A etiqueta comprida que dá a volta na peça. Confira a medida no gabarito antes da primeira impressão.',
     cfg:{papel:'carta',colunas:4,linhas:10,largura:48,altura:22,margemTopo:12,margemEsq:8,
@@ -11416,6 +11429,7 @@ function etiqAtualizarVivo(){
   if(r)r.innerHTML=etiqResumoHTML(e,etiq);
   if(p)p.innerHTML=etiqPreviaHTML(e,etiq);
   if($('etiqAvisoPapel'))$('etiqAvisoPapel').innerHTML=avisoPapelHTML(e);
+  if($('etiqDicaImp'))$('etiqDicaImp').innerHTML=dicaImpressaoHTML(e);
   if($('etiqImprimir'))$('etiqImprimir').disabled=!etiq.length;
 }
 function renderEtiquetas(){
@@ -11522,7 +11536,8 @@ function renderEtiquetas(){
     <div class="etiq-previa">
       <span class="mut" style="font-size:.78rem">Como vai ficar cada etiqueta:</span>
       <div class="etiq-previa-caixa" id="etiqPreviaCaixa">${etiqPreviaHTML(e,etiq)}</div>
-    </div>`;
+    </div>
+    <div id="etiqDicaImp">${dicaImpressaoHTML(e)}</div>`;
   $('etiqImprimir').disabled=!etiq.length;
 }
 function gerarCodsDaTela(){
