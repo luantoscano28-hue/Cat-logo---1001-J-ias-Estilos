@@ -9304,7 +9304,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-10-07 21:36';
+const VERSAO_APP='2026-10-07 22:12';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -11198,12 +11198,15 @@ var MODELOS_ETIQ={
     cfg:{papel:'a4',colunas:6,linhas:35,largura:30,altura:8,margemTopo:8.5,margemEsq:15,
       espacoH:0,espacoV:0,alturaBarras:5,mostrarNome:false,mostrarPreco:false,mostrarTamanho:false,mostrarCategoria:false,tipoCodigo:'auto'}},
   /* a folha que o Luan comprou para a cartela de brinco (07/10/2026). A embalagem
-     diz "Carta", mas a folha mede ~30 cm de altura: é A4 (29,7 cm). Margens de
-     partida = centralizado (18 × 15 = 270 de 297; 7 × 26 + 6 × 3 = 200 de 210). */
+     diz "Carta", mas a folha mede ~30 cm de altura: é A4 (29,7 cm). Medidas do
+     gabarito da Pimaco A4349 (a Green Paper usa o mesmo código): margem de cima
+     13,5, dos lados 8, 2 mm entre colunas, nada entre linhas — 8 + 7 × 26 + 6 × 2 + 8
+     = 210 e 13,5 + 18 × 15 + 13,5 = 297. A 1ª tentativa (lados 5, espaço 3) andava
+     1 mm a mais por coluna e cortava as colunas das pontas. */
   a4_26x15:{nome:'A4 · 26 × 15 mm (126 por folha)',
-    dica:'Ex.: Green Paper GP.A4349 / Pimaco de 126 por folha. 7 colunas × 18 linhas. Medidas de partida — confira com o gabarito.',
-    cfg:{papel:'a4',colunas:7,linhas:18,largura:26,altura:15,margemTopo:13.5,margemEsq:5,
-      espacoH:3,espacoV:0,alturaBarras:5,tipoCodigo:'auto'}},
+    dica:'Green Paper GP.A4349 / Pimaco A4349 (126 por folha): 7 colunas × 18 linhas, margem de cima 13,5 mm, lados 8 mm, 2 mm entre colunas.',
+    cfg:{papel:'a4',colunas:7,linhas:18,largura:26,altura:15,margemTopo:13.5,margemEsq:8,
+      espacoH:2,espacoV:0,alturaBarras:5,tipoCodigo:'auto'}},
   joia_rabicho:{nome:'Joia · rabicho (40 por folha)',
     dica:'A etiqueta comprida que dá a volta na peça. Confira a medida no gabarito antes da primeira impressão.',
     cfg:{papel:'carta',colunas:4,linhas:10,largura:48,altura:22,margemTopo:12,margemEsq:8,
