@@ -567,6 +567,8 @@ main.larga{max-width:1480px}
 .etiq-tipos{margin-top:.45rem}
 .etiq-tipos small{opacity:.65;margin-left:.15rem}
 .etiq-folha-nome{font-weight:600;color:var(--texto)}
+.etiq-nao-cabe{background:var(--aviso1);border:1px solid var(--aviso2);color:var(--avisoTx);border-radius:10px;
+  padding:.5rem .7rem;margin:-.2rem 0 .6rem;font-size:.84rem;line-height:1.45}
 .etiq-ajuste summary{cursor:pointer;font-size:.86rem;color:var(--texto2);padding:.3rem 0}
 .etiq-previa{margin-top:.7rem}
 .etiq-previa-caixa{margin-top:.3rem;padding:.8rem;background:#fff;border:1px dashed var(--borda);
@@ -9302,7 +9304,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-10-07 20:44';
+const VERSAO_APP='2026-10-07 21:36';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -11156,9 +11158,38 @@ var ETIQ_PADRAO={
   margemTopo:12, margemEsq:8,     // mm até a primeira etiqueta
   espacoH:2, espacoV:3,           // mm entre etiquetas
   mostrarNome:true, mostrarPreco:true, mostrarTamanho:true, mostrarCategoria:true, tipoCodigo:'auto',
-  alturaBarras:8, copias:1
+  alturaBarras:8, copias:1,
+  papelLargura:210, papelAltura:297   // só valem com papel "personalizado" (mm)
 };
-var FOLHAS={carta:{nome:'Carta (216 × 279 mm)',l:216,a:279},a4:{nome:'A4 (210 × 297 mm)',l:210,a:297}};
+var FOLHAS={carta:{nome:'Carta (216 × 279 mm)',l:216,a:279},a4:{nome:'A4 (210 × 297 mm)',l:210,a:297},
+  personalizado:{nome:'Personalizado (digitar a medida)',l:210,a:297}};
+/* O papel de verdade desta folha. "Personalizado" (V8.1): a pessoa digita
+   largura e altura — folha de etiqueta nem sempre é Carta ou A4. */
+function papelDaEtiq(e){
+  e=e||etiqCfg();
+  if(e.papel==='personalizado')return {nome:'Personalizado',l:Math.max(20,+e.papelLargura||210),a:Math.max(20,+e.papelAltura||297)};
+  return FOLHAS[e.papel]||FOLHAS.carta;
+}
+/* As etiquetas cabem no papel? Margem + etiquetas + espaços, nos dois sentidos.
+   Caso real (07/10/2026): folha A4 configurada como Carta — 17 mm + 18 linhas ×
+   15 mm = 287 mm num papel de 279: a última linha caía na página seguinte e
+   todo o resto desalinhava. Folga de 0,5 mm para arredondamento. */
+function sobraNoPapel(e){
+  e=e||etiqCfg();
+  const p=papelDaEtiq(e),c=Math.max(1,+e.colunas||1),l=Math.max(1,+e.linhas||1);
+  const larg=(+e.margemEsq||0)+c*(+e.largura||0)+(c-1)*(+e.espacoH||0);
+  const alt=(+e.margemTopo||0)+l*(+e.altura||0)+(l-1)*(+e.espacoV||0);
+  return {largura:r2mm(p.l-larg),altura:r2mm(p.a-alt),papel:p};
+}
+function avisoPapelHTML(e){
+  const s=sobraNoPapel(e),f=[];
+  if(s.altura<-0.5)f.push(`passam <b>${fmtMm(-s.altura)} mm</b> da altura do papel`);
+  if(s.largura<-0.5)f.push(`passam <b>${fmtMm(-s.largura)} mm</b> da largura do papel`);
+  if(!f.length)return '';
+  return `<div class="etiq-nao-cabe">⚠️ <b>Não cabe no papel:</b> as etiquetas ${f.join(' e ')} (${esc(s.papel.nome)}).
+    Confira o <b>Papel</b> (meça a folha: A4 tem 29,7 cm de altura, Carta 27,9 cm), as margens, as colunas e as linhas.</div>`;
+}
+function fmtMm(v){return String(r2mm(v)).replace('.',',');}
 /* Ponto de partida das folhas mais vendidas. Não é chute que resolve: o
    gabarito é que confirma o encaixe. Mas começar perto economiza folha. */
 var MODELOS_ETIQ={
@@ -11166,6 +11197,13 @@ var MODELOS_ETIQ={
     dica:'Etiqueta pequena, 6 colunas × 35 linhas, sem espaço entre elas. Cabe o código e o número — não cabe o nome.',
     cfg:{papel:'a4',colunas:6,linhas:35,largura:30,altura:8,margemTopo:8.5,margemEsq:15,
       espacoH:0,espacoV:0,alturaBarras:5,mostrarNome:false,mostrarPreco:false,mostrarTamanho:false,mostrarCategoria:false,tipoCodigo:'auto'}},
+  /* a folha que o Luan comprou para a cartela de brinco (07/10/2026). A embalagem
+     diz "Carta", mas a folha mede ~30 cm de altura: é A4 (29,7 cm). Margens de
+     partida = centralizado (18 × 15 = 270 de 297; 7 × 26 + 6 × 3 = 200 de 210). */
+  a4_26x15:{nome:'A4 · 26 × 15 mm (126 por folha)',
+    dica:'Ex.: Green Paper GP.A4349 / Pimaco de 126 por folha. 7 colunas × 18 linhas. Medidas de partida — confira com o gabarito.',
+    cfg:{papel:'a4',colunas:7,linhas:18,largura:26,altura:15,margemTopo:13.5,margemEsq:5,
+      espacoH:3,espacoV:0,alturaBarras:5,tipoCodigo:'auto'}},
   joia_rabicho:{nome:'Joia · rabicho (40 por folha)',
     dica:'A etiqueta comprida que dá a volta na peça. Confira a medida no gabarito antes da primeira impressão.',
     cfg:{papel:'carta',colunas:4,linhas:10,largura:48,altura:22,margemTopo:12,margemEsq:8,
@@ -11374,6 +11412,7 @@ function etiqAtualizarVivo(){
   const r=$('etiqResumo'),p=$('etiqPreviaCaixa');
   if(r)r.innerHTML=etiqResumoHTML(e,etiq);
   if(p)p.innerHTML=etiqPreviaHTML(e,etiq);
+  if($('etiqAvisoPapel'))$('etiqAvisoPapel').innerHTML=avisoPapelHTML(e);
   if($('etiqImprimir'))$('etiqImprimir').disabled=!etiq.length;
 }
 function renderEtiquetas(){
@@ -11439,6 +11478,7 @@ function renderEtiquetas(){
       <div class="mt"><button type="button" class="bt" onclick="corrigirRepetidosDaTela()">Dar um número novo aos repetidos</button></div>
     </div>`:''}
     <div class="etiq-resumo" id="etiqResumo">${etiqResumoHTML(e,etiq)}</div>
+    <div id="etiqAvisoPapel">${avisoPapelHTML(e)}</div>
     <details class="etiq-ajuste"${etiq.length?'':' open'}>
       <summary>Medidas da folha de etiqueta — ajuste uma vez e não mexe mais</summary>
       <div class="barra" style="margin:.2rem 0 .5rem">
@@ -11450,6 +11490,7 @@ function renderEtiquetas(){
         <label class="campo">Papel <select onchange="etiqSet('papel',this.value)">
           ${Object.keys(FOLHAS).map(k=>`<option value="${k}"${e.papel===k?' selected':''}>${FOLHAS[k].nome}</option>`).join('')}
         </select></label>
+        ${e.papel==='personalizado'?num('Largura do papel','papelLargura',1,'mm — 21 cm = 210')+num('Altura do papel','papelAltura',1,'mm — 30 cm = 300'):''}
         <label class="campo">Tipo do código <select onchange="etiqSet('tipoCodigo',this.value)">
           ${[['auto','Automático (escolhe pelo tamanho)'],['ean13','EAN-13 (13 dígitos)'],['ean8','EAN-8 (cabe em etiqueta estreita)']]
             .map(o=>`<option value="${o[0]}"${(e.tipoCodigo||'auto')===o[0]?' selected':''}>${o[1]}</option>`).join('')}
@@ -11512,7 +11553,7 @@ function etiquetaHTML(x,e){
 }
 /* ---------- a folha pronta para imprimir ---------- */
 function folhaEtiquetasHTML(etiq,e,gabarito){
-  const pap=FOLHAS[e.papel]||FOLHAS.carta;
+  const pap=papelDaEtiq(e);
   const porFolha=Math.max(1,(+e.colunas||1)*(+e.linhas||1));
   const celulas=[];
   for(let i=0;i<etiq.length;i+=porFolha)celulas.push(etiq.slice(i,i+porFolha));
@@ -11553,9 +11594,16 @@ function folhaEtiquetasHTML(etiq,e,gabarito){
   @media screen{body{background:#555;padding:8mm}.folha{background:#fff;margin:0 auto 8mm;box-shadow:0 2mm 6mm rgba(0,0,0,.4)}}
 </style></head><body onload="window.focus();window.print()">${folhas}</body></html>`;
 }
-function imprimirEtiquetas(gabarito){
+function imprimirEtiquetas(gabarito,mesmoAssim){
   const e=etiqCfg(),etiq=gabarito?[]:etiquetasParaImprimir();
   if(!gabarito&&!etiq.length){toast('Nenhuma etiqueta para imprimir.');return;}
+  // etiqueta que não cabe no papel sai desalinhada: pergunta antes de gastar folha
+  const s=sobraNoPapel(e);
+  if(!mesmoAssim&&(s.altura<-0.5||s.largura<-0.5)){
+    confirmar('As etiquetas não cabem no papel escolhido ('+s.papel.nome+') — a impressão vai sair desalinhada. Confira o tamanho do papel e as margens.',
+      {titulo:'Não cabe no papel',ok:'Imprimir mesmo assim',cancelar:'Voltar e ajustar'},()=>imprimirEtiquetas(gabarito,true));
+    return;
+  }
   const html=folhaEtiquetasHTML(etiq,e,!!gabarito);
   const w=window.open('','_blank');
   if(!w){
