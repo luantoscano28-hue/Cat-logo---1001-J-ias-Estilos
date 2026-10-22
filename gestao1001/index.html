@@ -569,6 +569,10 @@ main.larga{max-width:1480px}
 .etiq-folha-nome{font-weight:600;color:var(--texto)}
 .etiq-nao-cabe{background:var(--aviso1);border:1px solid var(--aviso2);color:var(--avisoTx);border-radius:10px;
   padding:.5rem .7rem;margin:-.2rem 0 .6rem;font-size:.84rem;line-height:1.45}
+/* Configurações → Geral → Mês dos relatórios */
+.mes-loja{display:grid;gap:.55rem}
+.mes-loja .linha{align-items:flex-start;gap:.5rem;line-height:1.6;font-size:.88rem}
+.mes-loja input[type=radio]{margin-top:.35rem}
 .etiq-dica-imp{margin-top:.7rem;padding:.5rem .7rem;border:1px solid var(--borda);border-radius:10px;
   background:var(--painel2);font-size:.82rem;line-height:1.45}
 .etiq-dica-imp .mut{display:block;font-size:.76rem;margin-top:.15rem}
@@ -1492,8 +1496,8 @@ try{
 </dialog>
 <dialog id="dlgFechar">
 <form id="formFechar">
-  <h3>Fechar mês fiscal</h3>
-  <p class="mut" style="margin-bottom:.6rem">Congela os números do período num histórico. O padrão segue a sua regra de mês fiscal, mas você pode <b>ajustar as datas</b> quando houver exceção.</p>
+  <h3>Fechar o mês</h3>
+  <p class="mut" style="margin-bottom:.6rem">Congela os números do período num histórico. O padrão segue o mês da loja (Configurações → Geral → Mês dos relatórios), mas você pode <b>ajustar as datas</b> quando houver exceção.</p>
   <div class="fgrid">
     <label class="campo">Início <input type="date" id="fcIni" required onchange="fcPreview()"></label>
     <label class="campo">Fim <input type="date" id="fcFim" required onchange="fcPreview()"></label>
@@ -1815,8 +1819,17 @@ function diasEntre(a,b){
 function isoAddDias(iso,n){const d=new Date(iso+'T12:00:00');d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function noPeriodo(data,ini,fim){return (!ini||data>=ini)&&(!fim||data<=fim);}
 
-/* mês fiscal: começa no dia configurado (padrão 11) e vai até a véspera no mês seguinte */
-function diaFiscal(){try{const n=parseInt(C().fiscal&&C().fiscal.diaInicio);return (n>=1&&n<=28)?n:11;}catch(e){return 11;}}
+/* mês da loja: começa no dia configurado e vai até a véspera no mês seguinte.
+   Padrão = dia 1 (mês normal do calendário). Mês fiscal "11 a 10" é coisa da
+   1001 — o painel é de várias lojas, e quem não fecha o mês em outro dia não
+   pode ver "Mês fiscal (11→10)" em todo canto (pedido do Luan, 22/10/2026).
+   A loja da 1001 guarda diaInicio:11 na config, então para ela nada muda. */
+function diaFiscal(){try{const n=parseInt(C().fiscal&&C().fiscal.diaInicio);return (n>=1&&n<=28)?n:1;}catch(e){return 1;}}
+function usaMesFiscal(){return diaFiscal()!==1;}
+/* nomes que aparecem na tela: "Mês atual" para quem usa o mês normal,
+   "Mês fiscal atual (11→10)" para quem fecha em outro dia */
+function nomeMesAtual(){const D=diaFiscal();return D===1?'Mês atual':'Mês fiscal atual ('+D+'→'+(D-1)+')';}
+function nomeMesAnterior(){return usaMesFiscal()?'Mês fiscal anterior':'Mês anterior';}
 function mesFiscalDe(iso,desloca){
   const D=diaFiscal(),p2=n=>String(n).padStart(2,'0');
   let d=new Date(iso+'T12:00:00'),y=d.getFullYear(),m=d.getMonth();
@@ -1929,7 +1942,7 @@ function estruturaInicial(){
          preenchidos no cadastro e em Configurações → Geral / Loja. */
       loja:{nome:'Minha Loja', whatsapp:'', dominio:'', pix:'', logo:'', capa:{banner:'',texto:''}, msgFiado:MSG_FIADO_PADRAO,
         logoLarga:'', marcaModo:'redonda', banners:{ativo:false,itens:[{imagem:'',alvo:''},{imagem:'',alvo:''}]}},
-      fiscal:{diaInicio:11}, autoBaixaCartao:true, tema:'ouro',
+      fiscal:{diaInicio:1}, autoBaixaCartao:true, tema:'ouro',
       avisos:{diasAntes:1, notificar:false, ultimoAviso:''},
       categorias:idfy([{nome:'Aço'},{nome:'Folheado'},{nome:'Biju'},{nome:'Prata'},{nome:'Acessórios'}]),
       colecoes:[], apagados:[], seqCod:0,
@@ -2593,6 +2606,7 @@ function renderConfig(){
       <textarea id="cfgMsg" style="width:100%;min-height:200px">${esc(cfg.loja.msgFiado||MSG_FIADO_PADRAO)}</textarea>
       <div class="rodape"><button class="bt" onclick="$('cfgMsg').value=MSG_FIADO_PADRAO">Restaurar modelo padrão</button><button class="bt primario" onclick="salvarGeral()">Salvar tudo</button></div>
     </div>
+    ${painelMesDaLoja()}
     <div class="painel"><h3>🔔 Aviso de cobrança</h3>
       <p class="mut" style="font-size:.82rem;margin-bottom:.7rem">Ao abrir o painel, ele avisa o que venceu e o que vence nos próximos dias — uma vez por dia, pra não virar ruído. O botão <b>📱 mandar no meu WhatsApp</b> abre a conversa <b>com você mesmo</b> já com a lista pronta.</p>
       <div class="barra">
@@ -2634,6 +2648,28 @@ function renderConfig(){
     </div>`;
   }
   if(typeof renderNav==='function')renderNav();
+}
+/* Mês dos relatórios (22/10/2026): quem não usa mês fiscal fica no "mês normal"
+   e o painel não fala em "fiscal" em lugar nenhum; quem fecha o mês em outro
+   dia (a 1001 fecha de 11 a 10) marca "Mês fiscal" e digita o dia. */
+function painelMesDaLoja(){
+  const D=diaFiscal(),fiscal=D!==1;
+  return `<div class="painel"><h3>📅 Mês dos relatórios</h3>
+    <p class="mut" style="font-size:.82rem;margin-bottom:.6rem">Como o painel conta "o mês" no Resumo, em Vendas, no Financeiro, no Fiado e no fechamento do mês.</p>
+    <div class="mes-loja">
+      <label class="linha"><input type="radio" name="cfgMesLoja" ${fiscal?'':'checked'} onchange="salvarDiaFiscal(1)">
+        <span><b>Mês normal</b> — do dia 1 ao último dia do mês</span></label>
+      <label class="linha"><input type="radio" name="cfgMesLoja" ${fiscal?'checked':''} onchange="escolherMesFiscal()">
+        <span><b>Mês fiscal</b> — começa no dia
+        <input type="number" id="cfgDiaFiscal" min="2" max="28" value="${fiscal?D:''}" placeholder="ex.: 11" style="width:64px" onchange="salvarDiaFiscal(this.value)">
+        e vai até a véspera, no mês seguinte</span></label>
+    </div></div>`;
+}
+function escolherMesFiscal(){
+  const c=$('cfgDiaFiscal'),v=parseInt(c&&c.value);
+  if(v>=2&&v<=28){salvarDiaFiscal(v);return;}
+  toast('Digite o dia em que o seu mês começa (2 a 28).');
+  if(c)c.focus();
 }
 function salvarDiasAviso(v){
   const n=Math.max(0,Math.min(30,parseInt(v)||0));
@@ -4720,6 +4756,7 @@ const ICONES_MENU_PROD={
   estoque:'M3 7l9-4 9 4-9 4-9-4zM3 7v10l9 4 9-4V7M12 11v10',
   editar:'M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4',
   mesclar:'M6 3v5c0 3 3 5 6 5s6-2 6-5V3M12 13v8',
+  link:'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',
   excluir:'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6'
 };
 function svgMenuProd(d){
@@ -4733,7 +4770,7 @@ function abrirMenuProduto(id,btn){
   m.dataset.id=id;
   const item=(acao,rot)=>`<button type="button" role="menuitem"${acao==='excluir'?' class="perigo"':''} onclick="acaoProduto('${acao}')">${svgMenuProd(ICONES_MENU_PROD[acao])}<span>${rot}</span></button>`;
   m.innerHTML=`<div class="menu-cab">${esc(p.nome)}</div>
-    ${item('estoque','Ajustar estoque')}${item('editar','Editar')}${item('mesclar','Mesclar com outro produto')}
+    ${item('estoque','Ajustar estoque')}${item('editar','Editar')}${item('link','Copiar link da peça na loja')}${item('mesclar','Mesclar com outro produto')}
     <div class="menu-sep"></div>${item('excluir','Excluir')}`;
   m.hidden=false;$('menuProdutoFundo').hidden=false;
   posicionarMenuProduto(m,btn);
@@ -4760,6 +4797,7 @@ function acaoProduto(acao){
   fecharMenuProduto();
   if(acao==='estoque')abrirMov(id);
   else if(acao==='editar')editarProduto(id);
+  else if(acao==='link')copiarLinkDaPeca(id);
   else if(acao==='mesclar')abrirMesclar(id,'menu');
   else if(acao==='excluir')excluirProduto(id);
 }
@@ -5915,8 +5953,8 @@ function renderVendas(){
   }
   $('tab-vendas').innerHTML=cabVendas()+cardsVendasPeriodo()+`<div class="barra">
     <select onchange="ui.v.per=this.value;renderVendasTab()">
-      <option value="fiscal"${u.per==='fiscal'?' selected':''}>Mês fiscal atual (11→10)</option>
-      <option value="fiscalAnt"${u.per==='fiscalAnt'?' selected':''}>Mês fiscal anterior</option>
+      <option value="fiscal"${u.per==='fiscal'?' selected':''}>${nomeMesAtual()}</option>
+      <option value="fiscalAnt"${u.per==='fiscalAnt'?' selected':''}>${nomeMesAnterior()}</option>
       <option value="30d"${u.per==='30d'?' selected':''}>Últimos 30 dias</option>
       <option value="ano"${u.per==='ano'?' selected':''}>Este ano</option>
       <option value="tudo"${u.per==='tudo'?' selected':''}>Tudo</option>
@@ -5960,7 +5998,7 @@ function cardsVendasPeriodo(){
     <div class="card"><div class="rotulo">${rotSem}</div>
       <div class="valor pos">${fmt(s.total)}</div>
       <div class="extra">${s.n} venda(s) · <button class="mini-nav" title="semana anterior" onclick="navSemana(-1)">◀</button> ${fmtData(sIni).slice(0,5)} a ${fmtData(sFim).slice(0,5)} <button class="mini-nav" title="semana seguinte" onclick="navSemana(1)">▶</button>${off!==0?` <button class="mini-nav" onclick="semanaHoje()">atual</button>`:''}</div></div>
-    <div class="card"><div class="rotulo">Mês fiscal atual</div><div class="valor">${fmt(m.total)}</div><div class="extra">${m.n} venda(s) · ${fmtData(f.ini)} a ${fmtData(f.fim)}</div></div>
+    <div class="card"><div class="rotulo">${usaMesFiscal()?'Mês fiscal atual':'Vendas do mês'}</div><div class="valor">${fmt(m.total)}</div><div class="extra">${m.n} venda(s) · ${fmtData(f.ini)} a ${fmtData(f.fim)}</div></div>
   </div>`;
 }
 /* filtros por atributo do PRODUTO vendido (fornecedor, tipo, material, coleção).
@@ -6304,10 +6342,10 @@ function renderFiadoCorpo(){
     <div class="card"><div class="rotulo">Total a receber</div><div class="valor ${totGeral>0?'neg':'pos'}">${fmt(totGeral)}</div></div>
     <div class="card clicavel ${venc>0?'alerta':''}" onclick="ui.f.filtro='vencidos';renderFiadoCorpo()"><div class="rotulo">${venc>0?'⚠️ ':''}Vencido</div><div class="valor ${venc>0?'neg':''}">${fmt(venc)}</div><div class="extra">${venc>0?'<b>cobre esses clientes</b>':'nada atrasado ✓'}</div></div>
     <div class="card clicavel" onclick="ui.f.filtro='7dias';renderFiadoCorpo()"><div class="rotulo">Vence em 7 dias</div><div class="valor ${prox7>0?'laranja':''}" style="${prox7>0?'color:var(--laranja)':''}">${fmt(prox7)}</div></div>
-    <div class="card clicavel" onclick="ui.f.filtro='mes';renderFiadoCorpo()"><div class="rotulo">Vence no mês fiscal</div><div class="valor">${fmt(doMes)}</div><div class="extra">${fmtData(mesFiscalDe(hoje(),0).ini)} a ${fmtData(mesFiscalDe(hoje(),0).fim)}</div></div>
+    <div class="card clicavel" onclick="ui.f.filtro='mes';renderFiadoCorpo()"><div class="rotulo">${usaMesFiscal()?'Vence no mês fiscal':'Vence neste mês'}</div><div class="valor">${fmt(doMes)}</div><div class="extra">${fmtData(mesFiscalDe(hoje(),0).ini)} a ${fmtData(mesFiscalDe(hoje(),0).fim)}</div></div>
   </div>
   <div class="barra">
-    <div class="filtro-chips">${chip('todos','Todos')}${chip('vencidos','Vencidos')}${chip('7dias','Próximos 7 dias')}${chip('mes','Vence no mês fiscal')}</div>
+    <div class="filtro-chips">${chip('todos','Todos')}${chip('vencidos','Vencidos')}${chip('7dias','Próximos 7 dias')}${chip('mes',usaMesFiscal()?'Vence no mês fiscal':'Vence neste mês')}</div>
     <span class="esp"></span>
     <label class="linha">Local <select onchange="ui.f.local=this.value;renderFiadoCorpo()"><option value="">todos</option>${opcoes(C().locais,loc)}</select></label>
   </div>
@@ -7194,8 +7232,8 @@ function renderFin(){
   ${painelRecebiveis()}
   <div class="barra">
     <select onchange="ui.l.per=this.value;renderFinTab()">
-      <option value="fiscal"${u.per==='fiscal'?' selected':''}>Mês fiscal atual (11→10)</option>
-      <option value="fiscalAnt"${u.per==='fiscalAnt'?' selected':''}>Mês fiscal anterior</option>
+      <option value="fiscal"${u.per==='fiscal'?' selected':''}>${nomeMesAtual()}</option>
+      <option value="fiscalAnt"${u.per==='fiscalAnt'?' selected':''}>${nomeMesAnterior()}</option>
       <option value="30d"${u.per==='30d'?' selected':''}>Últimos 30 dias</option>
       <option value="ano"${u.per==='ano'?' selected':''}>Este ano</option>
       <option value="tudo"${u.per==='tudo'?' selected':''}>Tudo</option>
@@ -7550,15 +7588,17 @@ function painelFechamentos(){
     <td class="num ${f.snap.dre.resultLiq>=0?'pos':'neg'}">${fmt(f.snap.dre.resultLiq)}</td>
     <td class="num">${fmt(f.snap.cx.saldoFim)}</td>
     <td class="acoes"><button class="bt mini" onclick="verFechamento('${f.id}')">👁 ver</button><button class="bt mini perigo" onclick="excluirFechamento('${f.id}')">✕</button></td></tr>`).join('');
-  return `<div class="painel"><div class="barra" style="margin-bottom:.4rem"><h2 style="margin:0">🔒 Fechamentos de mês fiscal</h2><span class="esp"></span>
-      <label class="linha">Mês fiscal começa no dia <input type="number" min="1" max="28" value="${diaFiscal()}" style="width:60px" onchange="salvarDiaFiscal(this.value)"></label>
+  return `<div class="painel"><div class="barra" style="margin-bottom:.4rem"><h2 style="margin:0">🔒 ${usaMesFiscal()?'Fechamentos de mês fiscal':'Fechamentos do mês'}</h2><span class="esp"></span>
+      <label class="linha">O mês começa no dia <input type="number" min="1" max="28" value="${diaFiscal()}" style="width:60px" onchange="salvarDiaFiscal(this.value)"></label>
       <button class="bt primario" onclick="abrirFechar()">🔒 Fechar período</button></div>
     ${fs.length?`<div class="rolagem"><table><tr><th>Período</th><th class="num">Faturamento</th><th class="num">Lucro</th><th class="num">Caixa no fim</th><th></th></tr>${linhas}</table></div>`
       :'<p class="mut">Nenhum período fechado ainda. Ao fechar, os números daquele mês ficam guardados aqui — mesmo que você edite vendas antigas depois.</p>'}</div>`;
 }
 function salvarDiaFiscal(v){
   const n=parseInt(v);if(!(n>=1&&n<=28)){toast('Use um dia entre 1 e 28.');return;}
-  if(!C().fiscal)C().fiscal={};C().fiscal.diaInicio=n;salvar();renderResumo();toast('Mês fiscal agora começa no dia '+n);
+  if(!C().fiscal)C().fiscal={};C().fiscal.diaInicio=n;salvar();renderResumo();
+  if(ui.tab==='config')renderConfig();
+  toast(n===1?'O mês agora vai do dia 1 ao último dia ✓':'Mês fiscal agora começa no dia '+n+' ✓');
 }
 function resumoPeriodo(){
   if(ui.r.ini&&ui.r.fim)return [ui.r.ini,ui.r.fim];
@@ -7571,7 +7611,7 @@ function renderResumo(){
   const semDados=!dados.vendas.length&&!dados.lancamentos.length;
   const [ini,fim]=resumoPeriodo();
   const d=calcDRE(ini,fim),cx=calcCaixa(ini,fim);
-  // fiado do PERÍODO: o que foi vendido fiado neste mês fiscal e ainda está em aberto
+  // fiado do PERÍODO: o que foi vendido fiado neste mês e ainda está em aberto
   const fiadosPer=fiadosPendentes().filter(v=>noPeriodo(v.data,ini,fim));
   const fiadoTot=r2(fiadosPer.reduce((s,v)=>s+recAberto(v),0)),nFiado=fiadosPer.length;
   const fiadoGeral=totalFiadoPendente();
@@ -7588,7 +7628,7 @@ function renderResumo(){
     <button class="bt" onclick="resumoDesloca(-1)">◀</button>
     <b style="min-width:170px;text-align:center">${fmtData(ini)} — ${fmtData(fim)}</b>
     <button class="bt" onclick="resumoDesloca(1)">▶</button>
-    <button class="bt mini" onclick="resumoHoje()">Mês fiscal atual (11→10)</button><span class="esp"></span>
+    <button class="bt mini" onclick="resumoHoje()">${nomeMesAtual()}</button><span class="esp"></span>
     <label class="linha">De <input type="date" id="rIni" value="${ini}" onchange="resumoCustom()"></label>
     <label class="linha">até <input type="date" id="rFim" value="${fim}" onchange="resumoCustom()"></label></div>`;
   if(semDados){
@@ -8189,6 +8229,10 @@ a{color:inherit}
 .btgrande{width:100%;background:var(--acento);color:var(--btTx);border:none;border-radius:10px;padding:.8rem;font-size:.95rem;font-weight:700;cursor:pointer}
 .btgrande:disabled{opacity:.4;cursor:not-allowed}
 .btgrande.wpp{background:#25D366;color:#fff}
+.lg-link{display:block;width:100%;margin-top:.7rem;background:none;border:none;color:var(--texto2);font-size:.82rem;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.lg-link[hidden]{display:none}
+.lg-aviso{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);max-width:calc(100% - 2rem);background:var(--painel);color:var(--texto);border:1px solid var(--borda);border-radius:12px;padding:.7rem 1rem;font-size:.86rem;box-shadow:0 6px 20px rgba(0,0,0,.45);z-index:60;text-align:center}
+.lg-aviso[hidden]{display:none}
 .esgot-aviso{background:var(--painel3);color:var(--vermelho);border-radius:8px;padding:.5rem .7rem;font-size:.82rem;margin-bottom:.8rem}
 .fab{position:fixed;right:1rem;bottom:1rem;background:var(--acento);color:var(--btTx);border:none;border-radius:30px;padding:.8rem 1.2rem;font-weight:700;font-size:.9rem;box-shadow:0 4px 14px rgba(0,0,0,.5);cursor:pointer;display:none;align-items:center;gap:.5rem;z-index:50}
 .fab.show{display:flex}
@@ -8249,6 +8293,7 @@ html.lg-esperando body::after{content:"";position:fixed;top:50%;left:50%;width:3
       <div id="lgMdTamWrap"></div>
       <div class="qtd-wrap"><button id="lgQtdMenos">−</button><span id="lgQtd">1</span><button id="lgQtdMais">+</button></div>
       <button class="btgrande" id="lgBtAdd">Adicionar ao pedido</button>
+      <button class="lg-link" id="lgBtLink" hidden>🔗 Compartilhar esta peça</button>
     </div>
   </div>
 </div>
@@ -8267,6 +8312,7 @@ html.lg-esperando body::after{content:"";position:fixed;top:50%;left:50%;width:3
 </div>
 
 <button class="fab" id="lgFab">🛒 Ver pedido <span class="bolha" id="lgFabN">0</span></button>
+<div class="lg-aviso" id="lgAviso" role="status" hidden></div>
 
 <script>
 var CATALOGO = __CATALOGO_JSON__;
@@ -8610,8 +8656,76 @@ var CATALOGO = __CATALOGO_JSON__;
     // mostra antes de desenhar: peça só com vídeo já começa tocando, visível
     $("lgOverlay").classList.add("show");
     renderModal();
+    marcarEndereco(p);
   }
-  function fecharModal(){pararVideos();$("lgOverlay").classList.remove("show");atual=null;}
+  function fecharModal(){pararVideos();$("lgOverlay").classList.remove("show");atual=null;marcarEndereco(null);}
+
+  /* ---- link direto de cada peça (22/10/2026) ----
+     A loja anuncia peça por peça no Instagram: o link tem que abrir a loja já
+     com a peça aberta. Formato: ?p=nome-da-peca-ID. O nome é só para o link
+     ficar legível; quem manda é o ID do fim — renomear a peça no painel não
+     quebra o link que já foi postado. O painel monta o mesmo formato
+     (linkDaPeca) no menu ⋮ do produto. */
+  function noSite(){return /^https?:$/.test(location.protocol);}
+  function slugPeca(s){
+    return String(s||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase()
+      .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,60).replace(/-+$/,"");
+  }
+  function linkDaPeca(p){
+    var s=slugPeca(p.nome);
+    return location.origin+location.pathname+"?p="+(s?s+"-":"")+p.id;
+  }
+  function pecaDoLink(v){
+    v=String(v||"");if(!v)return null;
+    for(var i=0;i<produtos.length;i++){
+      var id=String(produtos[i].id);
+      if(v===id||v.slice(-(id.length+1))==="-"+id)return produtos[i];
+    }
+    return null;
+  }
+  /* o endereço da barra acompanha a peça aberta: quem copia o endereço manda a
+     peça, não a loja inteira. replaceState (e não pushState) para o "voltar" do
+     celular não ficar preso abrindo e fechando peças. */
+  function marcarEndereco(p){
+    if(!noSite())return;
+    try{history.replaceState(null,"",p?linkDaPeca(p):location.pathname);}catch(e){}
+  }
+  var pecaPedida="";
+  try{pecaPedida=new URLSearchParams(location.search).get("p")||"";}catch(e){}
+  /* A peça pedida pode ainda não estar na vitrine guardada (peça nova, postada
+     hoje): tenta com o que já está na tela e, se não achar, espera a vitrine
+     do banco. Só depois dela é que "não está mais na loja" é verdade. */
+  function abrirPecaPedida(ultimaChance){
+    if(!pecaPedida)return;
+    var p=pecaDoLink(pecaPedida);
+    if(p){pecaPedida="";abrirModal(p.id);return;}
+    if(!ultimaChance)return;
+    pecaPedida="";
+    marcarEndereco(null);
+    avisoLoja("Essa peça não está mais disponível na loja — veja as outras 👇");
+  }
+  var avisoTimer=0;
+  function avisoLoja(t){
+    var a=$("lgAviso");a.textContent=t;a.hidden=false;
+    clearTimeout(avisoTimer);avisoTimer=setTimeout(function(){a.hidden=true;},6000);
+  }
+  $("lgAviso").addEventListener("click",function(){this.hidden=true;});
+  $("lgBtLink").addEventListener("click",function(){
+    if(!atual)return;
+    var bt=this,url=linkDaPeca(atual),nome=atual.nome;
+    function copiado(){bt.textContent="Link copiado ✓";setTimeout(function(){bt.textContent="🔗 Compartilhar esta peça";},2500);}
+    function copiar(){
+      try{navigator.clipboard.writeText(url).then(copiado,copiarAntigo);}catch(e){copiarAntigo();}
+    }
+    function copiarAntigo(){
+      var a=document.createElement("textarea");a.value=url;a.style.position="fixed";a.style.opacity="0";
+      document.body.appendChild(a);a.select();try{document.execCommand("copy");}catch(e){}a.remove();copiado();
+    }
+    // no celular abre a lista de apps (WhatsApp, Instagram...); no computador copia
+    if(navigator.share&&window.matchMedia&&matchMedia("(pointer:coarse)").matches){
+      navigator.share({title:nome,text:nome+" — "+(loja.nome||""),url:url}).catch(function(){});
+    }else copiar();
+  });
 
   /* O vídeo entra no mesmo carrossel das fotos, como último quadro. Antes ele
      era gravado no produto e nunca chegava à loja — não havia nada aqui que
@@ -8812,6 +8926,9 @@ var CATALOGO = __CATALOGO_JSON__;
   });
 
   render();atualizarFab();
+  $("lgBtLink").hidden=!noSite();   // na prévia do painel não há endereço de verdade
+  // veio por link de uma peça? abre ela (sem banco, esta é a única chance)
+  abrirPecaPedida(!(CATALOGO.nuvem&&CATALOGO.nuvem.url&&CATALOGO.nuvem.chave));
 
   /* ------------------------------------------------------------
      Busca a vitrine atualizada direto do banco.
@@ -8834,6 +8951,9 @@ var CATALOGO = __CATALOGO_JSON__;
       document.documentElement.classList.remove("lg-esperando");
     }
     if(esperando){document.documentElement.classList.add("lg-esperando");setTimeout(liberar,2500);}
+    // a vitrine do banco chegou (ou não vai chegar): agora dá para dizer se a
+    // peça do link existe — e abrir mesmo que ela seja nova demais para a guardada
+    function fimDaBusca(){liberar();abrirPecaPedida(true);}
     var buscando=false,ultimaBusca=0;
     function buscarVitrine(){
       if(buscando)return;
@@ -8846,15 +8966,15 @@ var CATALOGO = __CATALOGO_JSON__;
       .then(function(r){return r.ok?r.json():null;})
       .then(function(linhas){
         buscando=false;
-        if(!linhas||!linhas.length||!linhas[0].dados){liberar();return;}
+        if(!linhas||!linhas.length||!linhas[0].dados){fimDaBusca();return;}
         var novo=linhas[0].dados;
-        if(!novo.produtos){liberar();return;}
+        if(!novo.produtos){fimDaBusca();return;}
         // guarda a nuvem: o registro salvo no banco não carrega essas chaves
         novo.nuvem=N;
         var texto=JSON.stringify(novo);
         try{localStorage.setItem(CHAVE_VITRINE,texto);}catch(e){}
         // igual ao que já está na tela: não redesenha (o banner não volta ao começo)
-        if(texto===vitrineGuardada){liberar();return;}
+        if(texto===vitrineGuardada){fimDaBusca();return;}
         vitrineGuardada=texto;
         CATALOGO=novo;
         absorverCatalogo();   // sem isto, a tela continua com a lista antiga
@@ -8864,9 +8984,9 @@ var CATALOGO = __CATALOGO_JSON__;
         if(estado.tipo&&tipos.indexOf(estado.tipo)<0)estado.tipo="";
         if(estado.col&&!colecoes.some(function(c){return c.nome===estado.col;}))estado.col="";
         render();
-        liberar();
+        fimDaBusca();
       })
-      .catch(function(){buscando=false;liberar();/* sem internet: fica o que já está na tela */});
+      .catch(function(){buscando=false;fimDaBusca();/* sem internet: fica o que já está na tela */});
     }
     buscarVitrine();
     /* A aba do celular fica guardada em segundo plano e volta como estava: sem
@@ -9282,6 +9402,32 @@ function copiarLinkDaLoja(){
   const ok=()=>toast('Link da loja copiado — cole no WhatsApp ou no Instagram 📋');
   try{navigator.clipboard.writeText(l).then(ok,()=>{copiarTextoAntigo(l);ok();});}catch(e){copiarTextoAntigo(l);ok();}
 }
+/* Link direto de UMA peça na loja (22/10/2026): o Luan anuncia peça por peça no
+   Instagram e o link precisa cair na peça, sem o cliente caçar. Formato que a loja
+   entende: ?p=nome-da-peca-ID. O nome é só para o link ficar legível; quem manda é
+   o ID do fim — renomear a peça não quebra link já postado. */
+function slugPeca(s){
+  return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase()
+    .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60).replace(/-+$/,'');
+}
+function linkDaPeca(p){
+  const base=linkDaLoja();if(!base||!p)return '';
+  const s=slugPeca(p.nome);
+  return base+'?p='+(s?s+'-':'')+p.id;
+}
+function copiarLinkDaPeca(id){
+  const p=prodPorId(id);if(!p)return;
+  if(!linkDaLoja()){
+    avisar('Para montar o link, o painel precisa do endereço da loja. Preencha o Domínio em Configurações → Geral / Loja.',{titulo:'Falta o endereço da loja'});
+    return;
+  }
+  if(!naLoja(p)){
+    avisar('“'+p.nome+'” não aparece na loja agora ('+(p.status==='oculto'?'está oculta':'está sem estoque')+'). O link funciona, mas quem abrir vai ver o aviso de que a peça não está mais na loja.',{titulo:'Peça fora da loja'});
+  }
+  const l=linkDaPeca(p);
+  const ok=()=>toast('Link da peça copiado — cole no Instagram ou no WhatsApp 📋');
+  try{navigator.clipboard.writeText(l).then(ok,()=>{copiarTextoAntigo(l);ok();});}catch(e){copiarTextoAntigo(l);ok();}
+}
 function copiarTextoAntigo(t){
   const a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';
   document.body.appendChild(a);a.select();try{document.execCommand('copy');}catch(e){}a.remove();
@@ -9307,7 +9453,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-10-07 23:06';
+const VERSAO_APP='2026-10-22 19:25';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
