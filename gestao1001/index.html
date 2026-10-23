@@ -389,6 +389,27 @@ tr.zerado:hover td{opacity:1}
 .bn-itens{display:grid;gap:.9rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-top:.6rem}
 .bn-item{background:var(--painel2);border:1px solid var(--borda);border-radius:10px;padding:.7rem}
 .banner-prev.bn-prev{aspect-ratio:2/1}
+/* capa e banners (v20): prévia no computador e no celular com o MESMO desenho da
+   loja — "inteira" (sobra = a imagem desfocada) ou "preencher" (arrastável) */
+.aj-img{margin-top:.3rem}
+.aj-telas{display:grid;grid-template-columns:minmax(0,2.6fr) minmax(0,1fr);gap:.7rem;align-items:end}
+.aj-rot{display:block;font-size:.74rem;color:var(--texto2);margin-bottom:.25rem}
+.aj-quadro{position:relative;overflow:hidden;border-radius:8px;border:1px solid var(--borda);background:var(--painel3);
+  display:flex;align-items:center;justify-content:center;user-select:none}
+.aj-quadro .fundo{position:absolute;left:-8%;top:-8%;width:116%;height:116%;object-fit:cover;filter:blur(14px) brightness(.5);pointer-events:none}
+.aj-quadro .frente{position:relative;display:block;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.aj-quadro.inteira .frente{object-fit:contain}
+.aj-quadro.arrasta{cursor:grab;touch-action:none}
+.aj-quadro.arrasta:active{cursor:grabbing}
+.aj-mao{position:absolute;left:50%;bottom:.45rem;transform:translateX(-50%);background:rgba(0,0,0,.62);color:#fff;
+  font-size:.72rem;padding:.2rem .65rem;border-radius:20px;pointer-events:none;white-space:nowrap}
+.aj-ops{display:grid;gap:.4rem;margin-top:.6rem}
+.aj-ops .linha{align-items:flex-start;gap:.5rem;font-size:.84rem;line-height:1.45}
+.aj-ops input[type=radio]{margin-top:.25rem}
+.aj-ops .mut{font-size:.78rem}
+/* no cartão estreito do banner, uma prévia embaixo da outra */
+.bn-item .aj-telas{grid-template-columns:1fr}
+.bn-item .aj-cel .aj-quadro{max-width:55%}
 /* logo horizontal: a prévia fica sobre a cor do topo da loja, que é sempre
    escura (vem inline, conforme o tema do catálogo) — por isso o texto fixo claro */
 .logo-larga-prev{border-radius:10px;padding:.9rem;display:flex;align-items:center;justify-content:center;min-height:84px;margin-top:.3rem;color:#9ba3b2;font-size:.82rem;text-align:center}
@@ -839,7 +860,7 @@ main.larga{max-width:1480px}
      Roda antes de qualquer desenho — por isso fica aqui, e não nos .js. -->
 <style>
 html.aguardando-acesso #nav,html.aguardando-acesso #navCel,html.aguardando-acesso main,
-html.aguardando-acesso #avisoCobranca,html.aguardando-acesso #avisoBackup{visibility:hidden}
+html.aguardando-acesso #avisoCobranca{visibility:hidden}
 html.aguardando-acesso body::after{content:"Carregando sua loja…";position:fixed;left:50%;top:45%;
   transform:translate(-50%,-50%);color:var(--texto2);font-size:.95rem;letter-spacing:.3px}
 </style>
@@ -954,11 +975,6 @@ try{
   <button class="bt mini" onclick="trocarTab('fiado')">Ver cobranças</button>
   <button class="bt mini" onclick="mandarResumoCobranca()">📱 mandar no meu WhatsApp</button>
   <button type="button" class="aviso-x" onclick="dispensarAvisoCobranca()" aria-label="Fechar o aviso" title="Fechar (volta amanhã)">✕</button>
-</div>
-<div id="avisoBackup" class="aviso" hidden>
-  <span>⚠️ <b>Faça um backup!</b> <span id="avisoBackupTexto"></span></span>
-  <button class="bt mini" onclick="baixarBackup()">Baixar agora</button>
-  <button class="bt mini" onclick="document.getElementById('avisoBackup').hidden=true">Depois</button>
 </div>
 <!-- app no celular (part9): versão nova publicada / sugestão de instalar.
      Nunca as duas juntas — a de versão nova tem prioridade -->
@@ -2376,7 +2392,7 @@ function aplicarIdentidade(){
   try{document.title=nomeDaLoja()+' — Caderneta';}catch(e){}
 }
 function renderTudo(){
-  aplicarIdentidade();renderNav();renderDatalists();avisoBackup();
+  aplicarIdentidade();renderNav();renderDatalists();
   if(typeof avisoCobranca==='function')avisoCobranca();
   ({resumo:renderResumo,vendas:renderVendas,fiado:renderFiado,produtos:renderProdutos,
     fin:renderFin,clientes:renderClientes,config:renderConfig})[ui.tab]();
@@ -7754,7 +7770,7 @@ function baixarArquivo(nome,conteudo,tipo){const b=new Blob([conteudo],{type:tip
 function stamp(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function baixarBackup(){
   baixarArquivo('caderneta-backup-'+stamp()+'.json',JSON.stringify({app:'gestao1001',v:2,em:new Date().toISOString(),dados}),'application/json');
-  dados.ultimoBackup=hoje();dados.nAlteracoes=0;salvar(false);$('avisoBackup').hidden=true;if(ui.tab==='config')renderConfig();
+  dados.ultimoBackup=hoje();dados.nAlteracoes=0;salvar(false);if(ui.tab==='config')renderConfig();
   toast('Backup baixado ✓ Guarde em local seguro!');
 }
 function importarBackup(f){
@@ -7809,32 +7825,11 @@ function apagarTudo(){
       salvar();renderTudo();toast('Dados apagados');
     }));
 }
-function avisoBackup(){
-  const d=dados;let mostrar=false,texto='';
-  /* Com a nuvem ligada, quem guarda é a nuvem: nenhum sistema concorrente pede
-     backup à lojista, e o aviso só confundia (V8). Ele continua para quem
-     trabalha SEM nuvem — ali os dados existem só naquele aparelho. As
-     ferramentas de cópia ficaram em Conta e dados → Ferramentas de suporte. */
-  const naNuvem=typeof nuvemLigada==='function'&&nuvemLigada();
-  if(naNuvem){$('avisoBackup').hidden=true;return;}
-  const prazo=naNuvem?30:7,minAlt=naNuvem?40:10;
-  if(!d.ultimoBackup&&(d.nAlteracoes||0)>=minAlt){
-    mostrar=true;
-    texto=naNuvem
-      ?'Seus dados estão na nuvem, mas você ainda não guardou nenhuma cópia própria.'
-      :'Você já fez '+d.nAlteracoes+' alterações e ainda não baixou backup.';
-  }
-  else if(d.ultimoBackup){
-    const dias=Math.floor((new Date(hoje()+'T12:00:00')-new Date(d.ultimoBackup+'T12:00:00'))/864e5);
-    if(dias>=prazo&&(d.nAlteracoes||0)>0){
-      mostrar=true;
-      texto=(naNuvem?'A nuvem está guardando tudo, mas sua última cópia de segurança foi há ':'Seu último backup foi há ')+dias+' dias.';
-    }
-  }
-  $('avisoBackupTexto').textContent=texto;
-  if(!mostrar)$('avisoBackup').hidden=true;
-  else if($('avisoBackup').hidden&&!avisoBackup._visto){$('avisoBackup').hidden=false;avisoBackup._visto=true;}
-}
+/* O aviso "Faça um backup!" no topo SAIU de vez (v20, 22/10/2026). Na V8 ele
+   já sumia com a nuvem ligada, mas aparecia no instante em que o painel abria
+   antes da sessão voltar — e o Luan seguia vendo "último backup há 41 dias".
+   Concorrente nenhum cobra backup da lojista: quem guarda é a nuvem. A cópia
+   continua em Conta e dados → Ferramentas de suporte (e à mostra sem nuvem). */
 
 function iniciar(){
   const primeiro=carregar();
@@ -8002,6 +7997,7 @@ function catalogoLoja(embutir){
   const logoLarga=cfg.loja.marcaModo==='larga'?(cfg.loja.logoLarga||''):'';
   return {loja:{nome:cfg.loja.nome||'Loja',logo:cfg.loja.logo||'',whatsapp:cfg.loja.whatsapp||'',pix:cfg.loja.pix||'',
       tema:temaAtual(),capaBanner:capa.banner||'',capaTexto:capa.texto||'',
+      capaAjuste:ajusteDe(capa),capaPos:posDe(capa),
       capaFiltro:filtroDoBanner(cfg,capa.alvo,cats,tps,cols),
       logoLarga:logoLarga,banners:bannersDoCatalogo(cfg,cats,tps,cols)},
     categorias:cats,tipos:tps,colecoes:cols,produtos:prods,geradoEm:new Date().toISOString()};
@@ -8014,7 +8010,17 @@ function bannersDoCatalogo(cfg,cats,tps,cols){
   const bn=cfg.loja.banners;
   if(!bn||!bn.ativo)return [];
   return (bn.itens||[]).filter(b=>b&&b.imagem).slice(0,limiteBanners())
-    .map(b=>({img:b.imagem,filtro:filtroDoBanner(cfg,b.alvo,cats,tps,cols)}));
+    .map(b=>({img:b.imagem,filtro:filtroDoBanner(cfg,b.alvo,cats,tps,cols),ajuste:ajusteDe(b),pos:posDe(b)}));
+}
+/* Como a imagem da capa/banner aparece na loja (v20, pedido do Luan 22/10/2026):
+   'inteira' (padrão) — nada é cortado, a sobra vira a própria imagem desfocada;
+   'preencher' — ocupa a faixa toda, na parte que a lojista arrastar (pos = [x,y]
+   em %, vira object-position). Sem escolha guardada = 'inteira': arte com texto e
+   logo (o caso comum) nunca perde pedaço. */
+function ajusteDe(o){return o&&o.ajuste==='preencher'?'preencher':'inteira';}
+function posDe(o){
+  const p=o&&o.pos,ok=v=>(v=+v,v>=0&&v<=100);
+  return Array.isArray(p)&&p.length===2&&ok(p[0])&&ok(p[1])?[+p[0],+p[1]]:[50,50];
 }
 function filtroDoBanner(cfg,alvo,cats,tps,cols){
   const m=String(alvo||'').match(/^(col|cat|tipo):(.+)$/);
@@ -8089,7 +8095,23 @@ a{color:inherit}
 /* faixa de apresentação da coleção escolhida */
 .col-banner{max-width:1400px;margin:0 auto;padding:0 1rem}
 .col-banner .faixa{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--borda);background:var(--painel)}
-.col-banner img{width:100%;height:auto;aspect-ratio:3/1;object-fit:cover;display:block}
+.col-banner .faixa>img{width:100%;height:auto;aspect-ratio:3/1;object-fit:cover;display:block}
+/* Capa e banners (v20): cada imagem num "quadro". "inteira" (padrão) = nada é
+   cortado — no computador a sobra dos lados é a própria imagem desfocada (.fundo);
+   "preencher" = ocupa a faixa toda, na parte que a lojista arrastou no painel
+   (object-position). Arte 2:1 com texto e logo perdia o topo e o pé na faixa
+   fixa de antes (caso do Banho Rosé, 22/10/2026). */
+.quadro{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;height:100%;background:var(--painel)}
+.quadro .fundo{position:absolute;left:-6%;top:-6%;width:112%;height:112%;object-fit:cover;filter:blur(26px) brightness(.5)}
+.quadro .frente{position:relative;display:block;width:100%;aspect-ratio:var(--fmt,3/1);object-fit:cover}
+/* inteira: a faixa acompanha a proporção da imagem até um teto de altura; passou
+   do teto, a imagem encolhe inteira (contain) e as sobras mostram o .fundo */
+.quadro.inteira .frente{width:100%;height:auto;max-height:min(70vh,560px);aspect-ratio:auto;object-fit:contain}
+@media(max-width:699px){
+  /* no celular a faixa é 2:1 — a proporção recomendada aparece inteira */
+  .quadro .frente{aspect-ratio:2/1}
+  .quadro.inteira .frente{max-height:none}
+}
 .col-banner .legenda{position:absolute;left:0;right:0;bottom:0;padding:1rem 1.2rem;
   background:linear-gradient(180deg,transparent,rgba(0,0,0,.78))}
 .col-banner.sem-foto .faixa{background:linear-gradient(120deg,var(--painel2),var(--painel))}
@@ -8099,7 +8121,7 @@ a{color:inherit}
 /* a capa é a boas-vindas da loja: mais alta que o banner de coleção e com a
    frase maior, porque ali não há nome de coleção competindo */
 .col-banner.capa{margin-bottom:.9rem}
-.col-banner.capa img{aspect-ratio:16/5}
+.col-banner.capa .quadro{--fmt:16/5}
 .col-banner.capa p{font-size:1.05rem;color:var(--texto);letter-spacing:.2px}
 .col-banner.capa.sem-foto .faixa{padding:.2rem 0}
 .col-banner.capa.link{cursor:pointer}
@@ -8111,7 +8133,7 @@ a{color:inherit}
 .banners .trilho::-webkit-scrollbar{display:none}
 .banners .slide{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always}
 .banners .slide.link{cursor:pointer}
-.banners img{width:100%;aspect-ratio:3/1;object-fit:cover;display:block}
+.banners .quadro{--fmt:3/1}
 .banners .pontos{position:absolute;left:50%;bottom:.7rem;transform:translateX(-50%);display:flex;gap:.45rem;background:rgba(0,0,0,.35);padding:.35rem .6rem;border-radius:20px}
 .banners .pontos button{width:9px;height:9px;border-radius:50%;border:1.5px solid #fff;background:transparent;padding:0;cursor:pointer}
 .banners .pontos button.on{background:#fff}
@@ -8122,8 +8144,7 @@ a{color:inherit}
 .banners .seta.prox{right:1.6rem}
 @media(max-width:699px){
   .banners{padding:0 .8rem}
-  /* no celular a faixa é mais alta: a tela é estreita e o banner é o destaque */
-  .banners img{aspect-ratio:2/1}
+  /* no celular a faixa é mais alta (2:1, regra do .quadro): a tela é estreita e o banner é o destaque */
   /* e o dedo faz o papel das setas */
   .banners .seta{display:none}
 }
@@ -8445,9 +8466,23 @@ var CATALOGO = __CATALOGO_JSON__;
     el.hidden=false;
     el.className="col-banner capa"+(loja.capaBanner?"":" sem-foto")+(loja.capaFiltro?" link":"");
     el.innerHTML="<div class=\\"faixa\\">"+
-      (loja.capaBanner?"<img src=\\""+esc(loja.capaBanner)+"\\" alt=\\""+esc(loja.nome||"")+"\\">":"")+
+      (loja.capaBanner?quadroImg(loja.capaBanner,loja.capaAjuste,loja.capaPos,loja.nome,false):"")+
       (loja.capaTexto?"<div class=\\"legenda\\"><p>"+esc(loja.capaTexto)+"</p></div>":"")+
       "</div>";
+  }
+  /* Uma imagem de capa/banner: "inteira" (padrão — também para vitrine publicada
+     antes de existir a escolha) não corta nada; "preencher" ocupa a faixa na
+     parte que a lojista arrastou no painel. O .fundo é a mesma imagem (o
+     navegador baixa uma vez só), desfocada, para as sobras não ficarem vazias. */
+  function quadroImg(src,ajuste,pos,alt,preguica){
+    var inteira=ajuste!=="preencher";
+    function pc(v){v=+v;return (v>=0&&v<=100)?v:50;}
+    var p=(pos&&pos.length===2)?pc(pos[0])+"% "+pc(pos[1])+"%":"50% 50%";
+    var lz=preguica?" loading=\\"lazy\\"":"";
+    return "<div class=\\"quadro"+(inteira?" inteira":"")+"\\">"+
+      "<img class=\\"fundo\\" src=\\""+esc(src)+"\\" alt=\\"\\" aria-hidden=\\"true\\""+lz+">"+
+      "<img class=\\"frente\\" src=\\""+esc(src)+"\\" alt=\\""+esc(alt||"")+"\\""+lz+
+      (inteira?"":" style=\\"object-position:"+p+"\\"")+"></div>";
   }
 
   /* Banners em carrossel (opcional, ligado no painel). Só na tela cheia, como
@@ -8469,7 +8504,7 @@ var CATALOGO = __CATALOGO_JSON__;
     for(var i=0;i<bs.length;i++){
       // do 3º banner em diante a imagem só baixa quando chega perto: com 10 o celular não gasta a internet de uma vez
       h+="<div class=\\"slide"+(bs[i].filtro?" link":"")+"\\" data-i=\\""+i+"\\">"+
-         "<img src=\\""+esc(bs[i].img)+"\\" alt=\\""+esc(loja.nome||"")+"\\""+(i>=2?" loading=\\"lazy\\"":"")+"></div>";
+         quadroImg(bs[i].img,bs[i].ajuste,bs[i].pos,loja.nome,i>=2)+"</div>";
     }
     h+="</div>";
     if(bs.length>1){
@@ -9161,17 +9196,19 @@ function painelPersonalizarCatalogo(){
       ${bn.ativo&&!bn.itens.some(b=>b.imagem)?'<p class="mut" style="font-size:.78rem;color:var(--laranja);margin-top:.4rem">⚠️ Adicione pelo menos um banner — sem imagem nada aparece na loja.</p>':''}
       ${bn.itens.length?`<div class="bn-itens">${bn.itens.map((b,i)=>itemBannerHTML(b,i,cat,bn.itens.length)).join('')}</div>`:''}
       ${barraNovoBanner(bn)}
-      <p class="mut" style="font-size:.74rem;margin-top:.4rem">💡 Use imagem deitada, com o dobro da largura (ex.: 1600 × 800). No computador ela é cortada um pouco em cima e embaixo — deixe o assunto e o texto no meio.</p>
+      ${dicaProporcaoHTML()}
     </div>
 
     <h4 class="mt">Capa da loja</h4>
     <p class="mut" style="font-size:.82rem;margin-bottom:.5rem">Primeira coisa que o cliente vê ao abrir o catálogo, antes dos produtos.</p>
-    <div class="banner-prev" id="capaPrev">${capa.banner?`<img src="${capa.banner}" alt="">`:'sem capa — a loja começa direto nos produtos'}</div>
+    ${capa.banner?ajusteImagemHTML('capa',capa,capa.banner,'16/5')
+      :'<div class="banner-prev">sem capa — a loja começa direto nos produtos</div>'}
     <input type="file" id="capaInput" accept="image/*" hidden onchange="addCapaLoja(this)">
     <div class="barra" style="margin-top:.4rem">
-      <button class="bt mini" onclick="document.getElementById('capaInput').click()">🖼️ escolher imagem</button>
+      <button class="bt mini" onclick="document.getElementById('capaInput').click()">🖼️ ${capa.banner?'trocar imagem':'escolher imagem'}</button>
       ${capa.banner?`<button class="bt mini perigo" onclick="removerCapaLoja()">✕ remover</button>`:''}
     </div>
+    ${dicaProporcaoHTML()}
     <label class="campo mt">Chamada da loja <span class="mut" style="font-size:.76rem">— uma linha, aparece sobre a capa</span>
       <input id="capaTexto" maxlength="120" value="${esc(capa.texto||'')}" placeholder="ex.: peças que combinam com o seu dia">
     </label>
@@ -9245,7 +9282,7 @@ function itemBannerHTML(b,i,cat,n){
       ${i>0?`<button class="bt mini" title="passar para antes" aria-label="passar o banner ${i+1} para antes" onclick="moverBannerLoja(${i},-1)">‹</button>`:''}
       ${i<n-1?`<button class="bt mini" title="passar para depois" aria-label="passar o banner ${i+1} para depois" onclick="moverBannerLoja(${i},1)">›</button>`:''}
     </span></div>
-    <div class="banner-prev bn-prev">${b.imagem?`<img src="${b.imagem}" alt="">`:'sem imagem'}</div>
+    ${b.imagem?ajusteImagemHTML('bn'+i,b,b.imagem,'3/1'):'<div class="banner-prev bn-prev">sem imagem</div>'}
     <input type="file" id="bnInput${i}" accept="image/*" hidden onchange="addBannerLoja(${i},this)">
     <div class="barra" style="margin-top:.4rem">
       <button class="bt mini" onclick="document.getElementById('bnInput${i}').click()">🖼️ ${b.imagem?'trocar imagem':'escolher imagem'}</button>
@@ -9319,6 +9356,69 @@ function moverBannerLoja(i,d){
 function bannerAlvo(i,v){
   bannersLoja().itens[i].alvo=v||'';salvar();renderConfig();
   toast('Destino do banner salvo ✓');
+}
+
+/* ---- como a imagem da capa/banner aparece (v20) ----
+   Duas prévias lado a lado — computador e celular — com o mesmo desenho da loja,
+   e a escolha "inteira" × "preencher". No "preencher", arrastar a prévia do
+   computador escolhe a parte que aparece (as duas prévias acompanham). */
+function dicaProporcaoHTML(){
+  return `<p class="mut" style="font-size:.74rem;margin-top:.4rem">💡 Melhor proporção: <b>2:1</b>, deitada (ex.: 1600 × 800) — no celular ela aparece inteira. Arte com texto e logo: use <b>Imagem inteira</b>. Foto sem texto: <b>Preencher a faixa</b> fica mais bonito, e você arrasta para escolher a parte.</p>`;
+}
+function ajusteImagemHTML(chave,o,src,fmtPc){
+  const aj=ajusteDe(o),p=posDe(o),pos=p[0]+'% '+p[1]+'%',arrasta=aj==='preencher';
+  const quadro=(tela,fmt)=>`<div class="aj-quadro ${aj}${tela==='pc'&&arrasta?' arrasta':''}" data-aj="${chave}" style="aspect-ratio:${fmt}"
+      ${tela==='pc'&&arrasta?`onpointerdown="ajArrastar(event,'${chave}')"`:''}>
+      <img class="fundo" src="${esc(src)}" alt="" draggable="false">
+      <img class="frente" src="${esc(src)}" alt="" draggable="false" style="object-position:${pos}">
+      ${tela==='pc'&&arrasta?'<span class="aj-mao">✋ arraste para escolher a parte que aparece</span>':''}</div>`;
+  return `<div class="aj-img">
+    <div class="aj-telas">
+      <div><span class="aj-rot">💻 Computador</span>${quadro('pc',fmtPc)}</div>
+      <div class="aj-cel"><span class="aj-rot">📱 Celular</span>${quadro('cel','2/1')}</div>
+    </div>
+    <div class="aj-ops">
+      <label class="linha"><input type="radio" name="aj_${chave}" ${arrasta?'':'checked'} onchange="ajTrocar('${chave}','inteira')">
+        <span><b>Imagem inteira</b> <span class="mut">— nada é cortado; no computador a sobra dos lados é a própria imagem, desfocada</span></span></label>
+      <label class="linha"><input type="radio" name="aj_${chave}" ${arrasta?'checked':''} onchange="ajTrocar('${chave}','preencher')">
+        <span><b>Preencher a faixa</b> <span class="mut">— a imagem ocupa a faixa toda; arraste para escolher a parte</span></span></label>
+    </div></div>`;
+}
+function ajObj(chave){
+  if(chave==='capa')return capaLoja();
+  return bannersLoja().itens[+String(chave).replace('bn','')]||null;
+}
+function ajTrocar(chave,aj){
+  const o=ajObj(chave);if(!o)return;
+  // a frase da capa digitada e ainda não salva não pode se perder com o redesenho
+  if(chave==='capa'&&$('capaTexto'))o.texto=$('capaTexto').value.trim();
+  o.ajuste=aj==='preencher'?'preencher':'inteira';
+  salvar();renderConfig();
+  toast(o.ajuste==='inteira'?'Imagem inteira — nada é cortado ✓':'Agora arraste a imagem para escolher a parte que aparece');
+}
+function ajArrastar(ev,chave){
+  const q=ev.currentTarget,o=ajObj(chave),img=q&&q.querySelector('.frente');
+  if(!o||!img||!img.naturalWidth)return;
+  ev.preventDefault();
+  try{q.setPointerCapture(ev.pointerId);}catch(e){}
+  // quanto da imagem sobra para fora do quadro (object-fit:cover) em cada sentido
+  const fw=q.clientWidth,fh=q.clientHeight,iw=img.naturalWidth,ih=img.naturalHeight;
+  const s=Math.max(fw/iw,fh/ih),sobraX=iw*s-fw,sobraY=ih*s-fh;
+  const p0=posDe(o),px=ev.clientX,py=ev.clientY;let x=p0[0],y=p0[1];
+  const lim=v=>Math.max(0,Math.min(100,Math.round(v)));
+  const prev=document.querySelectorAll('[data-aj="'+chave+'"] .frente');
+  const mover=e=>{
+    // puxar a imagem para baixo mostra mais da parte de cima (y diminui)
+    if(sobraX>0.5)x=lim(p0[0]-(e.clientX-px)/sobraX*100);
+    if(sobraY>0.5)y=lim(p0[1]-(e.clientY-py)/sobraY*100);
+    prev.forEach(i=>{i.style.objectPosition=x+'% '+y+'%';});
+  };
+  const soltar=()=>{
+    q.removeEventListener('pointermove',mover);q.removeEventListener('pointerup',soltar);q.removeEventListener('pointercancel',soltar);
+    if(x===p0[0]&&y===p0[1])return;
+    o.pos=[x,y];salvar();toast('Posição da imagem salva ✓');
+  };
+  q.addEventListener('pointermove',mover);q.addEventListener('pointerup',soltar);q.addEventListener('pointercancel',soltar);
 }
 
 /* ---- logo horizontal ---- */
@@ -9453,7 +9553,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-10-22 19:25';
+const VERSAO_APP='2026-10-22 21:25';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
