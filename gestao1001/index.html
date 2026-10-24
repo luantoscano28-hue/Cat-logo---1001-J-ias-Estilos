@@ -262,6 +262,9 @@ td.acoes{white-space:nowrap;text-align:right}
 .bd.fiadoV{background:var(--bd-fv-bg);color:var(--bd-fv-tx);border:1px solid var(--bd-fv-ln)}
 .bd.fiadoOk{background:var(--bd-ok-bg);color:var(--bd-ok-tx)}
 .bd.cat{background:var(--painel3);color:var(--acento2)}
+/* selo que é botão (V9: "⚠️ N com estoque baixo" abre a lista) */
+button.bd-clica{font-family:inherit;cursor:pointer;padding:.25rem .6rem}
+button.bd-clica:hover{filter:brightness(.95);text-decoration:underline}
 .bd.ok{background:var(--bd-ok-bg);color:var(--bd-ok-tx)}
 .bd.off{background:var(--bd-off-bg);color:var(--bd-off-tx)}
 .bd.hid{background:var(--painel3);color:var(--texto2)}
@@ -590,6 +593,20 @@ main.larga{max-width:1480px}
 .etiq-folha-nome{font-weight:600;color:var(--texto)}
 .etiq-nao-cabe{background:var(--aviso1);border:1px solid var(--aviso2);color:var(--avisoTx);border-radius:10px;
   padding:.5rem .7rem;margin:-.2rem 0 .6rem;font-size:.84rem;line-height:1.45}
+/* versão nova (V9): janela no meio da tela, por cima de tudo */
+.popup-versao{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;
+  padding:1rem;background:rgba(0,0,0,.55)}
+.popup-versao[hidden]{display:none}
+.pv-caixa{background:var(--painel);color:var(--texto);border:1px solid var(--borda);border-radius:16px;
+  box-shadow:0 18px 50px rgba(0,0,0,.35);max-width:380px;width:100%;padding:1.6rem 1.4rem 1.2rem;text-align:center;
+  animation:pvEntra .22s ease-out}
+.pv-icone{font-size:2.2rem;line-height:1;margin-bottom:.5rem}
+.pv-caixa h3{margin:0 0 .4rem;font-size:1.25rem}
+.pv-caixa p{margin:0 0 1.1rem;color:var(--texto2);font-size:.9rem;line-height:1.45}
+.pv-caixa .bt{display:block;width:100%;justify-content:center}
+.pv-caixa .pv-ok{padding:.75rem;font-size:1rem}
+.pv-caixa .pv-depois{margin-top:.5rem;background:none;border:none;color:var(--texto2);font-size:.86rem}
+@keyframes pvEntra{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
 /* Configurações → Geral → Mês dos relatórios */
 .mes-loja{display:grid;gap:.55rem}
 .mes-loja .linha{align-items:flex-start;gap:.5rem;line-height:1.6;font-size:.88rem}
@@ -978,9 +995,17 @@ try{
 </div>
 <!-- app no celular (part9): versão nova publicada / sugestão de instalar.
      Nunca as duas juntas — a de versão nova tem prioridade -->
-<div id="avisoVersao" class="aviso info" hidden>
-  <span>🆕 <b>Saiu uma versão nova do painel.</b> <span id="avisoVersaoTexto"></span></span>
-  <button class="bt mini primario" onclick="appAtualizar()">Atualizar agora</button>
+<!-- V9: versão nova é janela no MEIO da tela (a faixa no topo passava batido).
+     Só aparece quando nenhuma outra janela está aberta — atualizar recarrega a
+     página, e uma venda sendo digitada se perderia. -->
+<div id="avisoVersao" class="popup-versao" role="dialog" aria-modal="true" aria-labelledby="avisoVersaoTitulo" hidden>
+  <div class="pv-caixa">
+    <div class="pv-icone" aria-hidden="true">🆕</div>
+    <h3 id="avisoVersaoTitulo">Saiu uma versão nova do painel</h3>
+    <p id="avisoVersaoTexto"></p>
+    <button class="bt primario pv-ok" onclick="appAtualizar()">Atualizar agora</button>
+    <button class="bt pv-depois" onclick="appAdiarVersao()">Daqui a pouco</button>
+  </div>
 </div>
 <div id="avisoApp" class="aviso app-aviso" hidden>
   <span>📲 <b>Instale o painel no celular:</b> ganha um ícone na tela inicial e abre direto, sem o navegador.</span>
@@ -1856,6 +1881,29 @@ function mesFiscalDe(iso,desloca){
   let m2=m+1,y2=y;if(m2>11){m2=0;y2++;}
   return {ini:y+'-'+p2(m+1)+'-'+p2(D),fim:y2+'-'+p2(m2+1)+'-'+p2(D-1),rotulo};
 }
+/* O mês "de verdade" da loja respeita os FECHAMENTOS (V9, 24/10/2026). Caso
+   real: por causa do feriado, set/26 foi fechado de 11/09 a 13/10 — o mês
+   seguinte tem que começar em 14/10, não no dia 11 (senão 11, 12 e 13/10 contam
+   duas vezes). Fechou adiantado, o mês seguinte começa antes. E um mês já
+   fechado mostra as datas que foram fechadas. Sem fechamento, é o mês de sempre.
+   - começo: o fechamento mais recente que começou ANTES deste mês e terminou
+     perto do começo dele (até 10 dias antes, ou depois) → dia seguinte a ele;
+   - fim: se este mês foi fechado (fechamento que começa no começo dele), vale
+     o fim do fechamento. */
+function mesDaLoja(iso,desloca){
+  const f=mesFiscalDe(iso,desloca);
+  const fs=(typeof dados!=='undefined'&&dados&&dados.fechamentos)||[];
+  if(!fs.length)return f;
+  let ini=f.ini,fim=f.fim;
+  const limite=isoAddDias(f.ini,-10);
+  let anterior=null;
+  fs.forEach(x=>{if(x&&x.ini<f.ini&&x.fim>=limite&&(!anterior||x.fim>anterior.fim))anterior=x;});
+  if(anterior)ini=isoAddDias(anterior.fim,1);
+  const proprio=fs.find(x=>x&&x.ini===ini);
+  if(proprio)fim=proprio.fim;
+  if(fim<ini)return f;   // algo estranho nos fechamentos: fica o mês de sempre
+  return {ini,fim,rotulo:f.rotulo};
+}
 /* ---------- feriados nacionais brasileiros ----------
    Os fixos são sempre no mesmo dia. Os móveis dependem da Páscoa, que muda
    todo ano — daí o cálculo abaixo (algoritmo de Gauss/Meeus para o calendário
@@ -1930,8 +1978,8 @@ function semanaAtual(){return semanaDe(0);}
 function periodoDe(cfg){
   const h=hoje();
   switch(cfg.per){
-    case 'fiscal':{const f=mesFiscalDe(h,0);return [f.ini,f.fim];}
-    case 'fiscalAnt':{const f=mesFiscalDe(h,-1);return [f.ini,f.fim];}
+    case 'fiscal':{const f=mesDaLoja(h,0);return [f.ini,f.fim];}
+    case 'fiscalAnt':{const f=mesDaLoja(h,-1);return [f.ini,f.fim];}
     case '30d':return [isoAddDias(h,-30),h];
     case 'ano':return [h.slice(0,4)+'-01-01',h];
     case 'custom':return [cfg.ini||'0000',cfg.fim||'9999'];
@@ -3122,7 +3170,18 @@ function editarCatFin(id){
    ============================================================ */
 /* produtos com estoque no/abaixo do mínimo. Quem tem avisarEstoque=false fica fora
    de propósito: tem peça que o Luan não repõe, e ficar avisando só polui a tela. */
-function alertasEstoque(){return dados.produtos.filter(p=>p.avisarEstoque!==false&&p.estoque!=null&&p.estoque<=(+p.minimo||0));}
+/* uma régua só para "estoque baixo": o número do aviso e a lista que abre ao
+   tocar nele são SEMPRE os mesmos produtos (V9: o aviso passou a ser clicável) */
+function estoqueBaixo(p){return !!p&&p.avisarEstoque!==false&&p.estoque!=null&&p.estoque<=(+p.minimo||0);}
+function alertasEstoque(){return dados.produtos.filter(estoqueBaixo);}
+/* tocar no aviso (Produtos ou Resumo) abre a lista só com eles — sem outro
+   filtro escondido que tirasse alguém da lista */
+function verEstoqueBaixo(){
+  Object.assign(ui.p,{busca:'',cat:'',tipo:'',forn:'',col:'',cor:'',status:'',ini:'',fim:'',estoque:'baixo',dups:false});
+  if(ui.tab==='produtos')renderProdutos();else trocarTab('produtos');
+  const n=alertasEstoque().length;
+  toast(n?'Mostrando os '+n+' produto(s) com estoque baixo':'Nenhum produto com estoque baixo agora');
+}
 function produtoAvisa(p){return !!p&&p.avisarEstoque!==false;}
 /* negativo também respeita o avisarEstoque: quem não controla aquela peça vai
    ficar negativo naturalmente ao vender, e o alerta seria só barulho */
@@ -3840,7 +3899,7 @@ function cadastradoEm(p){return p.criadoEm||'';}
 function cabecalhoProdutos(){
   const al=alertasEstoque().length,dup=gruposDuplicados().length;
   return `<div class="barra"><h2 style="margin:0">Produtos</h2><span class="esp"></span>
-    ${al?`<span class="bd fiadoP">⚠️ ${al} com estoque baixo</span>`:''}
+    ${al?`<button type="button" class="bd fiadoP bd-clica" onclick="verEstoqueBaixo()" title="ver quais são">⚠️ ${al} com estoque baixo</button>`:''}
     ${dup?`<button class="bt" style="color:var(--laranja)" onclick="ui.p.dups=true;renderProdutos()" title="cadastros que parecem ser a mesma peça">🔀 ${dup} repetido(s)</button>`:''}
     <button class="bt" onclick="abrirEtiquetas()" title="código de barras para imprimir e colar na peça">🏷️ Etiquetas</button>
     <button class="bt primario" onclick="abrirNovoProduto()">+ Novo produto</button></div>`;
@@ -4097,7 +4156,7 @@ function passaEstoque(p,filtro){
     case 'comSaldo':    return s!=null&&s>0;
     case 'zerado':      return s!=null&&s<=0;
     case 'semControle': return s==null;
-    case 'baixo':       return produtoAvisa(p)&&s!=null&&s<=(+p.minimo||0);
+    case 'baixo':       return estoqueBaixo(p);   // a mesma régua do aviso
     default:            return true;
   }
 }
@@ -6003,7 +6062,7 @@ function cardsVendasPeriodo(){
   const dia=vDiaEscolhido(),h=hoje();
   const [sIni,sFim]=vSemanaEscolhida(),off=ui.v.semOff||0;
   const d=totalVendasEntre(dia,dia),s=totalVendasEntre(sIni,sFim);
-  const f=mesFiscalDe(h,0),m=totalVendasEntre(f.ini,f.fim);
+  const f=mesDaLoja(h,0),m=totalVendasEntre(f.ini,f.fim);
   const rotSem=off===0?'Vendas da semana':(off===-1?'Semana passada':'Semana '+(off>0?'+':'')+off);
   return `<div class="mini-cards">
     <div class="card"><div class="rotulo">Vendas do dia${dia===h?' (hoje)':''}</div>
@@ -6081,7 +6140,7 @@ function parcNoFiltro(p,modo){
   if(parcPago(p))return false;
   if(modo==='vencidos')return !!(p.venc&&p.venc<hoje());
   if(modo==='7dias'){const lim=isoAddDias(hoje(),7);return !!(p.venc&&p.venc>=hoje()&&p.venc<=lim);}
-  if(modo==='mes'){const f=mesFiscalDe(hoje(),0);return !!(p.venc&&p.venc>=f.ini&&p.venc<=f.fim);}
+  if(modo==='mes'){const f=mesDaLoja(hoje(),0);return !!(p.venc&&p.venc>=f.ini&&p.venc<=f.fim);}
   return true;
 }
 /* parcelas de uma venda que aparecem no filtro atual (só as em aberto) */
@@ -6358,7 +6417,7 @@ function renderFiadoCorpo(){
     <div class="card"><div class="rotulo">Total a receber</div><div class="valor ${totGeral>0?'neg':'pos'}">${fmt(totGeral)}</div></div>
     <div class="card clicavel ${venc>0?'alerta':''}" onclick="ui.f.filtro='vencidos';renderFiadoCorpo()"><div class="rotulo">${venc>0?'⚠️ ':''}Vencido</div><div class="valor ${venc>0?'neg':''}">${fmt(venc)}</div><div class="extra">${venc>0?'<b>cobre esses clientes</b>':'nada atrasado ✓'}</div></div>
     <div class="card clicavel" onclick="ui.f.filtro='7dias';renderFiadoCorpo()"><div class="rotulo">Vence em 7 dias</div><div class="valor ${prox7>0?'laranja':''}" style="${prox7>0?'color:var(--laranja)':''}">${fmt(prox7)}</div></div>
-    <div class="card clicavel" onclick="ui.f.filtro='mes';renderFiadoCorpo()"><div class="rotulo">${usaMesFiscal()?'Vence no mês fiscal':'Vence neste mês'}</div><div class="valor">${fmt(doMes)}</div><div class="extra">${fmtData(mesFiscalDe(hoje(),0).ini)} a ${fmtData(mesFiscalDe(hoje(),0).fim)}</div></div>
+    <div class="card clicavel" onclick="ui.f.filtro='mes';renderFiadoCorpo()"><div class="rotulo">${usaMesFiscal()?'Vence no mês fiscal':'Vence neste mês'}</div><div class="valor">${fmt(doMes)}</div><div class="extra">${fmtData(mesDaLoja(hoje(),0).ini)} a ${fmtData(mesDaLoja(hoje(),0).fim)}</div></div>
   </div>
   <div class="barra">
     <div class="filtro-chips">${chip('todos','Todos')}${chip('vencidos','Vencidos')}${chip('7dias','Próximos 7 dias')}${chip('mes',usaMesFiscal()?'Vence no mês fiscal':'Vence neste mês')}</div>
@@ -7618,7 +7677,7 @@ function salvarDiaFiscal(v){
 }
 function resumoPeriodo(){
   if(ui.r.ini&&ui.r.fim)return [ui.r.ini,ui.r.fim];
-  const f=mesFiscalDe(hoje(),ui.r.desloca);return [f.ini,f.fim];
+  const f=mesDaLoja(hoje(),ui.r.desloca);return [f.ini,f.fim];
 }
 function resumoDesloca(n){ui.r.desloca+=n;ui.r.ini=null;ui.r.fim=null;renderResumo();}
 function resumoHoje(){ui.r.desloca=0;ui.r.ini=null;ui.r.fim=null;renderResumo();}
@@ -7636,7 +7695,7 @@ function renderResumo(){
   const alertas=alertasEstoque().length;
   // 6 meses
   const meses=[];
-  for(let i=5;i>=0;i--){const f=mesFiscalDe(hoje(),ui.r.desloca-i);const c=calcCaixa(f.ini,f.fim);meses.push({rot:f.rotulo,a:c.entradas,b:c.saidas});}
+  for(let i=5;i>=0;i--){const f=mesDaLoja(hoje(),ui.r.desloca-i);const c=calcCaixa(f.ini,f.fim);meses.push({rot:f.rotulo,a:c.entradas,b:c.saidas});}
   // vendas por categoria, tipo (anel, brinco, colar...) e local
   const agr=vendasCategoriasTipos(ini,fim),cats=agr.cats,tipos=agr.tipos,locs=agr.locs,forns=agr.forns,cols=agr.cols;
 
@@ -7661,7 +7720,7 @@ function renderResumo(){
       <div class="extra">${nDevedores} cliente(s) devendo${pan.vencido>0.005?` · <b class="neg">${fmt(pan.vencido)} vencido</b>`:''}${pan.venceAte>0.005?` · ${fmt(pan.venceAte)} vence até ${fmtData(fim)}`:''}${fiadoTot>0.005?` · ${fmt(fiadoTot)} vendido no período`:''}</div></div>
     <div class="card"><div class="rotulo">Caixa no fim do período</div><div class="valor ${cx.saldoFim>=0?'pos':'neg'}">${fmt(cx.saldoFim)}</div><div class="extra">era ${fmt(cx.saldoIni)} no início</div></div>
     ${totalNaMaquininha()>0?`<div class="card clicavel" onclick="trocarTab('fin')"><div class="rotulo">Na maquininha (a cair)</div><div class="valor rdb">${fmt(totalNaMaquininha())}</div><div class="extra">${recebiveisPendentes().length} recebimento(s)</div></div>`:''}
-    ${alertas?`<div class="card clicavel" onclick="ui.p.status='';trocarTab('produtos')"><div class="rotulo">Estoque baixo</div><div class="valor neg">${alertas}</div></div>`:''}
+    ${alertas?`<div class="card clicavel" onclick="verEstoqueBaixo()" title="ver quais produtos"><div class="rotulo">Estoque baixo</div><div class="valor neg">${alertas}</div><div class="extra">toque para ver quais →</div></div>`:''}
   </div>
   <div class="grade2">
     <div class="painel">
@@ -8044,8 +8103,9 @@ const LOJA_TEMPLATE=`<!doctype html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0b0c0e" id="lgThemeColor">
-<title>Catálogo</title>
-<meta name="description" content="Catálogo de joias — escolha e peça pelo WhatsApp">
+<title>__TITULO_LOJA__</title>
+<meta name="description" content="__DESCRICAO_LOJA__">
+__CABECA_LOJA__
 <style>
 /* dois temas, iguais aos do painel de gestão: data-tema no <html> decide.
    PRATA = preto + cromado (as cores da logo). OURO = a paleta original. */
@@ -8250,9 +8310,28 @@ a{color:inherit}
 .btgrande{width:100%;background:var(--acento);color:var(--btTx);border:none;border-radius:10px;padding:.8rem;font-size:.95rem;font-weight:700;cursor:pointer}
 .btgrande:disabled{opacity:.4;cursor:not-allowed}
 .btgrande.wpp{background:#25D366;color:#fff}
-.lg-link{display:block;width:100%;margin-top:.7rem;background:none;border:none;color:var(--texto2);font-size:.82rem;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
-.lg-link[hidden]{display:none}
-.lg-aviso{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);max-width:calc(100% - 2rem);background:var(--painel);color:var(--texto);border:1px solid var(--borda);border-radius:12px;padding:.7rem 1rem;font-size:.86rem;box-shadow:0 6px 20px rgba(0,0,0,.45);z-index:60;text-align:center}
+/* compartilhar a peça (V9): ícone no topo, ao lado esquerdo do ✕ — como nos
+   apps de loja grandes. Os dois flutuam à direita; o ✕ vem primeiro no HTML. */
+.modal .fechar.compart{margin-right:.45rem;display:flex;align-items:center;justify-content:center;padding:0}
+.modal .fechar.compart svg{width:17px;height:17px}
+.modal .fechar.compart[hidden]{display:none}
+/* filtros ligados (V9): uma linha discreta acima das peças, cada filtro com ✕ */
+.conteudo{flex:1;min-width:0}
+.filtros-ativos{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem;margin:0 0 .9rem;font-size:.8rem;color:var(--texto2)}
+.filtros-ativos[hidden]{display:none}
+.filtros-ativos .fx{background:var(--painel2);border:1px solid var(--borda);color:var(--texto);border-radius:999px;
+  padding:.3rem .55rem .3rem .75rem;font-size:.8rem;cursor:pointer;display:inline-flex;align-items:center;gap:.35rem}
+.filtros-ativos .fx b{font-weight:400;color:var(--texto3);font-size:.9rem;line-height:1}
+.filtros-ativos .fx:hover b{color:var(--texto)}
+.filtros-ativos .limpar{background:none;border:none;color:var(--acento2);font-size:.8rem;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:.3rem .2rem}
+.filtros-ativos .qtd{color:var(--texto3)}
+/* instalar o app da loja (V9): só um link discreto — nunca janela que pula na cara */
+.lateral .lat-app,.link-app{background:none;border:1px dashed var(--borda);color:var(--texto2);border-radius:10px;cursor:pointer;font-size:.8rem}
+.lateral .lat-app{display:block;width:100%;margin-top:1rem;padding:.55rem .6rem;text-align:left}
+.link-app{margin-top:.8rem;padding:.45rem .8rem}
+.lateral .lat-app[hidden],.link-app[hidden]{display:none}
+.lg-aviso.longo{max-width:min(420px,calc(100% - 2rem));text-align:left;line-height:1.45}
+.lg-aviso{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);max-width:calc(100% - 2rem);background:var(--painel);color:var(--texto);border:1px solid var(--borda);border-radius:12px;padding:.7rem 1rem;font-size:.86rem;box-shadow:0 6px 20px rgba(0,0,0,.45);z-index:120;text-align:center}
 .lg-aviso[hidden]{display:none}
 .esgot-aviso{background:var(--painel3);color:var(--vermelho);border-radius:8px;padding:.5rem .7rem;font-size:.82rem;margin-bottom:.8rem}
 .fab{position:fixed;right:1rem;bottom:1rem;background:var(--acento);color:var(--btTx);border:none;border-radius:30px;padding:.8rem 1.2rem;font-weight:700;font-size:.9rem;box-shadow:0 4px 14px rgba(0,0,0,.5);cursor:pointer;display:none;align-items:center;gap:.5rem;z-index:50}
@@ -8295,14 +8374,19 @@ html.lg-esperando body::after{content:"";position:fixed;top:50%;left:50%;width:3
     <button class="lateral-fechar" id="lgFecharLat">✕ fechar</button>
     <h2>Coleções</h2>
     <div id="lgColecoes"></div>
+    <button class="lat-app" id="lgAppLat" hidden>📲 Instalar o app da loja</button>
   </aside>
-  <div class="grade" id="lgGrade"></div>
+  <div class="conteudo">
+    <div class="filtros-ativos" id="lgFiltros" hidden></div>
+    <div class="grade" id="lgGrade"></div>
+  </div>
 </div>
-<footer id="lgRodape"></footer>
+<footer><div id="lgRodape"></div><button class="link-app" id="lgAppRodape" hidden>📲 Instalar o app da loja</button></footer>
 
 <div class="overlay" id="lgOverlay">
   <div class="modal">
-    <button class="fechar" id="lgFechar">✕</button>
+    <button class="fechar" id="lgFechar" aria-label="Fechar">✕</button>
+    <button class="fechar compart" id="lgBtLink" aria-label="Compartilhar esta peça" title="Compartilhar esta peça" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></button>
     <div class="carrossel" id="lgCarrossel"></div>
     <div class="dots" id="lgDots"></div>
     <div class="corpo">
@@ -8314,7 +8398,6 @@ html.lg-esperando body::after{content:"";position:fixed;top:50%;left:50%;width:3
       <div id="lgMdTamWrap"></div>
       <div class="qtd-wrap"><button id="lgQtdMenos">−</button><span id="lgQtd">1</span><button id="lgQtdMais">+</button></div>
       <button class="btgrande" id="lgBtAdd">Adicionar ao pedido</button>
-      <button class="lg-link" id="lgBtLink" hidden>🔗 Compartilhar esta peça</button>
     </div>
   </div>
 </div>
@@ -8337,6 +8420,10 @@ html.lg-esperando body::after{content:"";position:fixed;top:50%;left:50%;width:3
 
 <script>
 var CATALOGO = __CATALOGO_JSON__;
+/* esta página tem app instalável (manifest, sw-loja.js e ícones publicados ao
+   lado dela)? Quem decide é quem monta a página (montarHtmlLoja) — a prévia do
+   painel e o .zip antigo não têm esses arquivos. */
+var LOJA_APP = __LOJA_APP__;
 (function(){
   function $(i){ return document.getElementById(i); }
   function esc(s){
@@ -8419,9 +8506,16 @@ var CATALOGO = __CATALOGO_JSON__;
     }
   }
   aplicarMarca();
-  var dataGer="";
-  if(CATALOGO.geradoEm){var pd=CATALOGO.geradoEm.slice(0,10).split("-");dataGer=pd[2]+"/"+pd[1]+"/"+pd[0];}
-  $("lgRodape").textContent="Catálogo de "+(loja.nome||"")+" — os valores e a disponibilidade são confirmados no WhatsApp. Atualizado em "+dataGer+".";
+  /* a vitrine do banco não guarda "geradoEm" (fica fora da conta de mudou/não
+     mudou) e o rodapé saía "Atualizado em ." — era isso que o Google mostrava
+     embaixo do nome da loja. Usa a data de publicação; sem data, não diz nada. */
+  function escreverRodape(){
+    var d=String(CATALOGO.publicadoEm||CATALOGO.geradoEm||"").slice(0,10);
+    var tx="Catálogo de "+(loja.nome||"")+" — os valores e a disponibilidade são confirmados no WhatsApp.";
+    if(/^\\d{4}-\\d\\d-\\d\\d$/.test(d)){var pd=d.split("-");tx+=" Atualizado em "+pd[2]+"/"+pd[1]+"/"+pd[0]+".";}
+    $("lgRodape").textContent=tx;
+  }
+  escreverRodape();
 
   function renderChips(){
     var h="<button class=\\""+(estado.cat===""?"ativo":"")+"\\" data-cat=\\"\\">Todos</button>";
@@ -8462,7 +8556,8 @@ var CATALOGO = __CATALOGO_JSON__;
      produtos pra fora da primeira tela. */
   function renderCapa(){
     var el=$("lgCapa");
-    if(estado.col||(!loja.capaBanner&&!loja.capaTexto)){el.hidden=true;el.innerHTML="";return;}
+    // com qualquer filtro ligado a capa sai: as peças sobem e fica claro que o filtro pegou (V9)
+    if(estado.col||estado.cat||estado.tipo||(!loja.capaBanner&&!loja.capaTexto)){el.hidden=true;el.innerHTML="";return;}
     el.hidden=false;
     el.className="col-banner capa"+(loja.capaBanner?"":" sem-foto")+(loja.capaFiltro?" link":"");
     el.innerHTML="<div class=\\"faixa\\">"+
@@ -8541,11 +8636,10 @@ var CATALOGO = __CATALOGO_JSON__;
   function abrirDestinoBanner(f){
     estado.cat=f.cat||"";estado.tipo=f.tipo||"";estado.col=f.col||"";
     estado.busca="";$("lgBusca").value="";
+    /* com o filtro ligado, capa e banners saem e a linha "Mostrando: Rosé ✕"
+       aparece — antes a capa ficava na tela e parecia que o toque não fez nada */
     render();
-    var alvo=$("lgBanner").hidden?$("lgGrade"):$("lgBanner");
-    var topo=document.querySelector(".topo");
-    var y=alvo.getBoundingClientRect().top+(window.pageYOffset||0)-(topo?topo.offsetHeight:0)-8;
-    try{window.scrollTo({top:Math.max(0,y),behavior:"smooth"});}catch(e){window.scrollTo(0,Math.max(0,y));}
+    irParaPecas();
   }
 
   function renderBanner(){
@@ -8601,17 +8695,25 @@ var CATALOGO = __CATALOGO_JSON__;
   }
 
   // gaveta das coleções (só no celular, onde não cabe a lateral fixa)
-  function abrirLateral(){$("lgLateral").classList.add("aberta");$("lgFundoLat").classList.add("show");}
-  function fecharLateral(){$("lgLateral").classList.remove("aberta");$("lgFundoLat").classList.remove("show");}
+  function abrirLateral(){$("lgLateral").classList.add("aberta");$("lgFundoLat").classList.add("show");abrirCamada("lateral");}
+  function fecharLateral(modo){
+    var aberta=$("lgLateral").classList.contains("aberta");
+    $("lgLateral").classList.remove("aberta");$("lgFundoLat").classList.remove("show");
+    if(aberta&&modo!=="voltar"&&modo!=="troca")soltarCamada();
+  }
 
   function renderGrade(){
     var lista=produtosFiltrados();
     if(!lista.length){
-      var oQue=estado.col?("a coleção \\""+esc(estado.col)+"\\""):"esse filtro";
-      $("lgGrade").innerHTML="<div class=\\"vazio\\">Nada encontrado em "+oQue+".<br><br>"+
-        "<button class=\\"btgrande\\" style=\\"max-width:220px\\" id=\\"lgLimpar\\">Ver todos os produtos</button></div>";
+      // diz QUAIS filtros esvaziaram a lista — e um toque tira todos
+      var fl=filtrosLigados(),nomes=[];
+      for(var k=0;k<fl.length;k++)nomes.push(fl[k].nome);
+      $("lgGrade").innerHTML="<div class=\\"vazio\\">Nenhuma peça encontrada"+
+        (nomes.length?" com <b>"+esc(nomes.join(" · "))+"</b>":"")+".<br><br>"+
+        "<button class=\\"btgrande\\" style=\\"max-width:220px\\" id=\\"lgLimpar\\">"+
+        (nomes.length?"Limpar filtros":"Ver todos os produtos")+"</button></div>";
       var bl=$("lgLimpar");
-      if(bl)bl.addEventListener("click",function(){estado.cat="";estado.tipo="";estado.col="";estado.busca="";$("lgBusca").value="";render();});
+      if(bl)bl.addEventListener("click",function(){tirarFiltro("tudo");});
       return;
     }
     var h="";
@@ -8639,7 +8741,52 @@ var CATALOGO = __CATALOGO_JSON__;
     $("lgGrade").innerHTML=h;
   }
 
-  function render(){renderChips();renderTipos();renderColecoes();renderCapa();renderBanners();renderBanner();renderGrade();}
+  function render(){renderChips();renderTipos();renderColecoes();renderCapa();renderBanners();renderBanner();renderFiltros();renderGrade();}
+
+  /* Filtros ligados à mostra (V9). Quem escolhia "Anel" e depois "Rosé"
+     esquecia do primeiro e achava que a loja não tinha a peça. Cada filtro vira
+     uma etiqueta com ✕ numa linha discreta acima das peças; "limpar filtros"
+     tira todos. Sem filtro nenhum, a linha nem aparece. */
+  function filtrosLigados(){
+    var f=[];
+    if(estado.col)f.push({qual:"col",nome:estado.col});
+    if(estado.cat)f.push({qual:"cat",nome:estado.cat});
+    if(estado.tipo)f.push({qual:"tipo",nome:estado.tipo});
+    if(chaveBusca(estado.busca))f.push({qual:"busca",nome:"“"+String(estado.busca).trim()+"”"});
+    return f;
+  }
+  function renderFiltros(){
+    var el=$("lgFiltros"),f=filtrosLigados();
+    if(!f.length){el.hidden=true;el.innerHTML="";return;}
+    var n=produtosFiltrados().length;
+    var h="<span>Mostrando:</span>";
+    for(var i=0;i<f.length;i++)
+      h+="<button class=\\"fx\\" data-tira=\\""+f[i].qual+"\\" aria-label=\\"tirar o filtro "+esc(f[i].nome)+"\\">"+esc(f[i].nome)+" <b>✕</b></button>";
+    if(f.length>1)h+="<button class=\\"limpar\\" data-tira=\\"tudo\\">limpar filtros</button>";
+    h+="<span class=\\"qtd\\">· "+n+(n===1?" peça":" peças")+"</span>";
+    el.innerHTML=h;el.hidden=false;
+  }
+  function tirarFiltro(qual){
+    if(qual==="col"||qual==="tudo")estado.col="";
+    if(qual==="cat"||qual==="tudo")estado.cat="";
+    if(qual==="tipo"||qual==="tudo")estado.tipo="";
+    if(qual==="busca"||qual==="tudo"){estado.busca="";$("lgBusca").value="";}
+    render();
+  }
+  $("lgFiltros").addEventListener("click",function(e){
+    var b=e.target.closest("button");if(!b)return;
+    tirarFiltro(b.getAttribute("data-tira"));
+  });
+  /* rola até as peças, logo abaixo da barra de cima (que fica presa no topo).
+     soSePassou: só rola se a pessoa já estava mais para baixo — quem está no
+     topo da página não leva um tranco. */
+  function irParaPecas(soSePassou){
+    var alvo=!$("lgBanner").hidden?$("lgBanner"):(!$("lgFiltros").hidden?$("lgFiltros"):$("lgGrade"));
+    var topo=document.querySelector(".topo");
+    var y=alvo.getBoundingClientRect().top+(window.pageYOffset||0)-(topo?topo.offsetHeight:0)-8;
+    if(soSePassou&&(window.pageYOffset||0)<=y)return;
+    try{window.scrollTo({top:Math.max(0,y),behavior:"smooth"});}catch(e){window.scrollTo(0,Math.max(0,y));}
+  }
 
   // a capa também pode levar a uma coleção, material ou tipo (escolhido no painel)
   $("lgCapa").addEventListener("click",function(){
@@ -8660,20 +8807,23 @@ var CATALOGO = __CATALOGO_JSON__;
 
   $("lgChips").addEventListener("click",function(e){
     var b=e.target.closest("button");if(!b)return;
-    estado.cat=b.getAttribute("data-cat");render();
+    estado.cat=b.getAttribute("data-cat");render();irParaPecas(true);
   });
   $("lgTipos").addEventListener("click",function(e){
     var b=e.target.closest("button");if(!b)return;
-    estado.tipo=b.getAttribute("data-tipo");render();
+    estado.tipo=b.getAttribute("data-tipo");render();irParaPecas(true);
   });
   $("lgColecoes").addEventListener("click",function(e){
     var b=e.target.closest("button");if(!b)return;
-    estado.col=b.getAttribute("data-col");fecharLateral();render();
+    /* coleção escolhida mostra a coleção INTEIRA (V9): material, tipo e busca de
+       antes saem — com "Rosé" ligado, a Black Essence aparecia vazia */
+    estado.col=b.getAttribute("data-col");estado.cat="";estado.tipo="";estado.busca="";$("lgBusca").value="";
+    fecharLateral();render();irParaPecas();
   });
   $("lgBtMenu").addEventListener("click",abrirLateral);
   $("lgFecharLat").addEventListener("click",fecharLateral);
   $("lgFundoLat").addEventListener("click",fecharLateral);
-  $("lgBusca").addEventListener("input",function(){estado.busca=this.value;renderGrade();});
+  $("lgBusca").addEventListener("input",function(){estado.busca=this.value;renderGrade();renderFiltros();});
   $("lgGrade").addEventListener("click",function(e){
     var card=e.target.closest(".prodcard");if(!card)return;
     abrirModal(card.getAttribute("data-id"));
@@ -8691,9 +8841,41 @@ var CATALOGO = __CATALOGO_JSON__;
     // mostra antes de desenhar: peça só com vídeo já começa tocando, visível
     $("lgOverlay").classList.add("show");
     renderModal();
-    marcarEndereco(p);
+    abrirCamada("peca",linkDaPeca(p));
   }
-  function fecharModal(){pararVideos();$("lgOverlay").classList.remove("show");atual=null;marcarEndereco(null);}
+  /* modo: "voltar" = o voltar do celular já tirou a camada do histórico;
+     "troca" = vai abrir outra camada no lugar (a peça vira o pedido);
+     sem modo = ✕, Esc ou toque fora — tira a camada do histórico também */
+  function fecharModal(modo){
+    pararVideos();$("lgOverlay").classList.remove("show");atual=null;
+    if(modo!=="voltar"&&modo!=="troca")soltarCamada();
+  }
+
+  /* ---- o "voltar" do celular fecha o que está aberto (V9) ----
+     Quase todo mundo volta pelo botão do próprio celular, não pelo ✕ — e o
+     voltar saía da loja inteira. Agora peça, pedido e gaveta das coleções abrem
+     uma "camada" no histórico do navegador: o voltar fecha a camada e a pessoa
+     continua na loja. O ✕ faz o mesmo caminho (tira a camada do histórico). */
+  var camada="";
+  try{history.scrollRestoration="manual";}catch(e){}   // voltar não rola a página para outro lugar
+  function abrirCamada(nome,url){
+    if(!noSite()){camada=nome;return;}
+    try{
+      if(history.state&&history.state.lg)history.replaceState({lg:nome},"",url||location.pathname);
+      else history.pushState({lg:nome},"",url||location.pathname);
+    }catch(e){}
+    camada=nome;
+  }
+  function soltarCamada(){
+    var tinha=camada;camada="";
+    if(tinha&&noSite()&&history.state&&history.state.lg){try{history.back();}catch(e){}}
+  }
+  window.addEventListener("popstate",function(){
+    var c=camada;camada="";
+    if(c==="peca")fecharModal("voltar");
+    else if(c==="carrinho")fecharCarrinho("voltar");
+    else if(c==="lateral")fecharLateral("voltar");
+  });
 
   /* ---- link direto de cada peça (22/10/2026) ----
      A loja anuncia peça por peça no Instagram: o link tem que abrir a loja já
@@ -8718,12 +8900,11 @@ var CATALOGO = __CATALOGO_JSON__;
     }
     return null;
   }
-  /* o endereço da barra acompanha a peça aberta: quem copia o endereço manda a
-     peça, não a loja inteira. replaceState (e não pushState) para o "voltar" do
-     celular não ficar preso abrindo e fechando peças. */
-  function marcarEndereco(p){
+  /* a loja "sem nada aberto": endereço sem ?p= (e sem o rastreio que o
+     Instagram acrescenta) — é para cá que o voltar traz */
+  function enderecoDaLoja(){
     if(!noSite())return;
-    try{history.replaceState(null,"",p?linkDaPeca(p):location.pathname);}catch(e){}
+    try{history.replaceState(null,"",location.pathname);}catch(e){}
   }
   var pecaPedida="";
   try{pecaPedida=new URLSearchParams(location.search).get("p")||"";}catch(e){}
@@ -8733,22 +8914,25 @@ var CATALOGO = __CATALOGO_JSON__;
   function abrirPecaPedida(ultimaChance){
     if(!pecaPedida)return;
     var p=pecaDoLink(pecaPedida);
-    if(p){pecaPedida="";abrirModal(p.id);return;}
+    /* chegou pelo link: a entrada do histórico vira "a loja" e a peça abre por
+       cima dela — assim o voltar fecha a peça e deixa a pessoa na loja */
+    if(p){pecaPedida="";enderecoDaLoja();abrirModal(p.id);return;}
     if(!ultimaChance)return;
     pecaPedida="";
-    marcarEndereco(null);
+    enderecoDaLoja();
     avisoLoja("Essa peça não está mais disponível na loja — veja as outras 👇");
   }
   var avisoTimer=0;
-  function avisoLoja(t){
-    var a=$("lgAviso");a.textContent=t;a.hidden=false;
-    clearTimeout(avisoTimer);avisoTimer=setTimeout(function(){a.hidden=true;},6000);
+  function avisoLoja(t,longo){
+    var a=$("lgAviso");a.textContent=t;a.hidden=false;a.className="lg-aviso"+(longo?" longo":"");
+    clearTimeout(avisoTimer);avisoTimer=setTimeout(function(){a.hidden=true;},longo?12000:6000);
   }
   $("lgAviso").addEventListener("click",function(){this.hidden=true;});
+  /* compartilhar a peça: ícone no topo, ao lado do ✕ (V9) */
   $("lgBtLink").addEventListener("click",function(){
     if(!atual)return;
-    var bt=this,url=linkDaPeca(atual),nome=atual.nome;
-    function copiado(){bt.textContent="Link copiado ✓";setTimeout(function(){bt.textContent="🔗 Compartilhar esta peça";},2500);}
+    var url=linkDaPeca(atual),nome=atual.nome;
+    function copiado(){avisoLoja("Link da peça copiado ✓ — é só colar onde quiser");}
     function copiar(){
       try{navigator.clipboard.writeText(url).then(copiado,copiarAntigo);}catch(e){copiarAntigo();}
     }
@@ -8897,7 +9081,8 @@ var CATALOGO = __CATALOGO_JSON__;
     for(var i=0;i<carrinho.length;i++)if(carrinho[i].chave===chave){existente=carrinho[i];break;}
     if(existente)existente.qtd+=qtd;
     else carrinho.push({chave:chave,id:atual.id,nome:atual.nome,preco:atual.preco,tamanho:tamSel,foto:(atual.fotos&&atual.fotos[0])||"",qtd:qtd});
-    salvarCarrinho();fecharModal();abrirCarrinho();
+    // a peça vira o pedido na MESMA camada: o voltar fecha o pedido e fica na loja
+    salvarCarrinho();fecharModal("troca");abrirCarrinho();
   });
 
   function atualizarFab(){
@@ -8938,8 +9123,11 @@ var CATALOGO = __CATALOGO_JSON__;
     salvarCarrinho();renderCarrinho();
   });
 
-  function abrirCarrinho(){renderCarrinho();$("lgCarrinhoOverlay").classList.add("show");}
-  function fecharCarrinho(){$("lgCarrinhoOverlay").classList.remove("show");}
+  function abrirCarrinho(){renderCarrinho();$("lgCarrinhoOverlay").classList.add("show");abrirCamada("carrinho");}
+  function fecharCarrinho(modo){
+    $("lgCarrinhoOverlay").classList.remove("show");
+    if(modo!=="voltar"&&modo!=="troca")soltarCamada();
+  }
   $("lgFab").addEventListener("click",abrirCarrinho);
   $("lgFecharCarr").addEventListener("click",fecharCarrinho);
   $("lgCarrinhoOverlay").addEventListener("click",function(e){if(e.target===this)fecharCarrinho();});
@@ -8954,6 +9142,10 @@ var CATALOGO = __CATALOGO_JSON__;
     for(var i=0;i<carrinho.length;i++){
       var it=carrinho[i];total+=it.preco*it.qtd;
       linhas.push("• "+it.qtd+"x "+it.nome+(it.tamanho?" (tam. "+it.tamanho+")":"")+" — "+fmtR(it.preco*it.qtd));
+      /* o link da peça vai junto (V9): o WhatsApp não deixa o site mandar a foto,
+         mas o link abre a loja exatamente nessa peça, com as fotos — a cliente e
+         a vendedora conferem que é aquela mesma */
+      if(noSite()&&it.id)linhas.push("   📷 "+linkDaPeca({id:it.id,nome:it.nome}));
     }
     linhas.push("");linhas.push("Total estimado: "+fmtR(total));
     var url="https://wa.me/"+wpp+"?text="+encodeURIComponent(linhas.join("\\n"));
@@ -8962,6 +9154,39 @@ var CATALOGO = __CATALOGO_JSON__;
 
   render();atualizarFab();
   $("lgBtLink").hidden=!noSite();   // na prévia do painel não há endereço de verdade
+
+  /* ---- app da loja no celular (V9) ----
+     Instalar é sempre ESCOLHA da cliente: nenhuma janela pula na tela dela.
+     Só um link discreto ("📲 Instalar o app da loja") na gaveta das coleções e
+     no rodapé, e só onde instalar é possível — Android e computador (o próprio
+     navegador avisa que dá) e iPhone (passo a passo). Aberta como app, some. */
+  var promptApp=null;
+  function rodandoComoApp(){
+    try{return matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;}catch(e){return false;}
+  }
+  function ehIphone(){return /iphone|ipad|ipod/i.test(navigator.userAgent||"");}
+  function mostrarLinksApp(){
+    var pode=!!LOJA_APP&&noSite()&&!rodandoComoApp()&&(!!promptApp||ehIphone());
+    $("lgAppLat").hidden=!pode;$("lgAppRodape").hidden=!pode;
+  }
+  function instalarApp(){
+    if(promptApp){
+      var pr=promptApp;promptApp=null;
+      try{pr.prompt();Promise.resolve(pr.userChoice).then(mostrarLinksApp,mostrarLinksApp);}catch(e){}
+      mostrarLinksApp();
+      return;
+    }
+    if(ehIphone())avisoLoja("No iPhone: toque em Compartilhar (o quadrado com a seta para cima) e depois em “Adicionar à Tela de Início”.",true);
+  }
+  if(LOJA_APP&&noSite()){
+    window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();promptApp=e;mostrarLinksApp();});
+    window.addEventListener("appinstalled",function(){promptApp=null;mostrarLinksApp();});
+    // o sw-loja.js só guarda a página da loja (abre sem internet); não toca no painel
+    try{if("serviceWorker" in navigator)navigator.serviceWorker.register("/sw-loja.js").catch(function(){});}catch(e){}
+  }
+  $("lgAppLat").addEventListener("click",function(){fecharLateral();instalarApp();});
+  $("lgAppRodape").addEventListener("click",instalarApp);
+  mostrarLinksApp();
   // veio por link de uma peça? abre ela (sem banco, esta é a única chance)
   abrirPecaPedida(!(CATALOGO.nuvem&&CATALOGO.nuvem.url&&CATALOGO.nuvem.chave));
 
@@ -9014,6 +9239,7 @@ var CATALOGO = __CATALOGO_JSON__;
         CATALOGO=novo;
         absorverCatalogo();   // sem isto, a tela continua com a lista antiga
         aplicarMarca();       // logo, nome e cores também podem ter mudado no painel
+        escreverRodape();
         // um filtro escolhido antes pode não existir mais na vitrine nova
         if(estado.cat&&categorias.indexOf(estado.cat)<0)estado.cat="";
         if(estado.tipo&&tipos.indexOf(estado.tipo)<0)estado.tipo="";
@@ -9040,8 +9266,8 @@ var CATALOGO = __CATALOGO_JSON__;
 </html>
 `;
 
-function montarHtmlLoja(catalogo){
-  const c=Object.assign({},catalogo);
+function montarHtmlLoja(catalogo,opcoes){
+  const c=Object.assign({},catalogo),op=opcoes||{};
   /* Endereço e chave pública pra loja se atualizar sozinha. A chave é a mesma
      que já vive no painel publicado — ela não abre nada sozinha: o que ela
      alcança é decidido pelas regras do servidor, e ali só existe permissão de
@@ -9049,7 +9275,49 @@ function montarHtmlLoja(catalogo){
   if(typeof NUVEM_URL!=='undefined'&&NUVEM_URL&&NUVEM_KEY)c.nuvem={url:NUVEM_URL,chave:NUVEM_KEY};
   let json=JSON.stringify(c);
   json=json.replace(/<\/script/gi,'<\\/script'); // nunca deixar essa tag literal dentro do JSON
-  return LOJA_TEMPLATE.split('__CATALOGO_JSON__').join(json);
+  return LOJA_TEMPLATE
+    .split('__TITULO_LOJA__').join(esc(tituloDaLoja(c)))
+    .split('__DESCRICAO_LOJA__').join(esc(descricaoDaLoja(c)))
+    .split('__CABECA_LOJA__').join(cabecaDaLoja(c,op))
+    .split('__LOJA_APP__').join(op.app?'true':'false')
+    .split('__CATALOGO_JSON__').join(json);
+}
+/* O que o Google e o WhatsApp leem SEM rodar a página (V9). Antes o título só
+   virava o nome da loja depois que o script rodava, não havia ícone declarado
+   e a pesquisa mostrava o globinho cinza no lugar da logo. */
+function tituloDaLoja(c){return ((c.loja&&c.loja.nome)||'Catálogo')+' — Catálogo';}
+/* nome embaixo do ícone do app: cabe ~12 letras ("1001 Jóias & Estilos" →
+   "1001 Jóias"). O ferramentas/gerar-app-loja.ps1 usa a mesma regra no manifest. */
+function nomeCurtoDaLoja(nome){
+  const ps=String(nome||'Loja').trim().split(/\s+/);let r='';
+  for(const w of ps){const t=(r?r+' ':'')+w;if(t.length>12&&r)break;r=t;}
+  return r.replace(/\s*[&\-–—|·,]+$/,'')||'Loja';
+}
+function descricaoDaLoja(c){
+  const n=(c.loja&&c.loja.nome)||'a loja';
+  return 'Catálogo de '+n+': veja as peças com foto e preço e faça o pedido pelo WhatsApp.';
+}
+/* app=true (página publicada com os arquivos do app ao lado: ícones,
+   loja.webmanifest e sw-loja.js — ferramentas/gerar-app-loja.ps1): declara o
+   ícone para a pesquisa do Google e o app instalável. og:* = a prévia do link no
+   WhatsApp/Instagram (imagem = a capa, se for endereço público). */
+function cabecaDaLoja(c,op){
+  const l=c.loja||{},h=[];
+  h.push('<meta property="og:type" content="website">');
+  h.push('<meta property="og:title" content="'+esc(tituloDaLoja(c))+'">');
+  h.push('<meta property="og:description" content="'+esc(descricaoDaLoja(c))+'">');
+  const img=/^https:\/\//.test(l.capaBanner||'')?l.capaBanner:(op.app?(op.site||'')+'/icone-loja-512.png':'');
+  if(img)h.push('<meta property="og:image" content="'+esc(img)+'">');
+  if(op.app){
+    h.push('<link rel="icon" href="/favicon.ico" sizes="48x48">');
+    h.push('<link rel="icon" type="image/png" sizes="192x192" href="/icone-loja-192.png">');
+    h.push('<link rel="apple-touch-icon" href="/icone-loja-180.png">');
+    h.push('<link rel="manifest" href="/loja.webmanifest">');
+    h.push('<meta name="mobile-web-app-capable" content="yes">');
+    h.push('<meta name="apple-mobile-web-app-capable" content="yes">');
+    h.push('<meta name="apple-mobile-web-app-title" content="'+esc(nomeCurtoDaLoja(l.nome))+'">');
+  }
+  return h.join('\n');
 }
 
 const LEIA_ME_LOJA=`═══════════════════════════════════════════════════════════════
@@ -9553,7 +9821,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-10-22 21:25';
+const VERSAO_APP='2026-10-24 14:16';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -12015,7 +12283,7 @@ try{dlgCamera.addEventListener('close',()=>{if(CAM.aberta)fecharCamera();});}cat
    dias seguidos (app instalado não tem botão de recarregar).
    ============================================================ */
 // var (e não const): part5 chama iniciar() antes deste arquivo terminar de ler
-var APP = {prompt:null, reg:null, conferido:0, versaoNoAr:null, simular:null};
+var APP = {prompt:null, reg:null, conferido:0, versaoNoAr:null, simular:null, versaoAdiadaAte:0, esperaJanela:null};
 var APP_ADIAR_DIAS = 14;
 var APP_CONFERIR_MS = 10*60*1000;   // no máximo uma conferência de versão a cada 10 min
 
@@ -12079,13 +12347,29 @@ function appDeveSugerir(){
   if(p.adiadoAte&&hoje()<p.adiadoAte)return false;
   return true;
 }
+/* Versão nova (V9): janela no MEIO da tela — a faixa no topo passava batido.
+   Mas nunca por cima de outra janela aberta (uma venda sendo digitada, por
+   exemplo): atualizar recarrega a página e o que não foi salvo se perderia.
+   Nesse caso espera a janela fechar. "Daqui a pouco" adia 30 minutos. */
+var APP_ADIA_VERSAO_MS=30*60*1000;
+function appJanelaAberta(){return !!document.querySelector('dialog[open]');}
 function appMostrarAvisos(){
   const av=$('avisoVersao'),ai=$('avisoApp');
   if(!av||!ai)return;
   const versao=!!APP.versaoNoAr;
-  av.hidden=!versao;
-  if(versao)$('avisoVersaoTexto').textContent='É rapidinho e nada do que você fez se perde.';
+  const adiada=!!APP.versaoAdiadaAte&&Date.now()<APP.versaoAdiadaAte;
+  const mostrar=versao&&!adiada&&!appJanelaAberta();
+  av.hidden=!mostrar;
+  if(mostrar)$('avisoVersaoTexto').textContent='É rapidinho e nada do que você fez se perde.';
+  // janela aberta agora: tenta de novo daqui a pouco, quando ela tiver fechado
+  if(versao&&!adiada&&!mostrar&&!APP.esperaJanela)
+    APP.esperaJanela=setTimeout(()=>{APP.esperaJanela=null;appMostrarAvisos();},4000);
   ai.hidden=versao||!appDeveSugerir();
+}
+function appAdiarVersao(){
+  APP.versaoAdiadaAte=Date.now()+APP_ADIA_VERSAO_MS;
+  $('avisoVersao').hidden=true;
+  setTimeout(appMostrarAvisos,APP_ADIA_VERSAO_MS+500);
 }
 
 /* ---------- instalar ---------- */
