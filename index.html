@@ -1216,6 +1216,9 @@ var LOJA_APP = true;
      A regra do cupom aplicado fica no aparelho e é conferida de novo na
      primeira vez que o pedido abre. */
   var CHAVE_CUPOM_REGRA="loja_cupom_regra_v1",cupomServ={},estadoCupom="",reconferir=false;
+  // freio (V10.2): o banco diz quantas tentativas erradas restam e, depois da
+  // 4ª, por quantos minutos esta conexão espera
+  var restamCupom=null,minutosCupom=0;
   try{
     var regraGuardada=JSON.parse(localStorage.getItem(CHAVE_CUPOM_REGRA)||"null");
     if(regraGuardada&&cupomAplicado&&regraGuardada.k===cupomAplicado){cupomServ[regraGuardada.k]=regraGuardada.c;reconferir=true;}
@@ -1230,7 +1233,13 @@ var LOJA_APP = true;
       body:JSON.stringify({p_loja:CATALOGO.slug,p_codigo:k})})
     .then(function(r){if(!r.ok)throw new Error("cupom "+r.status);return r.json();})
     .then(function(c){
+      if(c&&c.bloqueado){
+        // errou demais: não guarda nada, só avisa quanto falta esperar
+        if(k!==cupomAplicado)return;
+        estadoCupom="bloqueado";minutosCupom=+c.minutos||15;renderCarrinho();return;
+      }
       cupomServ[k]=c&&c.codigo?c:false;
+      if(!cupomServ[k])restamCupom=c&&typeof c.restam==="number"?c.restam:null;
       try{if(k===cupomAplicado)localStorage.setItem(CHAVE_CUPOM_REGRA,JSON.stringify({k:k,c:cupomServ[k]}));}catch(e){}
       if(k!==cupomAplicado)return;
       estadoCupom="";renderCarrinho();
@@ -1255,17 +1264,23 @@ var LOJA_APP = true;
   function cupomValido(cod,sub,fora){
     if(!cod)return null;
     var c=acharCupom(cod),h=hojeISO();
-    if(!c||c.pausado||(c.ini&&h<c.ini)||(c.fim&&h>c.fim)||(+c.minimo&&sub<+c.minimo))return null;
+    if(!c||c.pausado||esgotado(c)||(c.ini&&h<c.ini)||(c.fim&&h>c.fim)||(+c.minimo&&sub<+c.minimo))return null;
     var base=c.soma?sub:(fora==null?sub:fora);
     if(!(base>0))return null;
     var d=c.tipo==="valor"?Math.min(base,+c.valor||0):Math.round(base*(+c.valor||0))/100;
     return {codigo:c.codigo,desconto:Math.round(d*100)/100,soSemPromo:!c.soma,
       rot:(c.tipo==="valor"?"−"+fmtR(c.valor):"−"+String(c.valor).replace(".",",")+"%")+(c.soma?"":" nas peças sem promoção")};
   }
+  /* total de usos (V10.2): conta as vendas registradas no painel */
+  function esgotado(c){return +c.total>0&&+c.usados>=+c.total;}
+  function vezes(n){return n===1?"1 vez":n+" vezes";}
   function motivoCupom(cod,sub,fora){
     var c=acharCupom(cod),h=hojeISO();
-    if(!c)return "Esse cupom não existe. Confira o código.";
+    if(!c)return "Esse cupom não existe. Confira o código."+
+      (restamCupom===1?" Mais 1 tentativa errada e o cupom trava por 15 minutos.":
+       restamCupom===0?" Por segurança, espere 15 minutos para tentar outro código.":"");
     if(c.pausado)return "Esse cupom não está valendo agora.";
+    if(esgotado(c))return "Esse cupom esgotou.";
     if(c.ini&&h<c.ini)return "Esse cupom só vale a partir de "+c.ini.split("-").reverse().join("/")+".";
     if(c.fim&&h>c.fim)return "Esse cupom já terminou.";
     if(+c.minimo&&sub<+c.minimo)return "Esse cupom vale para pedidos a partir de "+fmtR(c.minimo)+".";
@@ -1282,12 +1297,15 @@ var LOJA_APP = true;
     if(c.cupom){
       $("lgCupomLinha").innerHTML="<span>Cupom <b>"+esc(c.cupom.codigo)+"</b> ("+esc(c.cupom.rot)+")</span><span>−"+fmtR(c.desconto)+"</span>";
       $("lgCupomLinha").hidden=false;$("lgCupomForm").hidden=true;
-      msg.innerHTML="<button class=\"lg-tira-cupom\" id=\"lgTiraCupom\">tirar o cupom</button>";
+      var regra=acharCupom(c.cupom.codigo),pc=regra?+regra.porCliente||0:0;
+      msg.innerHTML=(pc?"<span>Vale "+vezes(pc)+" por cliente. </span>":"")+
+        "<button class=\"lg-tira-cupom\" id=\"lgTiraCupom\">tirar o cupom</button>";
     }else{
       $("lgCupomLinha").hidden=true;$("lgCupomForm").hidden=false;
       msg.textContent=!cupomAplicado?"":
         estadoCupom==="conferindo"?"Conferindo o cupom…":
         estadoCupom==="erro"?"Não consegui conferir o cupom agora. Tente de novo.":
+        estadoCupom==="bloqueado"?"Muitas tentativas erradas. Tente de novo daqui a "+(minutosCupom===1?"1 minuto":minutosCupom+" minutos")+".":
         motivoCupom(cupomAplicado,c.subtotal,c.foraPromo);
     }
     $("lgCarrSub").hidden=!c.cupom;
@@ -1296,7 +1314,7 @@ var LOJA_APP = true;
   function aplicarCupom(){
     cupomAplicado=chaveCupom($("lgCupom").value);
     try{localStorage.setItem(CHAVE_CUPOM,cupomAplicado);}catch(e){}
-    estadoCupom="";
+    estadoCupom="";restamCupom=null;
     // "Aplicar" de novo sempre pergunta ao banco (o cupom pode ter mudado)
     if(cupomNoServidor()&&cupomAplicado){delete cupomServ[cupomAplicado];conferirCupom(cupomAplicado);}
     renderCarrinho();
