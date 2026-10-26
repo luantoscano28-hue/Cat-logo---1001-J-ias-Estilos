@@ -593,6 +593,15 @@ main.larga{max-width:1480px}
 .etiq-folha-nome{font-weight:600;color:var(--texto)}
 .etiq-nao-cabe{background:var(--aviso1);border:1px solid var(--aviso2);color:var(--avisoTx);border-radius:10px;
   padding:.5rem .7rem;margin:-.2rem 0 .6rem;font-size:.84rem;line-height:1.45}
+/* promoções e cupons (V10): Configurações → Promoções e cupons */
+.promo-lista{list-style:none;padding:0;margin:0 0 .4rem;display:grid;gap:.5rem}
+.promo-item{display:flex;gap:.8rem;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  padding:.6rem .75rem;border:1px solid var(--borda);border-radius:10px;background:var(--painel2)}
+.promo-item .pi-txt{min-width:0;flex:1}
+.promo-item .pi-txt .mut{font-size:.8rem;margin-top:.15rem}
+.promo-item .pi-bts{display:flex;gap:.3rem;flex-wrap:wrap}
+.cupom-cod{font-family:"Courier New",monospace;letter-spacing:.6px}
+#vCupomRot{margin-left:.3rem}
 /* versão nova (V9): janela no meio da tela, por cima de tudo */
 .popup-versao{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;
   padding:1rem;background:rgba(0,0,0,.55)}
@@ -1079,7 +1088,9 @@ try{
   <div class="totais-venda">
     <div><span class="mut">Subtotal</span> <b id="vSubtotal">R$ 0,00</b></div>
     <div><span class="mut">Desconto</span> <input type="number" id="vDesconto" min="0" step="0.01" value="0" style="width:90px;text-align:right" oninput="recalcVenda()">
-      <select id="vDescontoTipo" style="width:62px" onchange="recalcVenda()" aria-label="desconto em reais ou em porcentagem"><option value="valor">R$</option><option value="perc">%</option></select></div>
+      <select id="vDescontoTipo" style="width:62px" onchange="recalcVenda()" aria-label="desconto em reais ou em porcentagem"><option value="valor">R$</option><option value="perc">%</option></select>
+      <button type="button" class="bt mini" id="vBtCupom" onclick="escolherCupomVenda()" hidden title="usar um cupom de desconto">🎟️ cupom</button>
+      <input type="hidden" id="vCupom"><span id="vCupomRot" class="bd ent" hidden></span></div>
     <div title="Soma ou tira um valor do total que não pertence a nenhum produto (ex.: cliente pagou R$1 a mais). Use negativo para tirar.">
       <span class="mut">Acréscimo / ajuste</span>
       <input type="number" id="vAjuste" step="0.01" value="0" style="width:90px;text-align:right" oninput="recalcVenda()">
@@ -1736,6 +1747,8 @@ function caixaConverter(c,v,doTeste){
     const o=c.opcoes.find(x=>String(x[0])===s);return o?o[0]:null;
   }
   if(c.tipo==='numero')return numBR(v);
+  // data (V10): AAAA-MM-DD ou vazio; o teste antigo responde a mesma coisa
+  if(c.tipo==='data'){const s=String(v==null?'':v).trim();return /^\d{4}-\d{2}-\d{2}$/.test(s)?s:'';}
   if(c.tipo==='simnao')return !!v;
   return String(v==null?'':v);
 }
@@ -1748,6 +1761,8 @@ function caixaCampoHTML(c,i){
   }else if(c.tipo==='simnao'){
     inp=`<span class="caixa-simnao">${[['1',c.sim||'Sim'],['0',c.nao||'Não']].map(o=>
       `<label class="linha"><input type="radio" name="${id}" value="${o[0]}"${(c.valor?'1':'0')===o[0]?' checked':''}> ${esc(o[1])}</label>`).join('')}</span>`;
+  }else if(c.tipo==='data'){
+    inp=`<input id="${id}" type="date" value="${esc(c.valor||'')}">`;
   }else if(c.tipo==='textoLongo'){
     inp=`<textarea id="${id}" rows="${c.linhas||3}"${ph}>${esc(c.valor||'')}</textarea>`;
   }else{
@@ -1818,6 +1833,9 @@ function caixaOk(){
     if(msg)erro=true;
     vals[c.id]=v;
   });
+  /* conferência do formulário inteiro (V10): a mensagem aparece e a janela
+     continua aberta, com o que já foi digitado */
+  if(!erro&&cfg.validar){const m=cfg.validar(vals);if(m){toast(m);erro=true;}}
   if(!erro)caixaFechar(vals);
 }
 function avisar(texto,op){
@@ -1847,7 +1865,7 @@ function pedir(op,feito,desistiu){
     }
     feito(vals);return;
   }
-  caixaAbrir({titulo:op.titulo||'',texto:op.texto,html:op.html,campos,ok:op.ok||'Salvar',perigo:!!op.perigo,
+  caixaAbrir({titulo:op.titulo||'',texto:op.texto,html:op.html,campos,ok:op.ok||'Salvar',perigo:!!op.perigo,validar:op.validar,
     fim:v=>{if(v)feito(v);else if(desistiu)desistiu();}});
 }
 function pedirP(op){return new Promise(r=>pedir(op,v=>r(v),()=>r(null)));}
@@ -2642,7 +2660,7 @@ function opcoes(lista,sel,rotulo){
 function renderConfig(){
   // Site da loja não é mais uma das abas daqui: tem página própria, pelo menu (V8)
   const abas=[['geral','Geral / Loja'],['categorias','Categorias'],['colecoes','Coleções'],['tipos','Tipos'],['fornecedores','Fornecedores'],
-    ['locais','Locais'],['formas','Formas de pagamento'],['canais','Canais (maquininha/link)'],['insumos','Embalagem / insumos'],['contas','Contas'],['catFin','Categorias financeiras'],['dados','Conta e dados']];
+    ['locais','Locais'],['formas','Formas de pagamento'],['canais','Canais (maquininha/link)'],['insumos','Embalagem / insumos'],['contas','Contas'],['catFin','Categorias financeiras'],['promocoes','Promoções e cupons'],['dados','Conta e dados']];
   let corpo='';
   const cfg=C();
   if(ui.cfgTab==='geral'){
@@ -2694,6 +2712,8 @@ function renderConfig(){
     ${typeof painelApp==='function'?painelApp():''}`;
   } else if(ui.cfgTab==='lojaSite'){
     corpo=painelLojaSite();
+  } else if(ui.cfgTab==='promocoes'){
+    corpo=painelPromocoes();
   } else if(ui.cfgTab==='dados'){
     corpo=paineisDados();
   } else {
@@ -4218,7 +4238,7 @@ function linhaProduto(p){
       <td class="capa" data-rot="">${th}</td>
       <td class="titulo" data-rot="Produto">${bolhaCor(p)}${esc(p.nome)}${p.tipoId?` <span class="mut" style="font-size:.76rem">(${esc(tipoNome(p.tipoId))})</span>`:''}${cols.length?`<div style="margin-top:.15rem">${cols.map(n=>`<span class="tag-col">${esc(n)}</span>`).join('')}</div>`:''}${!produtoAvisa(p)?'<div class="mut" style="font-size:.68rem">🔕 sem aviso de estoque</div>':''}${etiquetaDaLinha(p)}</td>
       <td data-rot="Material"><span class="bd cat">${esc(catNome(p.catId))}</span></td>
-      <td class="num" data-rot="Preço">${+p.preco>0?fmt(p.preco):'—'}</td>
+      <td class="num" data-rot="Preço">${+p.preco>0?precoNaLista(p):"—"}</td>
       <td class="num" data-rot="Custo">${p.custo!=null?fmt(p.custo):'<span class="mut">—</span>'}</td>
       <td class="num" data-rot="Margem">${marg!=null?`<span class="${marg>=0?'pos':'neg'}">${pct(marg)}</span>`:'<span class="mut">—</span>'}</td>
       <td class="num ${al?'alerta-estoque':''}" data-rot="Estoque">${p.estoque==null?'<span class="mut">—</span>':fmtN(p.estoque)+(al?' ⚠️':'')}${temGrade(p)?`<div class="grade-mini">${gradeResumo(p)}</div>`:''}</td>
@@ -5189,6 +5209,241 @@ function detalheCliente(id){
 }
 
 /* ============================================================
+   PROMOÇÕES E CUPONS (V10, 26/10/2026)
+   Caso real: semana do Halloween, 10% OFF em toda a coleção Black Essence —
+   aparecendo na loja (preço riscado + preço com desconto) e já com o desconto
+   na venda do painel. E cupom: código que a cliente digita no pedido da loja.
+   - promoção: config.promocoes=[{id,nome,tipo:'pct'|'valor',valor,ini,fim,pausada,
+       alvo:{tipo:'todos'|'col'|'cat'|'tipo'|'cor'|'pecas', id, ids}}]
+     Período ini..fim (datas): começa e termina sozinha — a loja confere a data
+     do dia, então não depende de ninguém republicar. Peça em duas promoções:
+     vale a de MENOR preço (não somam).
+   - cupom: config.cupons=[{id,codigo,tipo:'pct'|'valor',valor,minimo,ini,fim,pausado}]
+     desconto no pedido inteiro. Na venda do painel vira o desconto da venda
+     (v.cupom guarda o código, para contar quantas vezes foi usado).
+   As duas listas sincronizam item a item como os outros cadastros (CADASTROS).
+   ============================================================ */
+/* ler NÃO cria a lista (senão abrir uma tela já "mudava" a configuração e a
+   sincronização mandava para a nuvem à toa); quem grava usa listaPromocoes/listaCupons */
+function promocoes(){const c=C();return Array.isArray(c.promocoes)?c.promocoes:[];}
+function listaPromocoes(){const c=C();if(!Array.isArray(c.promocoes))c.promocoes=[];return c.promocoes;}
+function cupons(){const c=C();return Array.isArray(c.cupons)?c.cupons:[];}
+function listaCupons(){const c=C();if(!Array.isArray(c.cupons))c.cupons=[];return c.cupons;}
+function noPeriodoPromo(x,dia){dia=dia||hoje();return (!x.ini||dia>=x.ini)&&(!x.fim||dia<=x.fim);}
+function promoValendo(pr,dia){return !!pr&&!pr.pausada&&+pr.valor>0&&noPeriodoPromo(pr,dia);}
+function corDoProduto(p){return (p&&p.cor&&p.cor.nome)||'';}
+function promoPega(pr,p){
+  const a=(pr&&pr.alvo)||{tipo:'todos'};
+  if(!p)return false;
+  switch(a.tipo){
+    case 'todos':return true;
+    case 'col':return produtoNaColecao(p,a.id);
+    case 'cat':return !!a.id&&p.catId===a.id;
+    case 'tipo':return !!a.id&&p.tipoId===a.id;
+    case 'cor':return !!a.id&&corDoProduto(p)===a.id;
+    case 'pecas':return (a.ids||[]).indexOf(p.id)>=0;
+    default:return false;
+  }
+}
+function precoComDesconto(preco,d){
+  preco=+preco||0;
+  return d.tipo==='valor'?r2(Math.max(0,preco-(+d.valor||0))):r2(preco*(1-(+d.valor||0)/100));
+}
+/* a promoção que vale para a peça no dia (a de menor preço) — ou null */
+function promoDoProduto(p,dia){
+  if(!p||!(+p.preco>0))return null;
+  let m=null;
+  promocoes().forEach(pr=>{
+    if(!promoValendo(pr,dia)||!promoPega(pr,p))return;
+    const preco=precoComDesconto(p.preco,pr);
+    if(preco<+p.preco&&(!m||preco<m.preco))m={promo:pr,preco};
+  });
+  return m;
+}
+/* preço que vale no dia (hoje, ou o dia da venda) — é o que a venda do painel usa */
+function precoDeVenda(p,dia){const m=promoDoProduto(p,dia);return m?m.preco:(+(p&&p.preco)||0);}
+function rotDesconto(d){return d.tipo==='valor'?'−'+fmt(d.valor):'−'+String(+d.valor).replace('.',',')+'%';}
+function alvoTexto(pr){
+  const a=(pr&&pr.alvo)||{tipo:'todos'};
+  switch(a.tipo){
+    case 'todos':return 'toda a loja';
+    case 'col':return 'coleção '+(colecaoNome(a.id)||'(apagada)');
+    case 'cat':return 'material '+nomeDe(C().categorias||[],a.id,'(apagado)');
+    case 'tipo':return 'tipo '+nomeDe(C().tipos||[],a.id,'(apagado)');
+    case 'cor':return 'cor '+(a.id||'—');
+    case 'pecas':return (a.ids||[]).length+' peça(s) escolhida(s)';
+  }
+  return '';
+}
+/* [texto, classe do selo] */
+function situacaoPeriodo(x,campoPausa){
+  const h=hoje();
+  if(x[campoPausa])return ['pausada','neutro'];
+  if(x.fim&&h>x.fim)return ['terminou','neutro'];
+  if(x.ini&&h<x.ini)return ['começa '+fmtData(x.ini).slice(0,5),'inv'];
+  return ['valendo agora','ent'];
+}
+function periodoTexto(x){
+  if(x.ini&&x.fim)return fmtData(x.ini).slice(0,5)+' a '+fmtData(x.fim);
+  if(x.ini)return 'a partir de '+fmtData(x.ini);
+  if(x.fim)return 'até '+fmtData(x.fim);
+  return 'sem data para acabar';
+}
+function pecasDaPromo(pr){return dados.produtos.filter(p=>p.status!=='oculto'&&promoPega(pr,p));}
+/* para a loja: promoções que ainda vão valer (as que já terminaram ficam de fora);
+   a loja escolhe a do dia sozinha */
+function promosParaLoja(p){
+  const h=hoje(),r=[];
+  promocoes().forEach(pr=>{
+    if(pr.pausada||!(+pr.valor>0)||(pr.fim&&pr.fim<h)||!promoPega(pr,p))return;
+    const preco=precoComDesconto(p.preco,pr);
+    if(preco<+p.preco)r.push({preco,ini:pr.ini||'',fim:pr.fim||'',rot:rotDesconto(pr)});
+  });
+  return r;
+}
+function cuponsParaLoja(){
+  const h=hoje();
+  return cupons().filter(c=>!c.pausado&&c.codigo&&+c.valor>0&&!(c.fim&&c.fim<h))
+    .map(c=>({codigo:c.codigo,tipo:c.tipo==='valor'?'valor':'pct',valor:+c.valor,minimo:+c.minimo||0,ini:c.ini||'',fim:c.fim||'',soma:!!c.somaPromo}));
+}
+function cupomValendo(c,dia){return !!c&&!c.pausado&&+c.valor>0&&noPeriodoPromo(c,dia);}
+function chaveCupom(s){return String(s||'').toUpperCase().replace(/\s+/g,'');}
+function usosDoCupom(cod){const k=chaveCupom(cod);return dados.vendas.filter(v=>v.cupom&&chaveCupom(v.cupom)===k).length;}
+
+/* ---- tela: Configurações → Promoções e cupons ---- */
+function painelPromocoes(){
+  const ps=promocoes(),cs=cupons();
+  const linhaPromo=pr=>{const [s,cl]=situacaoPeriodo(pr,'pausada');return `<li class="promo-item">
+    <div class="pi-txt"><b>${esc(pr.nome||'Promoção')}</b> <span class="bd ${cl}">${s}</span>
+      <div class="mut">${rotDesconto(pr)} · ${esc(alvoTexto(pr))} · ${periodoTexto(pr)} · ${pecasDaPromo(pr).length} peça(s)</div></div>
+    <span class="pi-bts"><button class="bt mini" onclick="editarPromocao('${pr.id}')">✎ editar</button>
+      <button class="bt mini" onclick="pausarPromocao('${pr.id}')">${pr.pausada?'▶ retomar':'⏸ pausar'}</button>
+      <button class="bt mini perigo" onclick="excluirPromocao('${pr.id}')" aria-label="excluir">✕</button></span></li>`;};
+  const linhaCupom=c=>{const [s,cl]=situacaoPeriodo(c,'pausado');const u=usosDoCupom(c.codigo);return `<li class="promo-item">
+    <div class="pi-txt"><b class="cupom-cod">${esc(c.codigo)}</b> <span class="bd ${cl}">${s}</span>
+      <div class="mut">${rotDesconto(c)} no pedido${+c.minimo?' a partir de '+fmt(c.minimo):''} · ${c.somaPromo?'soma com promoção':'não vale em peça em promoção'} · ${periodoTexto(c)} · usado em ${u} venda(s)</div></div>
+    <span class="pi-bts"><button class="bt mini" onclick="editarCupom('${c.id}')">✎ editar</button>
+      <button class="bt mini" onclick="pausarCupom('${c.id}')">${c.pausado?'▶ retomar':'⏸ pausar'}</button>
+      <button class="bt mini perigo" onclick="excluirCupom('${c.id}')" aria-label="excluir">✕</button></span></li>`;};
+  return `<div class="painel"><h3>🏷️ Promoções</h3>
+    <p class="mut" style="font-size:.82rem;margin-bottom:.6rem">Desconto que já aparece no preço: na loja (preço riscado e o preço com desconto) e na venda do painel. Vale só no período escolhido — começa e termina sozinha. Peça que cai em duas promoções fica com a de menor preço (elas não se somam).</p>
+    ${ps.length?`<ul class="promo-lista">${ps.map(linhaPromo).join('')}</ul>`:'<p class="mut">Nenhuma promoção ainda.</p>'}
+    <div class="rodape"><button class="bt primario" onclick="editarPromocao()">+ Nova promoção</button></div></div>
+  <div class="painel"><h3>🎟️ Cupons de desconto</h3>
+    <p class="mut" style="font-size:.82rem;margin-bottom:.6rem">Código que a cliente digita no pedido da loja (ex.: HALLOWEEN10). O desconto vale para o pedido inteiro e vai escrito na mensagem do WhatsApp. Na venda do painel, toque em <b>🎟️ cupom</b>, ao lado do desconto.</p>
+    ${cs.length?`<ul class="promo-lista">${cs.map(linhaCupom).join('')}</ul>`:'<p class="mut">Nenhum cupom ainda.</p>'}
+    <div class="rodape"><button class="bt primario" onclick="editarCupom()">+ Novo cupom</button></div>
+    <p class="mut" style="font-size:.74rem;margin-top:.5rem">⚠️ Os códigos ficam dentro da página da loja: quem entende de navegador consegue achá-los. Cupom secreto de verdade precisaria de um servidor.</p></div>`;
+}
+/* preço na lista de Produtos: em promoção hoje, o de antes riscado + o de agora */
+function precoNaLista(p){
+  const m=promoDoProduto(p);
+  if(!m)return fmt(p.preco);
+  return `<s class="mut">${fmt(p.preco)}</s><div><b>${fmt(m.preco)}</b></div><span class="bd ent" title="${esc(m.promo.nome||'promoção')}">🏷️ ${rotDesconto(m.promo)}</span>`;
+}
+function selecionadosEmProdutos(){const s=ui.p.sel||{};return Object.keys(s).filter(k=>s[k]&&dados.produtos.some(p=>p.id===k));}
+function editarPromocao(id){
+  const pr=id?promocoes().find(x=>x.id===id):null;
+  if(id&&!pr)return;
+  const a=(pr&&pr.alvo)||{tipo:'col'},sel=selecionadosEmProdutos();
+  const idsPecas=sel.length?sel:((a.tipo==='pecas'&&a.ids)||[]);
+  const ops=l=>(l||[]).map(x=>[x.id,x.nome]);
+  const cores=[...new Set(dados.produtos.map(corDoProduto).filter(Boolean))].sort((x,y)=>x.localeCompare(y,'pt-BR'));
+  const conferir=v=>{
+    if(!(+v.valor>0))return 'Diga quanto de desconto (maior que zero).';
+    if(v.tipo==='pct'&&+v.valor>=100)return 'Porcentagem precisa ser menor que 100%.';
+    if(v.alvo==='col'&&!v.col)return 'Escolha a coleção.';
+    if(v.alvo==='cat'&&!v.cat)return 'Escolha o material.';
+    if(v.alvo==='tipo'&&!v.tp)return 'Escolha o tipo de peça.';
+    if(v.alvo==='cor'&&!v.cor)return 'Escolha a cor.';
+    if(v.alvo==='pecas'&&!idsPecas.length)return 'Marque as peças em Produtos (a caixinha de cada uma) e volte aqui.';
+    if(v.ini&&v.fim&&v.fim<v.ini)return 'A data de término é antes do começo.';
+    return '';
+  };
+  pedir({titulo:pr?'Editar promoção':'Nova promoção',ok:'Salvar promoção',validar:conferir,campos:[
+    {id:'nome',rotulo:'Nome da promoção',tipo:'texto',valor:pr?pr.nome:'',exemplo:'ex.: Halloween',obrigatorio:true,pergunta:'Nome da promoção:'},
+    {id:'tipo',rotulo:'Desconto em',tipo:'lista',opcoes:[['pct','% (porcentagem)'],['valor','R$ por peça']],valor:pr?pr.tipo:'pct',pergunta:'Desconto em % ou R$?'},
+    {id:'valor',rotulo:'Quanto',tipo:'numero',valor:pr?pr.valor:10,dica:'ex.: 10 = 10% (ou R$ 10,00)',obrigatorio:true,pergunta:'Quanto de desconto?'},
+    {id:'alvo',rotulo:'Vale para',tipo:'lista',valor:a.tipo,pergunta:'Vale para?',opcoes:[['col','Uma coleção'],['cat','Um material'],['tipo','Um tipo de peça'],['cor','Uma cor'],
+      ['pecas','Peças marcadas em Produtos ('+idsPecas.length+')'],['todos','Toda a loja']]},
+    {id:'col',rotulo:'Coleção',tipo:'lista',opcoes:ops(colecoes()),valor:a.tipo==='col'?a.id:'',mostrarSe:v=>v.alvo==='col',pergunta:'Coleção:'},
+    {id:'cat',rotulo:'Material',tipo:'lista',opcoes:ops(C().categorias),valor:a.tipo==='cat'?a.id:'',mostrarSe:v=>v.alvo==='cat',pergunta:'Material:'},
+    {id:'tp',rotulo:'Tipo de peça',tipo:'lista',opcoes:ops(C().tipos),valor:a.tipo==='tipo'?a.id:'',mostrarSe:v=>v.alvo==='tipo',pergunta:'Tipo:'},
+    {id:'cor',rotulo:'Cor',tipo:'lista',opcoes:cores.map(c=>[c,c]),valor:a.tipo==='cor'?a.id:'',mostrarSe:v=>v.alvo==='cor',pergunta:'Cor:'},
+    {id:'ini',rotulo:'Começa em',tipo:'data',valor:pr?pr.ini:hoje(),pergunta:'Começa em (AAAA-MM-DD):'},
+    {id:'fim',rotulo:'Termina em',tipo:'data',valor:pr?pr.fim:'',dica:'vazio = até você pausar',pergunta:'Termina em (AAAA-MM-DD):'}
+  ]},v=>{
+    const erro=conferir(v);if(erro){avisar(erro,{titulo:'Falta acertar'});return;}
+    const alvo={tipo:v.alvo};
+    if(v.alvo==='col')alvo.id=v.col;else if(v.alvo==='cat')alvo.id=v.cat;else if(v.alvo==='tipo')alvo.id=v.tp;
+    else if(v.alvo==='cor')alvo.id=v.cor;else if(v.alvo==='pecas')alvo.ids=idsPecas.slice();
+    const o={nome:String(v.nome||'').trim(),tipo:v.tipo==='valor'?'valor':'pct',valor:r2(v.valor),alvo,ini:v.ini||'',fim:v.fim||''};
+    let alvoPr=pr;
+    if(pr)Object.assign(pr,o);else{alvoPr=Object.assign({id:novoId(),pausada:false},o);listaPromocoes().push(alvoPr);}
+    salvar();renderConfig();
+    toast('Promoção salva ✓ — '+pecasDaPromo(alvoPr).length+' peça(s) com desconto');
+  });
+}
+function pausarPromocao(id){
+  const pr=promocoes().find(x=>x.id===id);if(!pr)return;
+  pr.pausada=!pr.pausada;salvar();renderConfig();
+  toast(pr.pausada?'Promoção pausada — os preços voltam ao normal':'Promoção retomada ✓');
+}
+function excluirPromocao(id){
+  const pr=promocoes().find(x=>x.id===id);if(!pr)return;
+  confirmar('Excluir a promoção "'+(pr.nome||'')+'"? Os preços voltam ao normal. As vendas já feitas não mudam.',
+    {titulo:'Excluir promoção',ok:'Excluir',perigo:true},()=>{
+    C().promocoes=promocoes().filter(x=>x.id!==id);registrarApagado('promocoes',id);
+    salvar();renderConfig();toast('Promoção excluída');
+  });
+}
+function editarCupom(id){
+  const c=id?cupons().find(x=>x.id===id):null;
+  if(id&&!c)return;
+  const conferir=v=>{
+    const k=chaveCupom(v.codigo);
+    if(!k)return 'Escreva o código do cupom.';
+    if(!/^[A-Z0-9_-]+$/.test(k))return 'Use só letras, números, - ou _ no código (sem acento).';
+    if(cupons().some(x=>x!==c&&chaveCupom(x.codigo)===k))return 'Já existe um cupom com esse código.';
+    if(!(+v.valor>0))return 'Diga quanto de desconto (maior que zero).';
+    if(v.tipo==='pct'&&+v.valor>=100)return 'Porcentagem precisa ser menor que 100%.';
+    if(v.ini&&v.fim&&v.fim<v.ini)return 'A data de término é antes do começo.';
+    return '';
+  };
+  pedir({titulo:c?'Editar cupom':'Novo cupom',ok:'Salvar cupom',validar:conferir,campos:[
+    {id:'codigo',rotulo:'Código',tipo:'texto',valor:c?c.codigo:'',exemplo:'ex.: HALLOWEEN10',obrigatorio:true,max:20,pergunta:'Código do cupom:'},
+    {id:'tipo',rotulo:'Desconto em',tipo:'lista',opcoes:[['pct','% do pedido'],['valor','R$ no pedido']],valor:c?c.tipo:'pct',pergunta:'Desconto em % ou R$?'},
+    {id:'valor',rotulo:'Quanto',tipo:'numero',valor:c?c.valor:10,obrigatorio:true,pergunta:'Quanto de desconto?'},
+    {id:'minimo',rotulo:'Pedido mínimo (R$)',tipo:'numero',valor:c&&+c.minimo?c.minimo:'',dica:'vazio = qualquer valor',pergunta:'Pedido mínimo:'},
+    /* V10: a loja escolhe, cupom a cupom — somar com a promoção (10% + 10%) ou
+       o desconto valer só nas peças que NÃO estão em promoção */
+    {id:'soma',rotulo:'Vale também nas peças que já estão em promoção?',tipo:'simnao',
+      sim:'Sim — soma com a promoção',nao:'Não — só nas peças sem promoção',valor:c?!!c.somaPromo:false,
+      pergunta:'O cupom soma com a promoção (vale também nas peças em promoção)?'},
+    {id:'ini',rotulo:'Começa em',tipo:'data',valor:c?c.ini:hoje(),pergunta:'Começa em (AAAA-MM-DD):'},
+    {id:'fim',rotulo:'Termina em',tipo:'data',valor:c?c.fim:'',dica:'vazio = até você pausar',pergunta:'Termina em (AAAA-MM-DD):'}
+  ]},v=>{
+    const erro=conferir(v);if(erro){avisar(erro,{titulo:'Falta acertar'});return;}
+    const o={codigo:chaveCupom(v.codigo),tipo:v.tipo==='valor'?'valor':'pct',valor:r2(v.valor),minimo:+v.minimo>0?r2(v.minimo):0,somaPromo:!!v.soma,ini:v.ini||'',fim:v.fim||''};
+    if(c)Object.assign(c,o);else listaCupons().push(Object.assign({id:novoId(),pausado:false},o));
+    salvar();renderConfig();toast('Cupom '+o.codigo+' salvo ✓');
+  });
+}
+function pausarCupom(id){
+  const c=cupons().find(x=>x.id===id);if(!c)return;
+  c.pausado=!c.pausado;salvar();renderConfig();
+  toast(c.pausado?'Cupom pausado — não vale mais na loja':'Cupom retomado ✓');
+}
+function excluirCupom(id){
+  const c=cupons().find(x=>x.id===id);if(!c)return;
+  confirmar('Excluir o cupom '+c.codigo+'? As vendas que já usaram continuam como estão.',
+    {titulo:'Excluir cupom',ok:'Excluir',perigo:true},()=>{
+    C().cupons=cupons().filter(x=>x.id!==id);registrarApagado('cupons',id);
+    salvar();renderConfig();toast('Cupom excluído');
+  });
+}
+
+/* ============================================================
    VENDAS  (multi-item, desconto, fiado com parcela única ou dividido)
    ============================================================ */
 function recParcelas(v){return (v.receber&&v.receber.parcelas)||[];}
@@ -5308,7 +5563,7 @@ function vCanalMudou(){
 }
 function abrirNovaVenda(){
   $('formVenda').reset();preencherSelectsVenda();
-  $('dlgVendaTitulo').textContent='Nova venda';$('vId').value='';$('vData').value=hoje();$('vDesconto').value=0;$('vDescontoTipo').value='valor';
+  $('dlgVendaTitulo').textContent='Nova venda';$('vId').value='';$('vData').value=hoje();$('vDesconto').value=0;$('vDescontoTipo').value='valor';marcarCupomVenda('');
   $('vAjuste').value=0;$('vAjusteTipo').value='valor';
   itensVenda=[{nome:'',produtoId:null,qtd:1,preco:0,custo:0}];parcelasVenda=[];
   vendaPlanoAtual=null;pintarPlanoVenda(null);
@@ -5324,7 +5579,7 @@ function editarVenda(id){
   $('formVenda').reset();preencherSelectsVenda();
   $('dlgVendaTitulo').textContent='Editar venda';$('vId').value=v.id;$('vData').value=v.data;
   $('vCliente').value=v.clienteNome||'';$('vLocal').value=v.localId||'';$('vForma').value=v.formaId;$('vObs').value=v.obs||'';
-  $('vDescontoTipo').value=v.descontoTipo==='perc'?'perc':'valor';
+  $('vDescontoTipo').value=v.descontoTipo==='perc'?'perc':'valor';marcarCupomVenda(v.cupom||'');
   $('vDesconto').value=v.descontoTipo==='perc'?(+v.descontoValor||0):(v.desconto||0);
   $('vAjuste').value=v.ajusteValor||0;$('vAjusteTipo').value=v.ajusteTipo||'valor';
   if(v.canalId&&canalDe(v.canalId))$('vCanal').value=v.canalId;
@@ -5443,7 +5698,8 @@ function usarProdutoNoItem(i,p){
   if(!p||i<0||!itensVenda[i])return;
   const it=itensVenda[i];
   it.nome=p.nome;it.produtoId=p.id;it.custo=p.custo!=null?+p.custo:0;
-  if(+p.preco>0)it.preco=+p.preco;
+  // preço do dia da venda: com promoção valendo, já entra com desconto (V10)
+  if(+p.preco>0)it.preco=precoDeVenda(p,dataVendaAtual());
   it.variacaoId=temGrade(p)?((p.variacoes[0]||{}).id||null):null;
   renderItensVenda();
   const row=$('vItensBody').children[i];
@@ -5518,7 +5774,7 @@ function itemVenda(i,campo,val){
     // só vincula sozinho se houver UM produto com esse nome (nomes repetidos exigem escolher na lista)
     const iguais=dados.produtos.filter(x=>x.nome.toLowerCase()===val.trim().toLowerCase());
     const p=iguais.length===1?iguais[0]:null;
-    if(p){it.produtoId=p.id;it.novoProd=null;it.custo=p.custo!=null?+p.custo:0;if(!(+it.preco>0)&&+p.preco>0){it.preco=+p.preco;if(row)row.querySelector('.prc').value=it.preco;}}
+    if(p){it.produtoId=p.id;it.novoProd=null;it.custo=p.custo!=null?+p.custo:0;if(!(+it.preco>0)&&+p.preco>0){it.preco=precoDeVenda(p,dataVendaAtual());if(row)row.querySelector(".prc").value=it.preco;}}
     else it.produtoId=null;
     // o rascunho do "✎ detalhar" só vale enquanto o nome continuar o mesmo
     if(it.novoProd&&it.novoProd.nome.trim().toLowerCase()!==val.trim().toLowerCase())it.novoProd=null;
@@ -5565,6 +5821,52 @@ function calcAjuste(baseAposDesconto,tipo,n){
    100%. A venda grava o valor em R$ (`desconto`, que é o que todo o resto do
    sistema lê) e, à parte, o que foi digitado e o tipo — para a tela de editar
    mostrar "10%" de novo, e não "R$ 5,00". */
+/* dia da venda que está sendo digitada (a promoção vale pelo dia da venda) */
+function dataVendaAtual(){const d=$('vData');return (d&&d.value)||hoje();}
+/* ---- cupom na venda (V10) ----
+   O cupom vira o desconto da venda (o mesmo campo de sempre, em % ou R$) e o
+   código fica guardado em v.cupom — para a tela de cupons contar os usos. O
+   botão só aparece quando a loja tem algum cupom. */
+function marcarCupomVenda(cod){
+  if($('vCupom'))$('vCupom').value=cod||'';
+  const r=$('vCupomRot');if(r){r.textContent=cod?'🎟️ '+cod:'';r.hidden=!cod;}
+  if($('vBtCupom'))$('vBtCupom').hidden=!cupons().length;
+}
+function escolherCupomVenda(){
+  const dia=dataVendaAtual(),vale=cupons().filter(c=>cupomValendo(c,dia));
+  if(!vale.length){avisar('Nenhum cupom valendo no dia desta venda. Os cupons ficam em Configurações → Promoções e cupons.',{titulo:'Cupom'});return;}
+  const atual=$('vCupom').value||'';
+  pedir({titulo:'Usar um cupom',ok:'Usar',campos:[
+    {id:'c',rotulo:'Cupom',tipo:'lista',valor:atual,pergunta:'Qual cupom?',
+      opcoes:[['','— sem cupom —']].concat(vale.map(c=>[c.codigo,c.codigo+' ('+rotDesconto(c)+(+c.minimo?' · a partir de '+fmt(c.minimo):'')+')']))}
+  ]},v=>{
+    const c=vale.find(x=>x.codigo===v.c);
+    if(!c){if(atual){$('vDesconto').value=0;$('vDescontoTipo').value='valor';}marcarCupomVenda('');recalcVenda();return;}
+    if(+c.minimo&&subtotalVenda()<+c.minimo){
+      avisar('O cupom '+c.codigo+' vale para vendas a partir de '+fmt(c.minimo)+' — esta está em '+fmt(subtotalVenda())+'.',{titulo:'Cupom'});return;
+    }
+    if(c.somaPromo){
+      $('vDescontoTipo').value=c.tipo==='valor'?'valor':'perc';
+      $('vDesconto').value=+c.valor;
+      marcarCupomVenda(c.codigo);recalcVenda();
+      toast('Cupom '+c.codigo+' aplicado ✓');
+      return;
+    }
+    /* cupom que NÃO soma com promoção: o desconto vale só sobre as peças fora de
+       promoção — vira um desconto em R$ calculado sobre elas */
+    const dia=dataVendaAtual();
+    const base=r2(itensVenda.filter(itemCobra).filter(i=>{
+      const p=i.produtoId&&prodPorId(i.produtoId);return !(p&&promoDoProduto(p,dia));
+    }).reduce((s,i)=>s+(+i.qtd||0)*(+i.preco||0),0));
+    if(!(base>0)){
+      avisar('O cupom '+c.codigo+' não vale para peças em promoção — e todas as peças desta venda estão em promoção.',{titulo:'Cupom'});return;
+    }
+    const d=c.tipo==='valor'?r2(Math.min(base,+c.valor)):r2(base*(+c.valor)/100);
+    $('vDescontoTipo').value='valor';$('vDesconto').value=d;
+    marcarCupomVenda(c.codigo);recalcVenda();
+    toast('Cupom '+c.codigo+': '+fmt(d)+' de desconto (só nas peças sem promoção) ✓');
+  });
+}
 function descontoVendaBruto(){
   const tipo=($('vDescontoTipo')&&$('vDescontoTipo').value)==='perc'?'perc':'valor';
   const n=Math.max(0,+($('vDesconto')&&$('vDesconto').value)||0);
@@ -5905,7 +6207,7 @@ function salvarVenda(){
     canalId:canalSelecionado(),bandeiraId:bandeiraSelecionada(),parcelasCartao:parcCartaoSel(),taxaPercManual:taxaManualVenda(),
     itens:itensVenda.map(i=>({produtoId:i.produtoId,variacaoId:i.variacaoId||null,tamanho:i.tamanho||'',nome:i.nome.trim(),qtd:+i.qtd||0,preco:r2(i.preco),custo:r2(i.custo),status:i.status||'ok'})),
     // o custo do que voltou pro estoque não é custo da venda; o do defeito é (a peça se perdeu)
-    totalBruto:sub,desconto:desc,descontoTipo:dsc.tipo,descontoValor:dsc.n,ajusteTipo:aj.tipo,ajusteValor:aj.n,ajuste:ajValor,
+    totalBruto:sub,desconto:desc,descontoTipo:dsc.tipo,descontoValor:dsc.n,cupom:($('vCupom')&&$('vCupom').value)||'',ajusteTipo:aj.tipo,ajusteValor:aj.n,ajuste:ajValor,
     total,custoTotal:r2(itensVenda.filter(i=>!itemVoltaEstoque(i)).reduce((s,i)=>s+(+i.qtd||0)*(+i.custo||0),0)),
     custoInsumos:custoInsumosDaVenda(itensVenda),taxaValor:0,obs:$('vObs').value.trim()};
   if(!dv.data){toast('Informe a data.');return;}
@@ -8039,10 +8341,17 @@ function catalogoLoja(embutir){
       :(eixos.indexOf('cor')>=0?'Cor':'Tamanho');
     // peça de cor única mostra a cor como etiqueta, com a bolinha
     const corUnica=(eixos.indexOf('cor')<0&&p.cor&&p.cor.hex)?{nome:p.cor.nome||'',hex:p.cor.hex}:null;
-    return {id:p.id,nome:p.nome,cat:nomeDe(cfg.categorias,p.catId,''),tipo:p.tipoId?nomeDe(cfg.tipos,p.tipoId,''):'',
+    const item={id:p.id,nome:p.nome,cat:nomeDe(cfg.categorias,p.catId,''),tipo:p.tipoId?nomeDe(cfg.tipos,p.tipoId,''):'',
       cols:colecoesDoProduto(p),
       preco:p.preco,esgotado:esgotado,descricao:p.descricao||'',fotos:fotos,video:video,variacoes:variacoes,
       escolha:rotuloEscolha,cor:corUnica};
+    /* quanto a loja tem (V10): a cliente não consegue pedir mais do que existe.
+       Peça sem controle de estoque (sem número) não leva limite. */
+    if(temGrade(p)){const e={};disp.forEach(v=>{e[v.rotulo]=+v.estoque;});item.estoques=e;}
+    else if(p.estoque!=null)item.max=Math.max(0,+p.estoque);
+    // promoções que ainda vão valer — a loja escolhe a do dia sozinha (V10)
+    const pr=promosParaLoja(p);if(pr.length)item.promos=pr;
+    return item;
   });
   const cats=[...new Set(prods.map(p=>p.cat).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
   // tipo da peça (Anel, Colar, Bracelete...): vira a 2ª fileira de filtros
@@ -8059,7 +8368,16 @@ function catalogoLoja(embutir){
       capaAjuste:ajusteDe(capa),capaPos:posDe(capa),
       capaFiltro:filtroDoBanner(cfg,capa.alvo,cats,tps,cols),
       logoLarga:logoLarga,banners:bannersDoCatalogo(cfg,cats,tps,cols)},
-    categorias:cats,tipos:tps,colecoes:cols,produtos:prods,geradoEm:new Date().toISOString()};
+    categorias:cats,tipos:tps,colecoes:cols,produtos:prods,
+    cupons:cuponsParaLoja(),descricoes:descricoesDosFiltros(cfg,cats,tps),
+    geradoEm:new Date().toISOString()};
+}
+/* explicação de cada material/tipo para a loja (V10) — só dos que aparecem lá */
+function descricoesDosFiltros(cfg,cats,tps){
+  const d={cat:{},tipo:{}};
+  (cfg.categorias||[]).forEach(c=>{if(c.descricaoLoja&&cats.indexOf(c.nome)>=0)d.cat[c.nome]=c.descricaoLoja;});
+  (cfg.tipos||[]).forEach(t=>{if(t.descricaoLoja&&tps.indexOf(t.nome)>=0)d.tipo[t.nome]=t.descricaoLoja;});
+  return d;
 }
 /* Banner leva a uma "aba" da loja: coleção, material ou tipo. No painel o
    destino fica guardado pelo id (renomear a coleção não quebra o link); aqui
@@ -8331,6 +8649,36 @@ a{color:inherit}
 .link-app{margin-top:.8rem;padding:.45rem .8rem}
 .lateral .lat-app[hidden],.link-app[hidden]{display:none}
 .lg-aviso.longo{max-width:min(420px,calc(100% - 2rem));text-align:left;line-height:1.45}
+/* promoção (V10): preço de antes riscado + preço de agora, e o selo na foto */
+s.de{color:var(--texto3);font-weight:400;font-size:.85em;margin-right:.15rem}
+.por{color:var(--acento2)}
+.selo-promo{position:absolute;top:.5rem;left:.5rem;z-index:2;background:#c0392b;color:#fff;font-size:.72rem;font-weight:700;
+  padding:.2rem .5rem;border-radius:20px;letter-spacing:.2px}
+.selo-promo.em-linha{position:static;display:inline-block;vertical-align:middle;margin-left:.3rem}
+/* quantidade nunca passa do que a loja tem (V10) */
+.qtd-wrap button:disabled,.carr-item .qtd button:disabled{opacity:.35;cursor:not-allowed}
+.limite{font-size:.78rem;color:var(--texto2);margin:-.5rem 0 .9rem;min-height:0}
+.limite:empty{display:none}
+/* cupom no pedido (V10) */
+.cupom-box{border-top:1px solid var(--borda);margin-top:.4rem;padding-top:.7rem}
+.cupom-box[hidden]{display:none}
+.cupom-form{display:flex;gap:.4rem}
+.cupom-form[hidden]{display:none}
+.cupom-form input{flex:1;min-width:0;background:var(--painel2);border:1px solid var(--borda);color:var(--texto);border-radius:9px;padding:.55rem .7rem;font-size:.88rem;text-transform:uppercase}
+.cupom-form button{background:var(--painel3);border:1px solid var(--borda);color:var(--texto);border-radius:9px;padding:.5rem .9rem;font-size:.85rem;cursor:pointer}
+.carr-linha{display:flex;justify-content:space-between;font-size:.88rem;padding:.25rem 0;color:var(--texto2)}
+.carr-linha[hidden]{display:none}
+.cupom-linha{color:#5fbf86}
+.cupom-msg{font-size:.78rem;color:var(--texto2);margin-top:.35rem;min-height:0}
+.cupom-msg:empty{display:none}
+.lg-tira-cupom{background:none;border:none;color:var(--texto3);text-decoration:underline;font-size:.78rem;cursor:pointer;padding:0}
+/* explicação do material/tipo escolhido (V10) */
+.filtro-desc{background:var(--painel);border:1px solid var(--borda);border-left:3px solid var(--acento);border-radius:10px;
+  padding:.7rem .9rem;margin:0 0 1rem;font-size:.86rem;color:var(--texto2);line-height:1.5}
+.filtro-desc[hidden]{display:none}
+.filtro-desc p{margin:0}
+.filtro-desc p+p{margin-top:.4rem}
+.filtro-desc b{color:var(--texto)}
 .lg-aviso{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);max-width:calc(100% - 2rem);background:var(--painel);color:var(--texto);border:1px solid var(--borda);border-radius:12px;padding:.7rem 1rem;font-size:.86rem;box-shadow:0 6px 20px rgba(0,0,0,.45);z-index:120;text-align:center}
 .lg-aviso[hidden]{display:none}
 .esgot-aviso{background:var(--painel3);color:var(--vermelho);border-radius:8px;padding:.5rem .7rem;font-size:.82rem;margin-bottom:.8rem}
@@ -8378,6 +8726,7 @@ html.lg-esperando body::after{content:"";position:fixed;top:50%;left:50%;width:3
   </aside>
   <div class="conteudo">
     <div class="filtros-ativos" id="lgFiltros" hidden></div>
+    <div class="filtro-desc" id="lgFiltroDesc" hidden></div>
     <div class="grade" id="lgGrade"></div>
   </div>
 </div>
@@ -8396,7 +8745,8 @@ html.lg-esperando body::after{content:"";position:fixed;top:50%;left:50%;width:3
       <div id="lgMdEsgotado"></div>
       <div class="desc" id="lgMdDesc"></div>
       <div id="lgMdTamWrap"></div>
-      <div class="qtd-wrap"><button id="lgQtdMenos">−</button><span id="lgQtd">1</span><button id="lgQtdMais">+</button></div>
+      <div class="qtd-wrap"><button id="lgQtdMenos" aria-label="menos uma">−</button><span id="lgQtd">1</span><button id="lgQtdMais" aria-label="mais uma">+</button></div>
+      <div class="limite" id="lgMdLimite"></div>
       <button class="btgrande" id="lgBtAdd">Adicionar ao pedido</button>
     </div>
   </div>
@@ -8408,6 +8758,12 @@ html.lg-esperando body::after{content:"";position:fixed;top:50%;left:50%;width:3
     <div class="corpo">
       <div class="nome" style="margin-bottom:.8rem;margin-top:.6rem">🛒 Seu pedido</div>
       <div id="lgCarrItens"></div>
+      <div class="cupom-box" id="lgCupomBox" hidden>
+        <div class="cupom-form" id="lgCupomForm"><input id="lgCupom" placeholder="Tem cupom de desconto?" autocomplete="off" autocapitalize="characters"><button id="lgCupomOk">Aplicar</button></div>
+        <div class="carr-linha" id="lgCarrSub" hidden><span>Subtotal</span><span id="lgCarrSubV"></span></div>
+        <div class="carr-linha cupom-linha" id="lgCupomLinha" hidden></div>
+        <div class="cupom-msg" id="lgCupomMsg"></div>
+      </div>
       <div class="carr-total"><span>Total estimado</span><span id="lgCarrTotal">R$ 0,00</span></div>
       <p style="font-size:.78rem;color:var(--texto2);margin-bottom:.8rem">Valores e disponibilidade são confirmados pelo WhatsApp antes de fechar.</p>
       <button class="btgrande wpp" id="lgBtEnviar">📱 Enviar pedido no WhatsApp</button>
@@ -8430,6 +8786,17 @@ var LOJA_APP = __LOJA_APP__;
     return String(s==null?"":s).replace(/[&<>"']/g, function(c){
       return {"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;","'":"&#39;"}[c];
     });
+  }
+  /* Redesenha só o que MUDOU (V10). A vitrine do banco chega um instante depois
+     de a página abrir — e de novo quando a cliente volta para a loja — e a tela
+     era redesenhada inteira, mesmo igual. Se o dedo encostava na capa bem nessa
+     hora, ela era trocada por uma cópia idêntica e o toque se perdia: "tocar na
+     capa às vezes não leva a lugar nenhum, mais na primeira vez que abre ou
+     depois de sair e voltar". Conteúdo igual = mesmos elementos na tela. */
+  function pintar(el,h){
+    if(el._pintado===h)return false;
+    el.innerHTML=h;el._pintado=h;
+    return true;
   }
   function fmtR(v){
     v=Number(v||0);
@@ -8525,7 +8892,7 @@ var LOJA_APP = __LOJA_APP__;
     }
     // no celular a fileira desliza de lado: redesenhar não pode voltá-la ao começo
     var box=$("lgChips"),sl=box.scrollLeft;
-    box.innerHTML=h;
+    pintar(box,h);
     box.scrollLeft=sl;
   }
 
@@ -8533,7 +8900,7 @@ var LOJA_APP = __LOJA_APP__;
      tipo só a fileira seria uma linha inteira sem escolha nenhuma. */
   function renderTipos(){
     var box=$("lgTipos");
-    if(tipos.length<2){box.innerHTML="";box.style.display="none";return;}
+    if(tipos.length<2){pintar(box,"");box.style.display="none";return;}
     box.style.display="";
     var h="<button class=\\""+(estado.tipo===""?"ativo":"")+"\\" data-tipo=\\"\\">Todos os tipos</button>";
     for(var i=0;i<tipos.length;i++){
@@ -8541,7 +8908,7 @@ var LOJA_APP = __LOJA_APP__;
       h+="<button class=\\""+(estado.tipo===t?"ativo":"")+"\\" data-tipo=\\""+esc(t)+"\\">"+esc(t)+"</button>";
     }
     var sl=box.scrollLeft;
-    box.innerHTML=h;
+    pintar(box,h);
     box.scrollLeft=sl;
   }
 
@@ -8557,13 +8924,13 @@ var LOJA_APP = __LOJA_APP__;
   function renderCapa(){
     var el=$("lgCapa");
     // com qualquer filtro ligado a capa sai: as peças sobem e fica claro que o filtro pegou (V9)
-    if(estado.col||estado.cat||estado.tipo||(!loja.capaBanner&&!loja.capaTexto)){el.hidden=true;el.innerHTML="";return;}
+    if(estado.col||estado.cat||estado.tipo||(!loja.capaBanner&&!loja.capaTexto)){el.hidden=true;pintar(el,"");return;}
     el.hidden=false;
     el.className="col-banner capa"+(loja.capaBanner?"":" sem-foto")+(loja.capaFiltro?" link":"");
-    el.innerHTML="<div class=\\"faixa\\">"+
+    pintar(el,"<div class=\\"faixa\\">"+
       (loja.capaBanner?quadroImg(loja.capaBanner,loja.capaAjuste,loja.capaPos,loja.nome,false):"")+
       (loja.capaTexto?"<div class=\\"legenda\\"><p>"+esc(loja.capaTexto)+"</p></div>":"")+
-      "</div>";
+      "</div>");
   }
   /* Uma imagem de capa/banner: "inteira" (padrão — também para vitrine publicada
      antes de existir a escolha) não corta nada; "preencher" ocupa a faixa na
@@ -8592,8 +8959,10 @@ var LOJA_APP = __LOJA_APP__;
   }
   function renderBanners(){
     var el=$("lgBanners"),bs=listaBanners();
-    if(bnTimer){clearInterval(bnTimer);bnTimer=null;}
-    if(estado.col||estado.cat||estado.tipo||!bs.length){el.hidden=true;el.innerHTML="";return;}
+    if(estado.col||estado.cat||estado.tipo||!bs.length){
+      if(bnTimer){clearInterval(bnTimer);bnTimer=null;}
+      el.hidden=true;pintar(el,"");return;
+    }
     el.hidden=false;
     var h="<div class=\\"trilho\\" id=\\"lgTrilho\\">";
     for(var i=0;i<bs.length;i++){
@@ -8608,7 +8977,12 @@ var LOJA_APP = __LOJA_APP__;
       for(var j=0;j<bs.length;j++)h+="<button data-ir=\\""+j+"\\" aria-label=\\"banner "+(j+1)+"\\"></button>";
       h+="</div>";
     }
-    el.innerHTML=h;
+    // igual ao que já está na tela: não refaz — o carrossel continua onde estava
+    // e um toque/arraste em andamento não se perde (V10)
+    if(!el.hidden&&el._pintado===h)return;
+    el.hidden=false;
+    if(bnTimer){clearInterval(bnTimer);bnTimer=null;}
+    pintar(el,h);
     bnIdx=0;marcarPontos();
     var tr=$("lgTrilho");
     // arrastar com o dedo move o trilho; as bolinhas acompanham
@@ -8644,13 +9018,13 @@ var LOJA_APP = __LOJA_APP__;
 
   function renderBanner(){
     var el=$("lgBanner"),c=estado.col?acharColecao(estado.col):null;
-    if(!c||(!c.banner&&!c.texto)){el.hidden=true;el.innerHTML="";return;}
+    if(!c||(!c.banner&&!c.texto)){el.hidden=true;pintar(el,"");return;}
     el.hidden=false;
     el.className="col-banner"+(c.banner?"":" sem-foto");
-    el.innerHTML="<div class=\\"faixa\\">"+
+    pintar(el,"<div class=\\"faixa\\">"+
       (c.banner?"<img src=\\""+esc(c.banner)+"\\" alt=\\""+esc(c.nome)+"\\">":"")+
       "<div class=\\"legenda\\"><h2>"+esc(c.nome)+"</h2>"+
-      (c.texto?"<p>"+esc(c.texto)+"</p>":"")+"</div></div>";
+      (c.texto?"<p>"+esc(c.texto)+"</p>":"")+"</div></div>");
   }
 
   function produtosFiltrados(){
@@ -8691,7 +9065,7 @@ var LOJA_APP = __LOJA_APP__;
       h+="<button class=\\""+(estado.col===c.nome?"ativo":"")+"\\" data-col=\\""+esc(c.nome)+"\\">"+
          "<span>"+esc(c.nome)+"</span><i>"+c.n+"</i></button>";
     }
-    $("lgColecoes").innerHTML=h;
+    pintar($("lgColecoes"),h);
   }
 
   // gaveta das coleções (só no celular, onde não cabe a lateral fixa)
@@ -8708,11 +9082,11 @@ var LOJA_APP = __LOJA_APP__;
       // diz QUAIS filtros esvaziaram a lista — e um toque tira todos
       var fl=filtrosLigados(),nomes=[];
       for(var k=0;k<fl.length;k++)nomes.push(fl[k].nome);
-      $("lgGrade").innerHTML="<div class=\\"vazio\\">Nenhuma peça encontrada"+
+      var mudou=pintar($("lgGrade"),"<div class=\\"vazio\\">Nenhuma peça encontrada"+
         (nomes.length?" com <b>"+esc(nomes.join(" · "))+"</b>":"")+".<br><br>"+
         "<button class=\\"btgrande\\" style=\\"max-width:220px\\" id=\\"lgLimpar\\">"+
-        (nomes.length?"Limpar filtros":"Ver todos os produtos")+"</button></div>";
-      var bl=$("lgLimpar");
+        (nomes.length?"Limpar filtros":"Ver todos os produtos")+"</button></div>");
+      var bl=mudou&&$("lgLimpar");   // tela igual: o botão (e o clique dele) já estão lá
       if(bl)bl.addEventListener("click",function(){tirarFiltro("tudo");});
       return;
     }
@@ -8730,18 +9104,18 @@ var LOJA_APP = __LOJA_APP__;
       var cols=(p.cols&&p.cols.length)?("<div class=\\"cols\\">"+esc(p.cols.join(" · "))+"</div>"):"";
       h+="<div class=\\"prodcard\\" data-id=\\""+esc(p.id)+"\\">"+
            "<div class=\\"foto\\">"+(p.esgotado?"<span class=\\"ribbon\\">Esgotado</span>":"")+
-             (p.video?"<span class=\\"selo-video\\">▶ vídeo</span>":"")+foto+"</div>"+
+             (p.video?"<span class=\\"selo-video\\">▶ vídeo</span>":"")+(promoAtual(p)?"<span class=\\"selo-promo\\">"+esc(promoAtual(p).rot||"promoção")+"</span>":"")+foto+"</div>"+
            "<div class=\\"info\\">"+
              "<div class=\\"nome\\">"+esc(p.nome)+"</div>"+
              "<div class=\\"cat\\">"+esc(p.cat||"")+(p.tipo?" · "+esc(p.tipo):"")+"</div>"+
              cols+
-             "<div class=\\"preco\\">"+fmtR(p.preco)+"</div>"+
+             "<div class=\\"preco\\">"+precoHTML(p)+"</div>"+
            "</div></div>";
     }
-    $("lgGrade").innerHTML=h;
+    pintar($("lgGrade"),h);
   }
 
-  function render(){renderChips();renderTipos();renderColecoes();renderCapa();renderBanners();renderBanner();renderFiltros();renderGrade();}
+  function render(){renderChips();renderTipos();renderColecoes();renderCapa();renderBanners();renderBanner();renderFiltros();renderFiltroDesc();renderGrade();}
 
   /* Filtros ligados à mostra (V9). Quem escolhia "Anel" e depois "Rosé"
      esquecia do primeiro e achava que a loja não tinha a peça. Cada filtro vira
@@ -8757,14 +9131,24 @@ var LOJA_APP = __LOJA_APP__;
   }
   function renderFiltros(){
     var el=$("lgFiltros"),f=filtrosLigados();
-    if(!f.length){el.hidden=true;el.innerHTML="";return;}
+    if(!f.length){el.hidden=true;pintar(el,"");return;}
     var n=produtosFiltrados().length;
     var h="<span>Mostrando:</span>";
     for(var i=0;i<f.length;i++)
       h+="<button class=\\"fx\\" data-tira=\\""+f[i].qual+"\\" aria-label=\\"tirar o filtro "+esc(f[i].nome)+"\\">"+esc(f[i].nome)+" <b>✕</b></button>";
     if(f.length>1)h+="<button class=\\"limpar\\" data-tira=\\"tudo\\">limpar filtros</button>";
     h+="<span class=\\"qtd\\">· "+n+(n===1?" peça":" peças")+"</span>";
-    el.innerHTML=h;el.hidden=false;
+    pintar(el,h);el.hidden=false;
+  }
+  /* Explicação do material / tipo escolhido (V10): "Rosé" é novidade e muita
+     cliente não sabe o que é — a loja escreve no painel (Site da loja →
+     Explicação dos filtros) e ela aparece aqui quando o filtro é tocado. */
+  function renderFiltroDesc(){
+    var d=CATALOGO.descricoes||{},h="";
+    var dc=estado.cat&&d.cat&&d.cat[estado.cat],dt=estado.tipo&&d.tipo&&d.tipo[estado.tipo];
+    if(dc)h+="<p><b>"+esc(estado.cat)+"</b> — "+esc(dc)+"</p>";
+    if(dt)h+="<p><b>"+esc(estado.tipo)+"</b> — "+esc(dt)+"</p>";
+    var el=$("lgFiltroDesc");pintar(el,h);el.hidden=!h;
   }
   function tirarFiltro(qual){
     if(qual==="col"||qual==="tudo")estado.col="";
@@ -9009,10 +9393,47 @@ var LOJA_APP = __LOJA_APP__;
     $("lgDots").innerHTML=dh;
     tocarVideoVisivel();
   }
+  /* ---- promoção (V10) ----
+     Vem do painel com o período (ini/fim) e a loja confere a data de HOJE: a
+     promoção começa e termina sozinha, sem ninguém precisar republicar nada.
+     Peça em mais de uma promoção: vale a de menor preço (não somam). */
+  function hojeISO(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
+  function promoAtual(p){
+    var ps=p&&p.promos,h=hojeISO(),m=null;
+    if(!ps||!ps.length)return null;
+    for(var i=0;i<ps.length;i++){
+      var x=ps[i];
+      if((!x.ini||h>=x.ini)&&(!x.fim||h<=x.fim)&&+x.preco<+p.preco&&(!m||+x.preco<+m.preco))m=x;
+    }
+    return m;
+  }
+  function precoAtual(p){var m=promoAtual(p);return m?+m.preco:+p.preco;}
+  function precoHTML(p){
+    var m=promoAtual(p);
+    return m?"<s class=\\"de\\">"+fmtR(p.preco)+"</s> <span class=\\"por\\">"+fmtR(m.preco)+"</span>":fmtR(p.preco);
+  }
+  /* ---- quanto a loja tem (V10) ----
+     a quantidade no pedido para no que existe de verdade — a cliente não fica
+     achando que tem 29 brincos quando a loja tem 3. Peça sem controle de
+     estoque (sem número no painel) não tem limite. */
+  function disponivel(p,tam){
+    if(!p)return null;
+    if(p.estoques&&tam&&p.estoques[tam]!=null)return +p.estoques[tam];
+    if(p.max!=null&&!(p.variacoes&&p.variacoes.length))return +p.max;
+    return null;
+  }
+  function noCarrinho(id,tam,menosIdx){
+    var n=0;
+    for(var i=0;i<carrinho.length;i++)if(i!==menosIdx&&carrinho[i].id===id&&(carrinho[i].tamanho||"")===(tam||""))n+=carrinho[i].qtd;
+    return n;
+  }
+  /* o que ainda dá para pôr no pedido desta peça (null = sem limite) */
+  function cabeAinda(p,tam){var d=disponivel(p,tam);return d==null?null:Math.max(0,d-noCarrinho(p.id,tam));}
   function renderInfoModal(){
     var p=atual;
     $("lgMdNome").textContent=p.nome;
-    $("lgMdPreco").textContent=fmtR(p.preco);
+    var pm=promoAtual(p);
+    $("lgMdPreco").innerHTML=precoHTML(p)+(pm?" <span class=\\"selo-promo em-linha\\">"+esc(pm.rot||"promoção")+"</span>":"");
     // etiquetas: material, tipo e as coleções da peça
     var tags=[];
     if(p.cat)tags.push(p.cat);
@@ -9035,9 +9456,17 @@ var LOJA_APP = __LOJA_APP__;
     }else{
       $("lgMdTamWrap").innerHTML="";
     }
+    // quantidade: nunca mais do que a loja tem (descontando o que já está no pedido)
+    var cabe=cabeAinda(p,tamSel);
+    if(cabe!=null&&qtd>Math.max(1,cabe))qtd=Math.max(1,cabe);
     $("lgQtd").textContent=qtd;
-    $("lgBtAdd").disabled=!!p.esgotado;
-    $("lgBtAdd").textContent=p.esgotado?"Indisponível no momento":"Adicionar ao pedido";
+    $("lgQtdMais").disabled=cabe!=null&&qtd>=cabe;
+    $("lgMdLimite").textContent=cabe==null||p.esgotado?""
+      :(cabe===0?"Você já colocou no pedido todas as unidades que temos desta peça."
+        :(qtd>=cabe?(cabe===1?"Temos só esta unidade.":"Temos só "+cabe+" unidades."):""));
+    var semMais=cabe!=null&&cabe<=0;
+    $("lgBtAdd").disabled=!!p.esgotado||semMais;
+    $("lgBtAdd").textContent=p.esgotado?"Indisponível no momento":(semMais?"Já está tudo no seu pedido":"Adicionar ao pedido");
   }
 
   $("lgFechar").addEventListener("click",fecharModal);
@@ -9071,16 +9500,22 @@ var LOJA_APP = __LOJA_APP__;
     var b=e.target.closest("button");if(!b)return;
     tamSel=b.getAttribute("data-tam");renderInfoModal();
   });
-  $("lgQtdMenos").addEventListener("click",function(){if(qtd>1){qtd--;$("lgQtd").textContent=qtd;}});
-  $("lgQtdMais").addEventListener("click",function(){qtd++;$("lgQtd").textContent=qtd;});
+  $("lgQtdMenos").addEventListener("click",function(){if(qtd>1){qtd--;renderInfoModal();}});
+  $("lgQtdMais").addEventListener("click",function(){
+    var cabe=atual?cabeAinda(atual,tamSel):null;
+    if(cabe!=null&&qtd>=cabe){renderInfoModal();return;}
+    qtd++;renderInfoModal();
+  });
 
   $("lgBtAdd").addEventListener("click",function(){
     if(!atual||atual.esgotado)return;
+    var cabe=cabeAinda(atual,tamSel);
+    if(cabe!=null){if(cabe<=0){renderInfoModal();return;}if(qtd>cabe)qtd=cabe;}
     var chave=atual.id+"|"+tamSel;
     var existente=null;
     for(var i=0;i<carrinho.length;i++)if(carrinho[i].chave===chave){existente=carrinho[i];break;}
     if(existente)existente.qtd+=qtd;
-    else carrinho.push({chave:chave,id:atual.id,nome:atual.nome,preco:atual.preco,tamanho:tamSel,foto:(atual.fotos&&atual.fotos[0])||"",qtd:qtd});
+    else carrinho.push({chave:chave,id:atual.id,nome:atual.nome,preco:precoAtual(atual),precoDe:+atual.preco,tamanho:tamSel,foto:(atual.fotos&&atual.fotos[0])||"",qtd:qtd});
     // a peça vira o pedido na MESMA camada: o voltar fecha o pedido e fica na loja
     salvarCarrinho();fecharModal("troca");abrirCarrinho();
   });
@@ -9094,23 +9529,105 @@ var LOJA_APP = __LOJA_APP__;
   function renderCarrinho(){
     if(!carrinho.length){
       $("lgCarrItens").innerHTML="<p style=\\"color:#b3a88f;font-size:.85rem\\">Seu pedido está vazio. Escolha alguma peça no catálogo.</p>";
+      $("lgCupomBox").hidden=true;
       $("lgCarrTotal").textContent=fmtR(0);
       return;
     }
-    var h="",total=0;
-    for(var i=0;i<carrinho.length;i++){
-      var it=carrinho[i];total+=it.preco*it.qtd;
+    var h="",c=contaDoPedido();
+    for(var i=0;i<c.itens.length;i++){
+      var it=c.itens[i];
       var foto=it.foto?("<img src=\\""+esc(it.foto)+"\\" alt=\\"\\">"):"<div style=\\"width:52px;height:52px;background:#000;border-radius:8px\\"></div>";
+      var lim=disponivel(it.prod,it.tamanho),noMax=lim!=null&&noCarrinho(it.id,it.tamanho)>=lim;
       h+="<div class=\\"carr-item\\" data-idx=\\""+i+"\\">"+foto+
          "<div style=\\"flex:1\\">"+
            "<div class=\\"nm\\">"+esc(it.nome)+"</div>"+
            (it.tamanho?"<div class=\\"tam\\">Tam.: "+esc(it.tamanho)+"</div>":"")+
-           "<div class=\\"qtd\\"><button data-acao=\\"menos\\">−</button><span>"+it.qtd+"</span><button data-acao=\\"mais\\">+</button></div>"+
-         "</div><button class=\\"rm\\" data-acao=\\"remover\\">✕</button></div>";
+           "<div class=\\"tam\\">"+(it.de>it.preco?"<s>"+fmtR(it.de)+"</s> ":"")+fmtR(it.preco)+(it.qtd>1?" cada":"")+"</div>"+
+           "<div class=\\"qtd\\"><button data-acao=\\"menos\\" aria-label=\\"menos uma\\">−</button><span>"+it.qtd+"</span>"+
+             "<button data-acao=\\"mais\\" aria-label=\\"mais uma\\""+(noMax?" disabled title=\\"é tudo o que temos\\"":"")+">+</button></div>"+
+         "</div><button class=\\"rm\\" data-acao=\\"remover\\" aria-label=\\"tirar do pedido\\">✕</button></div>";
     }
     $("lgCarrItens").innerHTML=h;
-    $("lgCarrTotal").textContent=fmtR(total);
+    renderCupom(c);
+    $("lgCarrTotal").textContent=fmtR(c.total);
   }
+  /* ---- a conta do pedido (V10): preço de HOJE (promoção que acabou não vale
+     mais, mesmo que a peça tenha entrado no pedido durante ela), cupom e total.
+     É a mesma conta na tela e na mensagem do WhatsApp. */
+  function contaDoPedido(){
+    var itens=[],sub=0,fora=0,n=0;
+    for(var i=0;i<carrinho.length;i++){
+      var it=carrinho[i],p=acharProduto(it.id);
+      var preco=p?precoAtual(p):+it.preco,de=p?+p.preco:(+it.precoDe||+it.preco);
+      itens.push({id:it.id,nome:it.nome,tamanho:it.tamanho||"",foto:it.foto,qtd:it.qtd,preco:preco,de:de,prod:p});
+      sub+=preco*it.qtd;n+=it.qtd;
+      if(!(de>preco))fora+=preco*it.qtd;   // peça SEM promoção (é onde o cupom que não soma vale)
+    }
+    sub=Math.round(sub*100)/100;fora=Math.round(fora*100)/100;
+    var cp=cupomValido(cupomAplicado,sub,fora),desc=cp?cp.desconto:0;
+    return {itens:itens,subtotal:sub,foraPromo:fora,pecas:n,cupom:cp,desconto:desc,total:Math.round((sub-desc)*100)/100};
+  }
+  /* ---- cupom (V10) ---- código que a cliente digita no pedido; os cupons
+     vêm do painel com período e pedido mínimo. Maiúscula/minúscula e espaço
+     não importam. */
+  var CHAVE_CUPOM="loja_cupom_v1",cupomAplicado="";
+  try{cupomAplicado=localStorage.getItem(CHAVE_CUPOM)||"";}catch(e){}
+  function chaveCupom(s){return String(s||"").toUpperCase().replace(/\\s+/g,"");}
+  function acharCupom(cod){
+    var cs=CATALOGO.cupons||[],k=chaveCupom(cod);
+    for(var i=0;i<cs.length;i++)if(chaveCupom(cs[i].codigo)===k)return cs[i];
+    return null;
+  }
+  /* devolve {codigo, desconto, rot} se vale para este pedido; senão null.
+     Cupom que não soma com promoção (soma=false, a escolha da loja) vale só
+     sobre as peças SEM promoção; o pedido mínimo olha o pedido inteiro. */
+  function cupomValido(cod,sub,fora){
+    if(!cod)return null;
+    var c=acharCupom(cod),h=hojeISO();
+    if(!c||(c.ini&&h<c.ini)||(c.fim&&h>c.fim)||(+c.minimo&&sub<+c.minimo))return null;
+    var base=c.soma?sub:(fora==null?sub:fora);
+    if(!(base>0))return null;
+    var d=c.tipo==="valor"?Math.min(base,+c.valor||0):Math.round(base*(+c.valor||0))/100;
+    return {codigo:c.codigo,desconto:Math.round(d*100)/100,soSemPromo:!c.soma,
+      rot:(c.tipo==="valor"?"−"+fmtR(c.valor):"−"+String(c.valor).replace(".",",")+"%")+(c.soma?"":" nas peças sem promoção")};
+  }
+  function motivoCupom(cod,sub,fora){
+    var c=acharCupom(cod),h=hojeISO();
+    if(!c)return "Esse cupom não existe. Confira o código.";
+    if(c.ini&&h<c.ini)return "Esse cupom só vale a partir de "+c.ini.split("-").reverse().join("/")+".";
+    if(c.fim&&h>c.fim)return "Esse cupom já terminou.";
+    if(+c.minimo&&sub<+c.minimo)return "Esse cupom vale para pedidos a partir de "+fmtR(c.minimo)+".";
+    if(!c.soma&&!(fora>0))return "Esse cupom não vale para peças que já estão em promoção.";
+    return "";
+  }
+  function renderCupom(c){
+    var box=$("lgCupomBox"),tem=(CATALOGO.cupons||[]).length>0;
+    box.hidden=!tem||!carrinho.length;if(box.hidden)return;
+    var msg=$("lgCupomMsg");
+    if(c.cupom){
+      $("lgCupomLinha").innerHTML="<span>Cupom <b>"+esc(c.cupom.codigo)+"</b> ("+esc(c.cupom.rot)+")</span><span>−"+fmtR(c.desconto)+"</span>";
+      $("lgCupomLinha").hidden=false;$("lgCupomForm").hidden=true;
+      msg.innerHTML="<button class=\\"lg-tira-cupom\\" id=\\"lgTiraCupom\\">tirar o cupom</button>";
+    }else{
+      $("lgCupomLinha").hidden=true;$("lgCupomForm").hidden=false;
+      msg.textContent=cupomAplicado?motivoCupom(cupomAplicado,c.subtotal,c.foraPromo):"";
+    }
+    $("lgCarrSub").hidden=!c.cupom;
+    $("lgCarrSubV").textContent=fmtR(c.subtotal);
+  }
+  function aplicarCupom(){
+    cupomAplicado=chaveCupom($("lgCupom").value);
+    try{localStorage.setItem(CHAVE_CUPOM,cupomAplicado);}catch(e){}
+    renderCarrinho();
+  }
+  $("lgCupomOk").addEventListener("click",aplicarCupom);
+  $("lgCupom").addEventListener("keydown",function(e){if(e.key==="Enter")aplicarCupom();});
+  $("lgCupomMsg").addEventListener("click",function(e){
+    if(!e.target.closest("#lgTiraCupom"))return;
+    cupomAplicado="";$("lgCupom").value="";
+    try{localStorage.removeItem(CHAVE_CUPOM);}catch(err){}
+    renderCarrinho();
+  });
 
   $("lgCarrItens").addEventListener("click",function(e){
     var b=e.target.closest("button");if(!b)return;
@@ -9118,7 +9635,10 @@ var LOJA_APP = __LOJA_APP__;
     var idx=parseInt(row.getAttribute("data-idx"),10);
     var acao=b.getAttribute("data-acao");
     if(acao==="remover")carrinho.splice(idx,1);
-    else if(acao==="mais")carrinho[idx].qtd++;
+    else if(acao==="mais"){
+      var cIt=carrinho[idx],lim=disponivel(acharProduto(cIt.id),cIt.tamanho);
+      if(lim==null||noCarrinho(cIt.id,cIt.tamanho)<lim)cIt.qtd++;   // nunca mais do que a loja tem
+    }
     else if(acao==="menos"){carrinho[idx].qtd--;if(carrinho[idx].qtd<=0)carrinho.splice(idx,1);}
     salvarCarrinho();renderCarrinho();
   });
@@ -9132,22 +9652,35 @@ var LOJA_APP = __LOJA_APP__;
   $("lgFecharCarr").addEventListener("click",fecharCarrinho);
   $("lgCarrinhoOverlay").addEventListener("click",function(e){if(e.target===this)fecharCarrinho();});
 
+  /* A mensagem do pedido (V10): organizada para a cliente conferir e para a loja
+     separar — número, peça, tamanho, quantidade × preço = total da linha e o link
+     com as fotos; no fim subtotal, cupom e total. Negrito do WhatsApp é *um
+     asterisco* de cada lado. */
+  function mensagemDoPedido(c){
+    var L=["Olá! Quero fazer este pedido pelo catálogo 🛍️",""];
+    for(var i=0;i<c.itens.length;i++){
+      var it=c.itens[i],qual=(it.prod&&it.prod.escolha?String(it.prod.escolha).toLowerCase():"tamanho");
+      L.push("*"+(i+1)+") "+it.nome+"*"+(it.tamanho?" — "+qual+" "+it.tamanho:""));
+      L.push(it.qtd+" × "+fmtR(it.preco)+" = *"+fmtR(Math.round(it.preco*it.qtd*100)/100)+"*"+
+        (it.de>it.preco?" (promoção — de "+fmtR(it.de)+")":""));
+      if(noSite()&&it.id)L.push("📷 "+linkDaPeca({id:it.id,nome:it.nome}));
+      L.push("");
+    }
+    if(c.cupom){
+      L.push("Subtotal: "+fmtR(c.subtotal));
+      L.push("Cupom "+c.cupom.codigo+" ("+c.cupom.rot+"): −"+fmtR(c.desconto));
+    }
+    L.push("*Total: "+fmtR(c.total)+"* · "+c.pecas+(c.pecas===1?" peça":" peças"));
+    L.push("");
+    L.push("Valores e disponibilidade a confirmar com a loja.");
+    return L;
+  }
   $("lgBtEnviar").addEventListener("click",function(){
     if(!carrinho.length)return;
     var wpp=(loja.whatsapp||"").replace(/\\D/g,"");
     // sem caixa preta do navegador: o próprio botão avisa
     if(!wpp){this.textContent="A loja ainda não informou o WhatsApp";this.disabled=true;return;}
-    var linhas=["Olá! Vim pelo catálogo e quero pedir:",""];
-    var total=0;
-    for(var i=0;i<carrinho.length;i++){
-      var it=carrinho[i];total+=it.preco*it.qtd;
-      linhas.push("• "+it.qtd+"x "+it.nome+(it.tamanho?" (tam. "+it.tamanho+")":"")+" — "+fmtR(it.preco*it.qtd));
-      /* o link da peça vai junto (V9): o WhatsApp não deixa o site mandar a foto,
-         mas o link abre a loja exatamente nessa peça, com as fotos — a cliente e
-         a vendedora conferem que é aquela mesma */
-      if(noSite()&&it.id)linhas.push("   📷 "+linkDaPeca({id:it.id,nome:it.nome}));
-    }
-    linhas.push("");linhas.push("Total estimado: "+fmtR(total));
+    var linhas=mensagemDoPedido(contaDoPedido());
     var url="https://wa.me/"+wpp+"?text="+encodeURIComponent(linhas.join("\\n"));
     window.open(url,"_blank");
   });
@@ -9306,7 +9839,11 @@ function cabecaDaLoja(c,op){
   h.push('<meta property="og:type" content="website">');
   h.push('<meta property="og:title" content="'+esc(tituloDaLoja(c))+'">');
   h.push('<meta property="og:description" content="'+esc(descricaoDaLoja(c))+'">');
-  const img=/^https:\/\//.test(l.capaBanner||'')?l.capaBanner:(op.app?(op.site||'')+'/icone-loja-512.png':'');
+  /* imagem da prévia do link (WhatsApp/Instagram) = a LOGO da loja (V10: com a
+     capa, o pedido mandado pelo WhatsApp aparecia com o banner da campanha da
+     vez — "Banho Rosé" — em vez da marca). O ícone do app é a logo. */
+  const img=op.app?(op.site||'')+'/icone-loja-512.png'
+    :(/^https:\/\//.test(l.logo||'')?l.logo:(/^https:\/\//.test(l.capaBanner||'')?l.capaBanner:''));
   if(img)h.push('<meta property="og:image" content="'+esc(img)+'">');
   if(op.app){
     h.push('<link rel="icon" href="/favicon.ico" sizes="48x48">');
@@ -9495,7 +10032,32 @@ function painelPersonalizarCatalogo(){
       <button class="bt mini" onclick="abrirColecao('${c.id}')">✎ personalizar</button></li>`).join('')}</ul>`
       :'<p class="mut">Nenhuma coleção criada ainda. Crie em <b>Configurações → Coleções</b> e volte aqui para dar cara a cada uma.</p>'}
     <p class="mut" style="font-size:.78rem;margin-top:.6rem">Criar, renomear ou apagar coleção continua em <b>Configurações → Coleções</b> — lá é a estrutura, aqui é a aparência.</p>
+
+    <h4 class="mt">Explicação dos materiais e tipos</h4>
+    <p class="mut" style="font-size:.82rem;margin-bottom:.5rem">Um texto curto que aparece na loja quando a cliente toca no filtro — por exemplo, explicar o que é o banho <b>Rosé</b>.</p>
+    ${listaDescricoesFiltros('categorias','Material',cat.categorias)}
+    ${listaDescricoesFiltros('tipos','Tipo de peça',cat.tipos)}
   </div>`;
+}
+/* materiais e tipos que aparecem na loja, cada um com a sua explicação (V10) */
+function listaDescricoesFiltros(lista,rotulo,naLoja){
+  const itens=(C()[lista]||[]).filter(x=>naLoja.indexOf(x.nome)>=0);
+  if(!itens.length)return '';
+  return `<div class="mut" style="font-size:.76rem;margin:.6rem 0 .2rem;text-transform:uppercase;letter-spacing:.6px">${esc(rotulo)}</div>
+    <ul class="cfg-lista">${itens.map(x=>`<li><span class="nm"><b>${esc(x.nome)}</b>
+      ${x.descricaoLoja?`<div class="mut" style="font-size:.78rem">“${esc(x.descricaoLoja)}”</div>`:'<div class="mut" style="font-size:.76rem">sem explicação</div>'}</span>
+      <button class="bt mini" onclick="escreverDescricaoFiltro('${lista}','${x.id}')">✎ ${x.descricaoLoja?'editar':'escrever'}</button></li>`).join('')}</ul>`;
+}
+function escreverDescricaoFiltro(lista,id){
+  const x=(C()[lista]||[]).find(i=>i.id===id);if(!x)return;
+  pedir({titulo:'Explicação — '+x.nome,ok:'Salvar',campos:[
+    {id:'t',rotulo:'Aparece na loja quando a cliente toca em "'+x.nome+'"',tipo:'textoLongo',linhas:4,valor:x.descricaoLoja||'',
+      exemplo:'ex.: O banho rosé é um revestimento que dá à joia um tom suave e romântico...',pergunta:'Explicação:'}
+  ]},v=>{
+    x.descricaoLoja=String(v.t||'').trim().slice(0,400);
+    salvar();renderConfig();
+    toast(x.descricaoLoja?'Explicação salva ✓ — aparece na loja no filtro '+x.nome:'Explicação apagada');
+  });
 }
 function addCapaLoja(inp){
   const f=inp.files[0];inp.value='';if(!f)return;
@@ -9821,7 +10383,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-10-24 14:16';
+const VERSAO_APP='2026-10-26 10:53';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -10398,7 +10960,8 @@ function appDesatualizado(meta){
 }
 
 /* as listas de cadastro que, se sumirem, deixam o resto do sistema órfão */
-const CADASTROS=['contas','catFin','categorias','tipos','formas','fornecedores','locais','canais','colecoes','insumos'];
+// promocoes e cupons (V10) sincronizam item a item como os outros cadastros
+const CADASTROS=['contas','catFin','categorias','tipos','formas','fornecedores','locais','canais','colecoes','insumos','promocoes','cupons'];
 /* Quantos registros ficariam SEM CADASTRO com esta configuração. Serve de
    aviso depois da juntada: se alguém apagou uma categoria no outro aparelho e
    aqui existe produto usando ela, a pessoa precisa saber. */
@@ -12185,7 +12748,7 @@ function biparNaVenda(txt,silencioso){
   const p=achou.p,v=achou.v;
   const ja=itensVenda.find(i=>i.produtoId===p.id&&(i.variacaoId||null)===(v?v.id:null));
   if(ja)ja.qtd=(+ja.qtd||0)+1;
-  else itensVenda.push({nome:p.nome,produtoId:p.id,qtd:1,preco:+p.preco||0,
+  else itensVenda.push({nome:p.nome,produtoId:p.id,qtd:1,preco:precoDeVenda(p,dataVendaAtual()),   // com promoção do dia (V10)
     custo:p.custo!=null?+p.custo:0,variacaoId:v?v.id:null,tamanho:v?v.rotulo:''});
   renderItensVenda();recalcVenda();
   if(!silencioso)bipSom(true);
