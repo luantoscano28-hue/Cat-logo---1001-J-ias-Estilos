@@ -5309,11 +5309,37 @@ function promosParaLoja(p){
 function cuponsParaLoja(){
   const h=hoje();
   return cupons().filter(c=>!c.pausado&&c.codigo&&+c.valor>0&&!(c.fim&&c.fim<h))
-    .map(c=>({codigo:c.codigo,tipo:c.tipo==='valor'?'valor':'pct',valor:+c.valor,minimo:+c.minimo||0,ini:c.ini||'',fim:c.fim||'',soma:!!c.somaPromo}));
+    .map(c=>({codigo:c.codigo,tipo:c.tipo==='valor'?'valor':'pct',valor:+c.valor,minimo:+c.minimo||0,ini:c.ini||'',fim:c.fim||'',soma:!!c.somaPromo,
+      porCliente:limitePorCliente(c),total:limiteTotalCupom(c),usados:usosDoCupom(c.codigo)}));
 }
 function cupomValendo(c,dia){return !!c&&!c.pausado&&+c.valor>0&&noPeriodoPromo(c,dia);}
 function chaveCupom(s){return String(s||'').toUpperCase().replace(/\s+/g,'');}
 function usosDoCupom(cod){const k=chaveCupom(cod);return dados.vendas.filter(v=>v.cupom&&chaveCupom(v.cupom)===k).length;}
+/* ---- limite de usos (V10.2) ----
+   "Usou" = venda registrada no painel com o cupom (pedido no WhatsApp não conta:
+   quem manda e desiste não gasta o cupom). porCliente: padrão 1, 0 = sem limite
+   (cupom antigo, sem o campo, também vale 1). limiteTotal: 0/vazio = sem limite.
+   O total a loja barra sozinha; o "por cliente" só o painel consegue — a loja
+   não sabe quem é a cliente antes do WhatsApp. */
+function limitePorCliente(c){return c&&c.porCliente!=null&&c.porCliente!==''?Math.max(0,Math.floor(+c.porCliente)||0):1;}
+function limiteTotalCupom(c){return Math.max(0,Math.floor(+(c&&c.limiteTotal))||0);}
+function vezesTexto(n){return n===1?'1 vez':n+' vezes';}
+/* '' = pode usar; senão, o motivo (para a venda do painel). idVenda = a venda que
+   está sendo editada, que não conta contra ela mesma. */
+function motivoLimiteCupom(c,nome,idVenda){
+  if(!c)return '';
+  const k=chaveCupom(c.codigo);
+  const usam=dados.vendas.filter(v=>v.id!==idVenda&&v.cupom&&chaveCupom(v.cupom)===k);
+  const lt=limiteTotalCupom(c);
+  if(lt&&usam.length>=lt)return 'O cupom '+c.codigo+' esgotou: já foi usado em '+usam.length+' de '+lt+' vendas.';
+  const pc=limitePorCliente(c),n=String(nome||'').trim();
+  if(pc&&n){
+    const kn=chaveBusca(n),cli=dados.clientes.find(x=>chaveBusca(x.nome)===kn);
+    const daCliente=usam.filter(v=>(cli&&v.clienteId===cli.id)||chaveBusca(v.clienteNome||'')===kn).length;
+    if(daCliente>=pc)return n+' já usou o cupom '+c.codigo+(daCliente>1?' '+daCliente+' vezes':'')+' — ele vale '+vezesTexto(pc)+' por cliente.';
+  }
+  return '';
+}
 
 /* ---- tela: Configurações → Promoções e cupons ---- */
 function painelPromocoes(){
@@ -5324,9 +5350,10 @@ function painelPromocoes(){
     <span class="pi-bts"><button class="bt mini" onclick="editarPromocao('${pr.id}')">✎ editar</button>
       <button class="bt mini" onclick="pausarPromocao('${pr.id}')">${pr.pausada?'▶ retomar':'⏸ pausar'}</button>
       <button class="bt mini perigo" onclick="excluirPromocao('${pr.id}')" aria-label="excluir">✕</button></span></li>`;};
-  const linhaCupom=c=>{const [s,cl]=situacaoPeriodo(c,'pausado');const u=usosDoCupom(c.codigo);return `<li class="promo-item">
-    <div class="pi-txt"><b class="cupom-cod">${esc(c.codigo)}</b> <span class="bd ${cl}">${s}</span>
-      <div class="mut">${rotDesconto(c)} no pedido${+c.minimo?' a partir de '+fmt(c.minimo):''} · ${c.somaPromo?'soma com promoção':'não vale em peça em promoção'} · ${periodoTexto(c)} · usado em ${u} venda(s)</div></div>
+  const linhaCupom=c=>{const [s,cl]=situacaoPeriodo(c,'pausado');const u=usosDoCupom(c.codigo),pc=limitePorCliente(c),lt=limiteTotalCupom(c);return `<li class="promo-item">
+    <div class="pi-txt"><b class="cupom-cod">${esc(c.codigo)}</b> <span class="bd ${cl}">${s}</span>${lt&&u>=lt?' <span class="bd sai">esgotou</span>':''}
+      <div class="mut">${rotDesconto(c)} no pedido${+c.minimo?' a partir de '+fmt(c.minimo):''} · ${c.somaPromo?'soma com promoção':'não vale em peça em promoção'} · ${periodoTexto(c)}
+        · ${pc?vezesTexto(pc)+' por cliente':'sem limite por cliente'} · ${lt?u+' de '+lt+' usos':'usado em '+u+' venda(s)'}</div></div>
     <span class="pi-bts"><button class="bt mini" onclick="editarCupom('${c.id}')">✎ editar</button>
       <button class="bt mini" onclick="pausarCupom('${c.id}')">${c.pausado?'▶ retomar':'⏸ pausar'}</button>
       <button class="bt mini perigo" onclick="excluirCupom('${c.id}')" aria-label="excluir">✕</button></span></li>`;};
@@ -5336,6 +5363,7 @@ function painelPromocoes(){
     <div class="rodape"><button class="bt primario" onclick="editarPromocao()">+ Nova promoção</button></div></div>
   <div class="painel"><h3>🎟️ Cupons de desconto</h3>
     <p class="mut" style="font-size:.82rem;margin-bottom:.6rem">Código que a cliente digita no pedido da loja (ex.: HALLOWEEN10). O desconto vale para o pedido inteiro e vai escrito na mensagem do WhatsApp. Na venda do painel, toque em <b>🎟️ cupom</b>, ao lado do desconto.</p>
+    <p class="mut" style="font-size:.82rem;margin-bottom:.6rem">Conta como usado quando a <b>venda é registrada</b> aqui no painel. O limite por cliente o painel confere na hora da venda; o total de usos a loja também confere sozinha (mostra "esgotou").</p>
     ${cs.length?`<ul class="promo-lista">${cs.map(linhaCupom).join('')}</ul>`:'<p class="mut">Nenhum cupom ainda.</p>'}
     <div class="rodape"><button class="bt primario" onclick="editarCupom()">+ Novo cupom</button></div>
     ${cuponsNoServidor()
@@ -5415,6 +5443,7 @@ function editarCupom(id){
     if(!(+v.valor>0))return 'Diga quanto de desconto (maior que zero).';
     if(v.tipo==='pct'&&+v.valor>=100)return 'Porcentagem precisa ser menor que 100%.';
     if(v.ini&&v.fim&&v.fim<v.ini)return 'A data de término é antes do começo.';
+    if(+v.porCliente<0||+v.total<0)return 'Os limites de uso são de zero para cima.';
     return '';
   };
   pedir({titulo:c?'Editar cupom':'Novo cupom',ok:'Salvar cupom',validar:conferir,campos:[
@@ -5428,10 +5457,16 @@ function editarCupom(id){
       sim:'Sim — soma com a promoção',nao:'Não — só nas peças sem promoção',valor:c?!!c.somaPromo:false,
       pergunta:'O cupom soma com a promoção (vale também nas peças em promoção)?'},
     {id:'ini',rotulo:'Começa em',tipo:'data',valor:c?c.ini:hoje(),pergunta:'Começa em (AAAA-MM-DD):'},
-    {id:'fim',rotulo:'Termina em',tipo:'data',valor:c?c.fim:'',dica:'vazio = até você pausar',pergunta:'Termina em (AAAA-MM-DD):'}
+    {id:'fim',rotulo:'Termina em',tipo:'data',valor:c?c.fim:'',dica:'vazio = até você pausar',pergunta:'Termina em (AAAA-MM-DD):'},
+    /* V10.2: limite de uso — já vem "1 vez por cliente" (pedido do Luan) */
+    {id:'porCliente',rotulo:'Quantas vezes cada cliente pode usar',tipo:'numero',valor:c?limitePorCliente(c):1,
+      dica:'0 = sem limite',pergunta:'Quantas vezes cada cliente pode usar (0 = sem limite)?'},
+    {id:'total',rotulo:'Total de usos',tipo:'numero',valor:c&&limiteTotalCupom(c)?limiteTotalCupom(c):'',
+      dica:'vazio = sem limite · ex.: 20 = só as 20 primeiras vendas',pergunta:'Total de usos (vazio = sem limite):'}
   ]},v=>{
     const erro=conferir(v);if(erro){avisar(erro,{titulo:'Falta acertar'});return;}
-    const o={codigo:chaveCupom(v.codigo),tipo:v.tipo==='valor'?'valor':'pct',valor:r2(v.valor),minimo:+v.minimo>0?r2(v.minimo):0,somaPromo:!!v.soma,ini:v.ini||'',fim:v.fim||''};
+    const o={codigo:chaveCupom(v.codigo),tipo:v.tipo==='valor'?'valor':'pct',valor:r2(v.valor),minimo:+v.minimo>0?r2(v.minimo):0,somaPromo:!!v.soma,ini:v.ini||'',fim:v.fim||'',
+      porCliente:Math.max(0,Math.floor(+v.porCliente||0)),limiteTotal:Math.max(0,Math.floor(+v.total||0))};
     if(c)Object.assign(c,o);else listaCupons().push(Object.assign({id:novoId(),pausado:false},o));
     salvar();renderConfig();toast('Cupom '+o.codigo+' salvo ✓');
   });
@@ -5849,6 +5884,9 @@ function escolherCupomVenda(){
   ]},v=>{
     const c=vale.find(x=>x.codigo===v.c);
     if(!c){if(atual){$('vDesconto').value=0;$('vDescontoTipo').value='valor';}marcarCupomVenda('');recalcVenda();return;}
+    // limite de uso (V10.2): esgotou, ou esta cliente já usou
+    const lim=c.codigo===atual?'':motivoLimiteCupom(c,$('vCliente').value,$('vId').value);
+    if(lim){avisar(lim,{titulo:'Cupom'});return;}
     if(+c.minimo&&subtotalVenda()<+c.minimo){
       avisar('O cupom '+c.codigo+' vale para vendas a partir de '+fmt(c.minimo)+' — esta está em '+fmt(subtotalVenda())+'.',{titulo:'Cupom'});return;
     }
@@ -6182,6 +6220,17 @@ function aplicarEstoque(v,sinal){
 function salvarVenda(){
   itensVenda=itensVenda.filter(i=>i.nome.trim()&&(+i.qtd>0));
   if(!itensVenda.length){toast('Adicione ao menos um item com quantidade.');return;}
+  /* cupom com limite (V10.2): confere de novo ao salvar — a cliente pode ter sido
+     trocada depois de escolher o cupom. Editar venda que já tinha o cupom, da
+     mesma cliente, não confere de novo (ela não pode contar contra ela mesma). */
+  const cupomV=($('vCupom')&&$('vCupom').value)||'';
+  if(cupomV){
+    const idV=$('vId').value,antes=idV?vendaPorId(idV):null,nomeV=$('vCliente').value.trim();
+    const jaTinha=!!antes&&chaveCupom(antes.cupom||'')===chaveCupom(cupomV)&&chaveBusca(antes.clienteNome||'')===chaveBusca(nomeV);
+    const cp=cupons().find(x=>chaveCupom(x.codigo)===chaveCupom(cupomV));
+    const lim=jaTinha?'':motivoLimiteCupom(cp,nomeV,idV);
+    if(lim){avisar(lim+' Tire o cupom (🎟️ cupom → sem cupom) ou troque a cliente.',{titulo:'Cupom'});return;}
+  }
   const forma=formaDe($('vForma').value),nome=$('vCliente').value.trim(),localId=$('vLocal').value||null;
   const criados=[];
   for(const it of itensVenda){
@@ -9639,6 +9688,9 @@ var LOJA_APP = __LOJA_APP__;
      A regra do cupom aplicado fica no aparelho e é conferida de novo na
      primeira vez que o pedido abre. */
   var CHAVE_CUPOM_REGRA="loja_cupom_regra_v1",cupomServ={},estadoCupom="",reconferir=false;
+  // freio (V10.2): o banco diz quantas tentativas erradas restam e, depois da
+  // 4ª, por quantos minutos esta conexão espera
+  var restamCupom=null,minutosCupom=0;
   try{
     var regraGuardada=JSON.parse(localStorage.getItem(CHAVE_CUPOM_REGRA)||"null");
     if(regraGuardada&&cupomAplicado&&regraGuardada.k===cupomAplicado){cupomServ[regraGuardada.k]=regraGuardada.c;reconferir=true;}
@@ -9653,7 +9705,13 @@ var LOJA_APP = __LOJA_APP__;
       body:JSON.stringify({p_loja:CATALOGO.slug,p_codigo:k})})
     .then(function(r){if(!r.ok)throw new Error("cupom "+r.status);return r.json();})
     .then(function(c){
+      if(c&&c.bloqueado){
+        // errou demais: não guarda nada, só avisa quanto falta esperar
+        if(k!==cupomAplicado)return;
+        estadoCupom="bloqueado";minutosCupom=+c.minutos||15;renderCarrinho();return;
+      }
       cupomServ[k]=c&&c.codigo?c:false;
+      if(!cupomServ[k])restamCupom=c&&typeof c.restam==="number"?c.restam:null;
       try{if(k===cupomAplicado)localStorage.setItem(CHAVE_CUPOM_REGRA,JSON.stringify({k:k,c:cupomServ[k]}));}catch(e){}
       if(k!==cupomAplicado)return;
       estadoCupom="";renderCarrinho();
@@ -9678,17 +9736,23 @@ var LOJA_APP = __LOJA_APP__;
   function cupomValido(cod,sub,fora){
     if(!cod)return null;
     var c=acharCupom(cod),h=hojeISO();
-    if(!c||c.pausado||(c.ini&&h<c.ini)||(c.fim&&h>c.fim)||(+c.minimo&&sub<+c.minimo))return null;
+    if(!c||c.pausado||esgotado(c)||(c.ini&&h<c.ini)||(c.fim&&h>c.fim)||(+c.minimo&&sub<+c.minimo))return null;
     var base=c.soma?sub:(fora==null?sub:fora);
     if(!(base>0))return null;
     var d=c.tipo==="valor"?Math.min(base,+c.valor||0):Math.round(base*(+c.valor||0))/100;
     return {codigo:c.codigo,desconto:Math.round(d*100)/100,soSemPromo:!c.soma,
       rot:(c.tipo==="valor"?"−"+fmtR(c.valor):"−"+String(c.valor).replace(".",",")+"%")+(c.soma?"":" nas peças sem promoção")};
   }
+  /* total de usos (V10.2): conta as vendas registradas no painel */
+  function esgotado(c){return +c.total>0&&+c.usados>=+c.total;}
+  function vezes(n){return n===1?"1 vez":n+" vezes";}
   function motivoCupom(cod,sub,fora){
     var c=acharCupom(cod),h=hojeISO();
-    if(!c)return "Esse cupom não existe. Confira o código.";
+    if(!c)return "Esse cupom não existe. Confira o código."+
+      (restamCupom===1?" Mais 1 tentativa errada e o cupom trava por 15 minutos.":
+       restamCupom===0?" Por segurança, espere 15 minutos para tentar outro código.":"");
     if(c.pausado)return "Esse cupom não está valendo agora.";
+    if(esgotado(c))return "Esse cupom esgotou.";
     if(c.ini&&h<c.ini)return "Esse cupom só vale a partir de "+c.ini.split("-").reverse().join("/")+".";
     if(c.fim&&h>c.fim)return "Esse cupom já terminou.";
     if(+c.minimo&&sub<+c.minimo)return "Esse cupom vale para pedidos a partir de "+fmtR(c.minimo)+".";
@@ -9705,12 +9769,15 @@ var LOJA_APP = __LOJA_APP__;
     if(c.cupom){
       $("lgCupomLinha").innerHTML="<span>Cupom <b>"+esc(c.cupom.codigo)+"</b> ("+esc(c.cupom.rot)+")</span><span>−"+fmtR(c.desconto)+"</span>";
       $("lgCupomLinha").hidden=false;$("lgCupomForm").hidden=true;
-      msg.innerHTML="<button class=\\"lg-tira-cupom\\" id=\\"lgTiraCupom\\">tirar o cupom</button>";
+      var regra=acharCupom(c.cupom.codigo),pc=regra?+regra.porCliente||0:0;
+      msg.innerHTML=(pc?"<span>Vale "+vezes(pc)+" por cliente. </span>":"")+
+        "<button class=\\"lg-tira-cupom\\" id=\\"lgTiraCupom\\">tirar o cupom</button>";
     }else{
       $("lgCupomLinha").hidden=true;$("lgCupomForm").hidden=false;
       msg.textContent=!cupomAplicado?"":
         estadoCupom==="conferindo"?"Conferindo o cupom…":
         estadoCupom==="erro"?"Não consegui conferir o cupom agora. Tente de novo.":
+        estadoCupom==="bloqueado"?"Muitas tentativas erradas. Tente de novo daqui a "+(minutosCupom===1?"1 minuto":minutosCupom+" minutos")+".":
         motivoCupom(cupomAplicado,c.subtotal,c.foraPromo);
     }
     $("lgCarrSub").hidden=!c.cupom;
@@ -9719,7 +9786,7 @@ var LOJA_APP = __LOJA_APP__;
   function aplicarCupom(){
     cupomAplicado=chaveCupom($("lgCupom").value);
     try{localStorage.setItem(CHAVE_CUPOM,cupomAplicado);}catch(e){}
-    estadoCupom="";
+    estadoCupom="";restamCupom=null;
     // "Aplicar" de novo sempre pergunta ao banco (o cupom pode ter mudado)
     if(cupomNoServidor()&&cupomAplicado){delete cupomServ[cupomAplicado];conferirCupom(cupomAplicado);}
     renderCarrinho();
@@ -10507,7 +10574,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-10-26 15:14';
+const VERSAO_APP='2026-10-26 15:52';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -11512,7 +11579,8 @@ async function conferirCupomNoServidor(){
   // loja sem cupom não tem o que esconder: nem pergunta
   if(!cupons().length)return CUPOM_NO_SERVIDOR;
   try{
-    await chamarApi('/rest/v1/rpc/buscar_cupom',{metodo:'POST',corpo:{p_loja:slugDaLoja(),p_codigo:'-'}});
+    // código vazio: a função responde na hora, sem contar como tentativa errada (V10.2)
+    await chamarApi('/rest/v1/rpc/buscar_cupom',{metodo:'POST',corpo:{p_loja:slugDaLoja(),p_codigo:''}});
     CUPOM_NO_SERVIDOR=true;NUVEM.cupomConferido=true;
   }catch(e){
     // 404 = a função ainda não foi criada (fica sabido nesta sessão); sem
