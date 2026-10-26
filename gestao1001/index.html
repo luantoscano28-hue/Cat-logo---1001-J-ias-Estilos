@@ -593,6 +593,11 @@ main.larga{max-width:1480px}
 .etiq-folha-nome{font-weight:600;color:var(--texto)}
 .etiq-nao-cabe{background:var(--aviso1);border:1px solid var(--aviso2);color:var(--avisoTx);border-radius:10px;
   padding:.5rem .7rem;margin:-.2rem 0 .6rem;font-size:.84rem;line-height:1.45}
+/* Site da loja: botões de cada coleção/material/tipo (🔗 link + ✎) lado a lado */
+.lj-bts{display:flex;gap:.3rem;flex-wrap:wrap;flex:none;margin-left:auto}
+/* tela estreita: os botões descem para a linha de baixo em vez de espremer o nome */
+.cfg-lista li:has(>.lj-bts){flex-wrap:wrap}
+.cfg-lista li:has(>.lj-bts)>.nm{flex:1 1 220px;min-width:0}
 /* promoções e cupons (V10): Configurações → Promoções e cupons */
 .promo-lista{list-style:none;padding:0;margin:0 0 .4rem;display:grid;gap:.5rem}
 .promo-item{display:flex;gap:.8rem;align-items:center;justify-content:space-between;flex-wrap:wrap;
@@ -5333,7 +5338,9 @@ function painelPromocoes(){
     <p class="mut" style="font-size:.82rem;margin-bottom:.6rem">Código que a cliente digita no pedido da loja (ex.: HALLOWEEN10). O desconto vale para o pedido inteiro e vai escrito na mensagem do WhatsApp. Na venda do painel, toque em <b>🎟️ cupom</b>, ao lado do desconto.</p>
     ${cs.length?`<ul class="promo-lista">${cs.map(linhaCupom).join('')}</ul>`:'<p class="mut">Nenhum cupom ainda.</p>'}
     <div class="rodape"><button class="bt primario" onclick="editarCupom()">+ Novo cupom</button></div>
-    <p class="mut" style="font-size:.74rem;margin-top:.5rem">⚠️ Os códigos ficam dentro da página da loja: quem entende de navegador consegue achá-los. Cupom secreto de verdade precisaria de um servidor.</p></div>`;
+    ${cuponsNoServidor()
+      ?'<p class="mut" style="font-size:.74rem;margin-top:.5rem">🔒 Os códigos ficam guardados no servidor: a loja só confere o código que a cliente digitar — ninguém consegue ver a lista.</p>'
+      :'<p class="mut" style="font-size:.74rem;margin-top:.5rem">⚠️ Os códigos ainda ficam dentro da página da loja: quem entende de navegador consegue achá-los.</p>'}</div>`;
 }
 /* preço na lista de Produtos: em promoção hoje, o de antes riscado + o de agora */
 function precoNaLista(p){
@@ -8363,7 +8370,7 @@ function catalogoLoja(embutir){
   const capa=cfg.loja.capa||{banner:'',texto:''};
   // a logo horizontal só vai quando foi escolhida — ter a imagem guardada não basta
   const logoLarga=cfg.loja.marcaModo==='larga'?(cfg.loja.logoLarga||''):'';
-  return {loja:{nome:cfg.loja.nome||'Loja',logo:cfg.loja.logo||'',whatsapp:cfg.loja.whatsapp||'',pix:cfg.loja.pix||'',
+  const cat={loja:{nome:cfg.loja.nome||'Loja',logo:cfg.loja.logo||'',whatsapp:cfg.loja.whatsapp||'',pix:cfg.loja.pix||'',
       tema:temaAtual(),capaBanner:capa.banner||'',capaTexto:capa.texto||'',
       capaAjuste:ajusteDe(capa),capaPos:posDe(capa),
       capaFiltro:filtroDoBanner(cfg,capa.alvo,cats,tps,cols),
@@ -8371,7 +8378,16 @@ function catalogoLoja(embutir){
     categorias:cats,tipos:tps,colecoes:cols,produtos:prods,
     cupons:cuponsParaLoja(),descricoes:descricoesDosFiltros(cfg,cats,tps),
     geradoEm:new Date().toISOString()};
+  /* cupom secreto (V10.1): com a função no banco, a vitrine NÃO leva os códigos —
+     só avisa que existe cupom (para mostrar o campo) e o apelido da loja (para a
+     loja perguntar ao banco pelo código digitado) */
+  if(cuponsNoServidor()){
+    cat.temCupom=cat.cupons.length>0;cat.cupons=[];
+    cat.cuponsNoServidor=true;cat.slug=typeof slugDaLoja==='function'?slugDaLoja():'';
+  }
+  return cat;
 }
+function cuponsNoServidor(){return typeof CUPOM_NO_SERVIDOR!=='undefined'&&!!CUPOM_NO_SERVIDOR;}
 /* explicação de cada material/tipo para a loja (V10) — só dos que aparecem lá */
 function descricoesDosFiltros(cfg,cats,tps){
   const d={cat:{},tipo:{}};
@@ -9115,7 +9131,7 @@ var LOJA_APP = __LOJA_APP__;
     pintar($("lgGrade"),h);
   }
 
-  function render(){renderChips();renderTipos();renderColecoes();renderCapa();renderBanners();renderBanner();renderFiltros();renderFiltroDesc();renderGrade();}
+  function render(){renderChips();renderTipos();renderColecoes();renderCapa();renderBanners();renderBanner();renderFiltros();renderFiltroDesc();renderGrade();marcarFiltrosNaUrl();}
 
   /* Filtros ligados à mostra (V9). Quem escolhia "Anel" e depois "Rosé"
      esquecia do primeiro e achava que a loja não tinha a peça. Cada filtro vira
@@ -9252,13 +9268,17 @@ var LOJA_APP = __LOJA_APP__;
   }
   function soltarCamada(){
     var tinha=camada;camada="";
-    if(tinha&&noSite()&&history.state&&history.state.lg){try{history.back();}catch(e){}}
+    if(tinha&&noSite()&&history.state&&history.state.lg){voltando=true;try{history.back();}catch(e){voltando=false;}}
   }
   window.addEventListener("popstate",function(){
+    // fui eu que voltei (✕ ou trocar de tela): a camada já foi fechada; só
+    // acerta o endereço com os filtros que mudaram enquanto ela estava aberta
+    if(voltando){voltando=false;if(urlPendente){urlPendente=false;marcarFiltrosNaUrl();}return;}
     var c=camada;camada="";
     if(c==="peca")fecharModal("voltar");
     else if(c==="carrinho")fecharCarrinho("voltar");
     else if(c==="lateral")fecharLateral("voltar");
+    if(urlPendente){urlPendente=false;marcarFiltrosNaUrl();}
   });
 
   /* ---- link direto de cada peça (22/10/2026) ----
@@ -9288,10 +9308,50 @@ var LOJA_APP = __LOJA_APP__;
      Instagram acrescenta) — é para cá que o voltar traz */
   function enderecoDaLoja(){
     if(!noSite())return;
-    try{history.replaceState(null,"",location.pathname);}catch(e){}
+    try{history.replaceState(null,"",enderecoDosFiltros());}catch(e){}
   }
   var pecaPedida="";
   try{pecaPedida=new URLSearchParams(location.search).get("p")||"";}catch(e){}
+  /* ---- link de cada coleção, material e tipo (V10.1) ----
+     ?colecao=black-essence (e/ou &material=rose, &tipo=anel): a loja abre já
+     filtrada — é o link que a loja posta para levar a cliente direto à coleção.
+     O endereço da barra acompanha o filtro escolhido (sem criar "voltar").
+     Nome no link é o mesmo jeito do link da peça (slugPeca). */
+  var filtrosPedidos=null,voltando=false,urlPendente=false;
+  try{
+    var qsF=new URLSearchParams(location.search);
+    filtrosPedidos={col:qsF.get("colecao")||"",cat:qsF.get("material")||"",tipo:qsF.get("tipo")||""};
+    if(!filtrosPedidos.col&&!filtrosPedidos.cat&&!filtrosPedidos.tipo)filtrosPedidos=null;
+  }catch(e){filtrosPedidos=null;}
+  function acharPorSlug(lista,s){
+    for(var i=0;i<lista.length;i++){var n=typeof lista[i]==="string"?lista[i]:lista[i].nome;if(slugPeca(n)===s)return n;}
+    return "";
+  }
+  /* coleção nova (criada hoje) pode ainda não estar na página: tenta com o que
+     já está na tela e de novo quando a vitrine do banco chega */
+  function aplicarFiltrosPedidos(ultimaChance){
+    if(!filtrosPedidos)return;
+    var f=filtrosPedidos,falta=false;
+    if(f.col){var c=acharPorSlug(colecoes,f.col);if(c){estado.col=c;f.col="";}else falta=true;}
+    if(f.cat){var m=acharPorSlug(categorias,f.cat);if(m){estado.cat=m;f.cat="";}else falta=true;}
+    if(f.tipo){var tp=acharPorSlug(tipos,f.tipo);if(tp){estado.tipo=tp;f.tipo="";}else falta=true;}
+    if(!falta||ultimaChance)filtrosPedidos=null;
+    render();
+  }
+  function enderecoDosFiltros(){
+    var q=[];
+    if(estado.col)q.push("colecao="+slugPeca(estado.col));
+    if(estado.cat)q.push("material="+slugPeca(estado.cat));
+    if(estado.tipo)q.push("tipo="+slugPeca(estado.tipo));
+    return location.pathname+(q.length?"?"+q.join("&"):"");
+  }
+  /* com uma peça/pedido/gaveta aberta, o endereço é o dela: o dos filtros
+     espera a camada fechar */
+  function marcarFiltrosNaUrl(){
+    if(!noSite())return;
+    if(voltando||camada){urlPendente=true;return;}
+    try{history.replaceState(history.state,"",enderecoDosFiltros());}catch(e){}
+  }
   /* A peça pedida pode ainda não estar na vitrine guardada (peça nova, postada
      hoje): tenta com o que já está na tela e, se não achar, espera a vitrine
      do banco. Só depois dela é que "não está mais na loja" é verdade. */
@@ -9573,8 +9633,42 @@ var LOJA_APP = __LOJA_APP__;
   var CHAVE_CUPOM="loja_cupom_v1",cupomAplicado="";
   try{cupomAplicado=localStorage.getItem(CHAVE_CUPOM)||"";}catch(e){}
   function chaveCupom(s){return String(s||"").toUpperCase().replace(/\\s+/g,"");}
+  /* Cupom secreto (V10.1): com cuponsNoServidor a lista NÃO vem na página —
+     a loja pergunta ao banco só pelo código que a cliente digitou
+     (buscar_cupom) e guarda a resposta: a regra, ou false = não existe.
+     A regra do cupom aplicado fica no aparelho e é conferida de novo na
+     primeira vez que o pedido abre. */
+  var CHAVE_CUPOM_REGRA="loja_cupom_regra_v1",cupomServ={},estadoCupom="",reconferir=false;
+  try{
+    var regraGuardada=JSON.parse(localStorage.getItem(CHAVE_CUPOM_REGRA)||"null");
+    if(regraGuardada&&cupomAplicado&&regraGuardada.k===cupomAplicado){cupomServ[regraGuardada.k]=regraGuardada.c;reconferir=true;}
+  }catch(e){}
+  function cupomNoServidor(){return !!CATALOGO.cuponsNoServidor;}
+  function conferirCupom(k){
+    var N=CATALOGO.nuvem;
+    if(!N||!N.url||!N.chave||!CATALOGO.slug){if(cupomServ[k]===undefined)estadoCupom="erro";return;}
+    if(cupomServ[k]===undefined)estadoCupom="conferindo";
+    fetch(N.url+"/rest/v1/rpc/buscar_cupom",{method:"POST",cache:"no-store",
+      headers:{apikey:N.chave,"Content-Type":"application/json"},
+      body:JSON.stringify({p_loja:CATALOGO.slug,p_codigo:k})})
+    .then(function(r){if(!r.ok)throw new Error("cupom "+r.status);return r.json();})
+    .then(function(c){
+      cupomServ[k]=c&&c.codigo?c:false;
+      try{if(k===cupomAplicado)localStorage.setItem(CHAVE_CUPOM_REGRA,JSON.stringify({k:k,c:cupomServ[k]}));}catch(e){}
+      if(k!==cupomAplicado)return;
+      estadoCupom="";renderCarrinho();
+    })
+    .catch(function(){
+      if(k!==cupomAplicado)return;
+      // sem internet e com a regra já guardada: segue valendo a guardada
+      if(cupomServ[k]===undefined)estadoCupom="erro";else estadoCupom="";
+      renderCarrinho();
+    });
+  }
   function acharCupom(cod){
-    var cs=CATALOGO.cupons||[],k=chaveCupom(cod);
+    var k=chaveCupom(cod);
+    if(cupomNoServidor())return cupomServ[k]||null;
+    var cs=CATALOGO.cupons||[];
     for(var i=0;i<cs.length;i++)if(chaveCupom(cs[i].codigo)===k)return cs[i];
     return null;
   }
@@ -9584,7 +9678,7 @@ var LOJA_APP = __LOJA_APP__;
   function cupomValido(cod,sub,fora){
     if(!cod)return null;
     var c=acharCupom(cod),h=hojeISO();
-    if(!c||(c.ini&&h<c.ini)||(c.fim&&h>c.fim)||(+c.minimo&&sub<+c.minimo))return null;
+    if(!c||c.pausado||(c.ini&&h<c.ini)||(c.fim&&h>c.fim)||(+c.minimo&&sub<+c.minimo))return null;
     var base=c.soma?sub:(fora==null?sub:fora);
     if(!(base>0))return null;
     var d=c.tipo==="valor"?Math.min(base,+c.valor||0):Math.round(base*(+c.valor||0))/100;
@@ -9594,6 +9688,7 @@ var LOJA_APP = __LOJA_APP__;
   function motivoCupom(cod,sub,fora){
     var c=acharCupom(cod),h=hojeISO();
     if(!c)return "Esse cupom não existe. Confira o código.";
+    if(c.pausado)return "Esse cupom não está valendo agora.";
     if(c.ini&&h<c.ini)return "Esse cupom só vale a partir de "+c.ini.split("-").reverse().join("/")+".";
     if(c.fim&&h>c.fim)return "Esse cupom já terminou.";
     if(+c.minimo&&sub<+c.minimo)return "Esse cupom vale para pedidos a partir de "+fmtR(c.minimo)+".";
@@ -9601,8 +9696,11 @@ var LOJA_APP = __LOJA_APP__;
     return "";
   }
   function renderCupom(c){
-    var box=$("lgCupomBox"),tem=(CATALOGO.cupons||[]).length>0;
+    var box=$("lgCupomBox"),tem=(CATALOGO.cupons||[]).length>0||!!CATALOGO.temCupom;
     box.hidden=!tem||!carrinho.length;if(box.hidden)return;
+    if(cupomNoServidor()&&cupomAplicado&&!estadoCupom&&(cupomServ[cupomAplicado]===undefined||reconferir)){
+      reconferir=false;conferirCupom(cupomAplicado);
+    }
     var msg=$("lgCupomMsg");
     if(c.cupom){
       $("lgCupomLinha").innerHTML="<span>Cupom <b>"+esc(c.cupom.codigo)+"</b> ("+esc(c.cupom.rot)+")</span><span>−"+fmtR(c.desconto)+"</span>";
@@ -9610,7 +9708,10 @@ var LOJA_APP = __LOJA_APP__;
       msg.innerHTML="<button class=\\"lg-tira-cupom\\" id=\\"lgTiraCupom\\">tirar o cupom</button>";
     }else{
       $("lgCupomLinha").hidden=true;$("lgCupomForm").hidden=false;
-      msg.textContent=cupomAplicado?motivoCupom(cupomAplicado,c.subtotal,c.foraPromo):"";
+      msg.textContent=!cupomAplicado?"":
+        estadoCupom==="conferindo"?"Conferindo o cupom…":
+        estadoCupom==="erro"?"Não consegui conferir o cupom agora. Tente de novo.":
+        motivoCupom(cupomAplicado,c.subtotal,c.foraPromo);
     }
     $("lgCarrSub").hidden=!c.cupom;
     $("lgCarrSubV").textContent=fmtR(c.subtotal);
@@ -9618,14 +9719,17 @@ var LOJA_APP = __LOJA_APP__;
   function aplicarCupom(){
     cupomAplicado=chaveCupom($("lgCupom").value);
     try{localStorage.setItem(CHAVE_CUPOM,cupomAplicado);}catch(e){}
+    estadoCupom="";
+    // "Aplicar" de novo sempre pergunta ao banco (o cupom pode ter mudado)
+    if(cupomNoServidor()&&cupomAplicado){delete cupomServ[cupomAplicado];conferirCupom(cupomAplicado);}
     renderCarrinho();
   }
   $("lgCupomOk").addEventListener("click",aplicarCupom);
   $("lgCupom").addEventListener("keydown",function(e){if(e.key==="Enter")aplicarCupom();});
   $("lgCupomMsg").addEventListener("click",function(e){
     if(!e.target.closest("#lgTiraCupom"))return;
-    cupomAplicado="";$("lgCupom").value="";
-    try{localStorage.removeItem(CHAVE_CUPOM);}catch(err){}
+    cupomAplicado="";$("lgCupom").value="";estadoCupom="";
+    try{localStorage.removeItem(CHAVE_CUPOM);localStorage.removeItem(CHAVE_CUPOM_REGRA);}catch(err){}
     renderCarrinho();
   });
 
@@ -9721,6 +9825,8 @@ var LOJA_APP = __LOJA_APP__;
   $("lgAppRodape").addEventListener("click",instalarApp);
   mostrarLinksApp();
   // veio por link de uma peça? abre ela (sem banco, esta é a única chance)
+  // veio pelo link de uma coleção/material/tipo? já abre filtrada
+  aplicarFiltrosPedidos(!(CATALOGO.nuvem&&CATALOGO.nuvem.url&&CATALOGO.nuvem.chave));
   abrirPecaPedida(!(CATALOGO.nuvem&&CATALOGO.nuvem.url&&CATALOGO.nuvem.chave));
 
   /* ------------------------------------------------------------
@@ -9746,7 +9852,7 @@ var LOJA_APP = __LOJA_APP__;
     if(esperando){document.documentElement.classList.add("lg-esperando");setTimeout(liberar,2500);}
     // a vitrine do banco chegou (ou não vai chegar): agora dá para dizer se a
     // peça do link existe — e abrir mesmo que ela seja nova demais para a guardada
-    function fimDaBusca(){liberar();abrirPecaPedida(true);}
+    function fimDaBusca(){liberar();aplicarFiltrosPedidos(true);abrirPecaPedida(true);}
     var buscando=false,ultimaBusca=0;
     function buscarVitrine(){
       if(buscando)return;
@@ -10023,13 +10129,13 @@ function painelPersonalizarCatalogo(){
     <div class="rodape"><button class="bt primario" onclick="salvarCapaLoja()">Salvar capa</button></div>
 
     <h4 class="mt">Vitrine das coleções</h4>
-    <p class="mut" style="font-size:.82rem;margin-bottom:.5rem">Cada coleção pode ter uma frase e um banner próprios, que aparecem quando o cliente a escolhe no menu lateral.</p>
+    <p class="mut" style="font-size:.82rem;margin-bottom:.5rem">Cada coleção pode ter uma frase e um banner próprios, que aparecem quando o cliente a escolhe no menu lateral. E cada uma tem o <b>seu link</b> (🔗 copiar link): ele abre a loja já mostrando só aquela coleção — bom para o Instagram e o WhatsApp.</p>
     ${cs.length?`<ul class="cfg-lista">${cs.map(c=>`<li>
       <span class="nm">${c.banner?`<img class="col-mini" src="${c.banner}" alt=""> `:''}<b>${esc(c.nome)}</b>
         <span class="mut" style="font-size:.76rem">— ${usadas[c.nome]||0} peça(s) na loja</span>
         ${c.texto?`<div class="mut" style="font-size:.78rem">“${esc(c.texto)}”</div>`
           :'<div class="mut" style="font-size:.76rem">sem frase nem banner</div>'}</span>
-      <button class="bt mini" onclick="abrirColecao('${c.id}')">✎ personalizar</button></li>`).join('')}</ul>`
+      <span class="lj-bts"><button class="bt mini" onclick="copiarLinkFiltro('col','${c.id}')" title="link que abre a loja já nesta coleção">🔗 copiar link</button><button class="bt mini" onclick="abrirColecao('${c.id}')">✎ personalizar</button></span></li>`).join('')}</ul>`
       :'<p class="mut">Nenhuma coleção criada ainda. Crie em <b>Configurações → Coleções</b> e volte aqui para dar cara a cada uma.</p>'}
     <p class="mut" style="font-size:.78rem;margin-top:.6rem">Criar, renomear ou apagar coleção continua em <b>Configurações → Coleções</b> — lá é a estrutura, aqui é a aparência.</p>
 
@@ -10046,7 +10152,7 @@ function listaDescricoesFiltros(lista,rotulo,naLoja){
   return `<div class="mut" style="font-size:.76rem;margin:.6rem 0 .2rem;text-transform:uppercase;letter-spacing:.6px">${esc(rotulo)}</div>
     <ul class="cfg-lista">${itens.map(x=>`<li><span class="nm"><b>${esc(x.nome)}</b>
       ${x.descricaoLoja?`<div class="mut" style="font-size:.78rem">“${esc(x.descricaoLoja)}”</div>`:'<div class="mut" style="font-size:.76rem">sem explicação</div>'}</span>
-      <button class="bt mini" onclick="escreverDescricaoFiltro('${lista}','${x.id}')">✎ ${x.descricaoLoja?'editar':'escrever'}</button></li>`).join('')}</ul>`;
+      <span class="lj-bts"><button class="bt mini" onclick="copiarLinkFiltro('${lista==='categorias'?'cat':'tipo'}','${x.id}')" title="link que abre a loja já neste filtro">🔗 link</button><button class="bt mini" onclick="escreverDescricaoFiltro('${lista}','${x.id}')">✎ ${x.descricaoLoja?'editar':'escrever'}</button></span></li>`).join('')}</ul>`;
 }
 function escreverDescricaoFiltro(lista,id){
   const x=(C()[lista]||[]).find(i=>i.id===id);if(!x)return;
@@ -10358,6 +10464,24 @@ function copiarLinkDaPeca(id){
   const ok=()=>toast('Link da peça copiado — cole no Instagram ou no WhatsApp 📋');
   try{navigator.clipboard.writeText(l).then(ok,()=>{copiarTextoAntigo(l);ok();});}catch(e){copiarTextoAntigo(l);ok();}
 }
+/* Link de uma coleção, material ou tipo (V10.1): a loja abre já filtrada —
+   "?colecao=black-essence". Mesmo jeito de escrever o nome do link da peça. */
+const PARAM_FILTRO={col:'colecao',cat:'material',tipo:'tipo'};
+function linkDoFiltro(qual,nome){
+  const base=linkDaLoja();if(!base||!PARAM_FILTRO[qual])return '';
+  return base+'?'+PARAM_FILTRO[qual]+'='+slugPeca(nome);
+}
+function copiarLinkFiltro(qual,id){
+  const lista=qual==='col'?colecoes():(qual==='cat'?C().categorias:C().tipos);
+  const x=(lista||[]).find(i=>i.id===id);if(!x)return;
+  if(!linkDaLoja()){
+    avisar('Para montar o link, o painel precisa do endereço da loja. Preencha o Domínio em Configurações → Geral / Loja.',{titulo:'Falta o endereço da loja'});
+    return;
+  }
+  const l=linkDoFiltro(qual,x.nome);
+  const ok=()=>toast('Link de "'+x.nome+'" copiado — abre a loja já mostrando só isso 📋');
+  try{navigator.clipboard.writeText(l).then(ok,()=>{copiarTextoAntigo(l);ok();});}catch(e){copiarTextoAntigo(l);ok();}
+}
 function copiarTextoAntigo(t){
   const a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';
   document.body.appendChild(a);a.select();try{document.execCommand('copy');}catch(e){}a.remove();
@@ -10383,7 +10507,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-10-26 10:53';
+const VERSAO_APP='2026-10-26 15:14';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -11377,6 +11501,27 @@ async function publicarCatalogo(){
     atualizado_em:new Date().toISOString()}]);
   base.catalogo=hashReg(c);gravarBase();
 }
+/* Cupom secreto (V10.1): com a função buscar_cupom no banco (supabase-cupom-
+   secreto.sql), os códigos deixam de ir para a página da loja — ela pergunta
+   ao banco só pelo código que a cliente digitou. O painel descobre sozinho se a
+   função existe (1 pergunta por sessão); enquanto não existir, tudo segue como
+   antes (os códigos vão na vitrine). */
+var CUPOM_NO_SERVIDOR=false;
+async function conferirCupomNoServidor(){
+  if(NUVEM.cupomConferido)return CUPOM_NO_SERVIDOR;
+  // loja sem cupom não tem o que esconder: nem pergunta
+  if(!cupons().length)return CUPOM_NO_SERVIDOR;
+  try{
+    await chamarApi('/rest/v1/rpc/buscar_cupom',{metodo:'POST',corpo:{p_loja:slugDaLoja(),p_codigo:'-'}});
+    CUPOM_NO_SERVIDOR=true;NUVEM.cupomConferido=true;
+  }catch(e){
+    // 404 = a função ainda não foi criada (fica sabido nesta sessão); sem
+    // internet ou erro passageiro: pergunta de novo na próxima publicação
+    CUPOM_NO_SERVIDOR=false;
+    if(e&&e.status===404)NUVEM.cupomConferido=true;
+  }
+  return CUPOM_NO_SERVIDOR;
+}
 /* Republica só quando a vitrine mudou de verdade — senão toda gravação
    (receber um fiado, lançar uma despesa) reescreveria o catálogo à toa. */
 async function talvezPublicarCatalogo(){
@@ -11390,6 +11535,7 @@ async function talvezPublicarCatalogo(){
      catalogo-estoque.sql); sem ele o envio volta 403 e nada quebra. */
   if(!podeEscrever('loja')&&!podeEscrever('estoque'))return;
   if(NUVEM.vitrineBloqueada)return;   // já levou "não pode" nesta sessão
+  await conferirCupomNoServidor();    // muda o que vai na vitrine (códigos ou não)
   let atual;
   try{atual=hashReg(catalogoPublicavel());}catch(e){return;}
   if(atual===base.catalogo)return;
