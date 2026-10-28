@@ -8577,10 +8577,24 @@ a{color:inherit}
    lugar do círculo e do nome escrito */
 .marca img.logo-larga{width:auto;height:52px;max-width:300px;border-radius:0;border:none;background:none;object-fit:contain}
 .marca.larga #lgLogo,.marca.larga h1{display:none!important}
+/* Busca (V11, pedido do Luan): no computador o campo continua aberto, num desenho
+   mais moderno — pílula com a lupa desenhada dentro, fundo levemente translúcido,
+   brilho na cor da loja ao focar e um ✕ para limpar. No celular ele vira só a
+   lupa no topo e abre numa barra embaixo (regras do @media mais abaixo). */
 .busca-wrap{flex:1;min-width:120px;display:flex;justify-content:flex-end}
-.busca-wrap input{width:100%;max-width:280px;background:var(--painel);border:1px solid var(--borda);color:var(--texto);border-radius:10px;padding:.5rem .8rem;font-size:.92rem}
-.busca-wrap input:focus{outline:1px solid var(--acento);border-color:var(--acento)}
-.bt-menu{flex:none;background:var(--painel);border:1px solid var(--borda);color:var(--texto);border-radius:9px;padding:.45rem .7rem;font-size:1rem;cursor:pointer;display:none}
+.busca-caixa{position:relative;display:flex;align-items:center;width:100%;max-width:340px;
+  background:rgba(255,255,255,.06);border:1px solid var(--borda);border-radius:999px;
+  transition:border-color .18s,box-shadow .18s,background .18s}
+.busca-caixa:hover{border-color:var(--texto3)}
+.busca-caixa:focus-within{border-color:var(--acento);background:rgba(255,255,255,.09);box-shadow:0 0 0 3px rgba(255,255,255,.07)}
+.busca-caixa svg{flex:none;width:18px;height:18px;margin-left:.85rem;color:var(--texto3)}
+.busca-caixa input{flex:1;min-width:0;background:none;border:none;outline:none;color:var(--texto);padding:.62rem .5rem;font-size:.92rem;letter-spacing:.2px}
+.busca-caixa input::placeholder{color:var(--texto3)}
+.busca-x{flex:none;background:none;border:none;color:var(--texto2);cursor:pointer;font-size:.95rem;padding:0 .85rem 0 .3rem;line-height:1}
+.busca-x[hidden]{display:none}
+.bt-menu{flex:none;background:none;border:none;color:var(--texto);padding:0;width:44px;height:44px;cursor:pointer;display:none;align-items:center;justify-content:flex-start}
+.bt-menu svg,.bt-lupa svg{width:26px;height:26px}
+.bt-lupa{display:none;background:none;border:none;color:var(--texto);padding:0;width:44px;height:44px;cursor:pointer;align-items:center;justify-content:flex-end}
 /* materiais (AÇO, FOLHEADO...) — centralizados, é o menu principal */
 .chips{display:flex;gap:.45rem;justify-content:center;flex-wrap:wrap;padding:0 1rem .7rem}
 .chips button{background:var(--painel);border:1px solid var(--borda);color:var(--texto2);border-radius:999px;padding:.5rem 1.15rem;font-size:.86rem;white-space:nowrap;cursor:pointer;letter-spacing:.3px;
@@ -8672,7 +8686,16 @@ a{color:inherit}
 @media(min-width:1050px){.grade{grid-template-columns:repeat(4,1fr)}}
 /* celular: a lateral virou gaveta (não cabe sidebar fixa em 375px) */
 @media(max-width:699px){
-  .bt-menu{display:block}
+  /* topo do celular (V11, rascunho aprovado pelo Luan): ☰ fino | logo no centro |
+     lupa. A busca abre numa barra logo abaixo ao tocar na lupa. */
+  .topo-linha{display:grid;grid-template-columns:52px 1fr 52px;gap:0;padding:.45rem .7rem}
+  .bt-menu{display:flex}
+  .bt-lupa{display:flex;justify-self:end}
+  .marca{justify-content:center;min-width:0}
+  .busca-wrap{grid-column:1/-1;display:none;margin:.4rem 0 .15rem}
+  .topo.buscando .busca-wrap{display:flex}
+  .busca-caixa{max-width:none}
+  .busca-caixa input{font-size:1rem}
   .marca h1{font-size:.98rem}
   .marca img.logo-larga{height:38px;max-width:44vw}
   .corpo-loja{padding:.7rem .8rem 6rem}
@@ -8849,9 +8872,10 @@ html.lg-esperando body::after{content:"";position:fixed;top:50%;left:50%;width:3
 <body>
 <div class="topo">
   <div class="topo-linha">
-    <button class="bt-menu" id="lgBtMenu" aria-label="Coleções">☰</button>
+    <button class="bt-menu" id="lgBtMenu" aria-label="Coleções"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M3 6.5h18M3 12h13M3 17.5h16"/></svg></button>
     <div class="marca" id="lgMarca"><img id="lgLogo" src="" alt="" style="display:none"><img id="lgLogoLarga" class="logo-larga" alt="" hidden><h1 id="lgNome">Loja</h1></div>
-    <div class="busca-wrap"><input id="lgBusca" placeholder="🔎 Buscar..."></div>
+    <button class="bt-lupa" id="lgBtLupa" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></button>
+    <div class="busca-wrap"><label class="busca-caixa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg><input id="lgBusca" placeholder="Buscar peças..." autocomplete="off" enterkeyhint="search"><button type="button" class="busca-x" id="lgBuscaX" aria-label="limpar a busca" hidden>✕</button></label></div>
   </div>
   <div class="chips" id="lgChips"></div>
   <div class="chips tipos" id="lgTipos"></div>
@@ -9264,7 +9288,7 @@ var LOJA_APP = __LOJA_APP__;
   }
 
   /* passo=true: a escolha da pessoa vira um passo no histórico (V11) */
-  function render(passo){renderChips();renderTipos();renderColecoes();renderCapa();renderBanners();renderBanner();renderFiltros();renderFiltroDesc();renderGrade();marcarFiltrosNaUrl(passo);}
+  function render(passo){renderChips();renderTipos();renderColecoes();renderCapa();renderBanners();renderBanner();renderFiltros();renderFiltroDesc();renderGrade();pintarTopoBusca();marcarFiltrosNaUrl(passo);}
   function algumFiltro(){return !!(estado.col||estado.cat||estado.tipo||chaveBusca(estado.busca));}
   /* ---- cada escolha é um passo no "voltar" do celular (V11) ----
      Quem tocava numa coleção, num banner ou na capa e depois no voltar saía da
@@ -9373,6 +9397,23 @@ var LOJA_APP = __LOJA_APP__;
     if(!antes&&chaveBusca(estado.busca))navegar();else render();
     irParaPecas(true);
   });
+  /* topo do celular (V11): a lupa abre a barra de busca (já com o teclado); o ✕
+     limpa a busca e, no celular, fecha a barra. Com busca ligada (veio pelo
+     link ou pelo voltar) a barra já aparece aberta. */
+  var buscaAberta=false;
+  function pintarTopoBusca(){
+    $("lgBuscaX").hidden=!estado.busca;
+    document.querySelector(".topo").classList.toggle("buscando",buscaAberta||!!chaveBusca(estado.busca));
+  }
+  $("lgBtLupa").addEventListener("click",function(){
+    buscaAberta=true;pintarTopoBusca();
+    try{$("lgBusca").focus();}catch(e){}
+  });
+  $("lgBuscaX").addEventListener("click",function(e){
+    e.preventDefault();buscaAberta=false;
+    if(estado.busca)tirarFiltro("busca");else pintarTopoBusca();
+  });
+  $("lgBusca").addEventListener("keydown",function(e){if(e.key==="Escape")this.blur();});
   $("lgGrade").addEventListener("click",function(e){
     var card=e.target.closest(".prodcard");if(!card)return;
     abrirModal(card.getAttribute("data-id"));
@@ -10768,7 +10809,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-10-27 23:08';
+const VERSAO_APP='2026-10-27 23:21';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
