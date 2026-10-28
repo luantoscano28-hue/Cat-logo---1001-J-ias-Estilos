@@ -1067,9 +1067,9 @@ try{
     <label class="campo">Data <input type="date" id="vData" required onchange="vDataMudou()"><small class="aviso-dia" id="vDataAviso"></small></label>
     <label class="campo">Forma de pagamento <select id="vForma"></select></label>
     <label class="campo" id="vCanalBox" hidden>Canal (a taxa muda conforme o canal) <select id="vCanal" onchange="vCanalMudou()"></select></label>
-    <label class="campo" id="vBandeiraBox" hidden>Bandeira <select id="vBandeira" onchange="recalcVenda()"></select></label>
+    <label class="campo" id="vBandeiraBox" hidden>Bandeira <select id="vBandeira" onchange="vTaxaPadraoMudou()"></select></label>
     <label class="campo" id="vParcCartaoBox" hidden>Parcelado no cartão em <select id="vParcCartao" onchange="vTaxaPadraoMudou()"></select></label>
-    <label class="campo" id="vTaxaBox" hidden>Taxa desta venda (%) <input type="number" id="vTaxaManual" min="0" max="100" step="0.01" oninput="recalcVenda()"><small class="mut" id="vTaxaDica" style="font-size:.7rem"></small></label>
+    <label class="campo" id="vTaxaBox" hidden>Vai cair na conta (R$) <input id="vLiquido" inputmode="decimal" autocomplete="off" oninput="recalcVenda()"><small class="mut" id="vTaxaDica" style="font-size:.7rem"></small></label>
     <label class="campo">Cliente <input id="vCliente" placeholder="digite pra buscar ou criar" autocomplete="off" oninput="vClienteMudou();acClientes(this,vClienteMudou)" onfocus="acClientes(this,vClienteMudou)" onkeydown="acTeclas(event,()=>acClientes(this,vClienteMudou))" onblur="acBlur()"><small id="vClienteHint" style="font-size:.72rem;min-height:.9rem;display:block"></small></label>
     <label class="campo">Local <span class="sel-add"><select id="vLocal"></select><button type="button" class="bt mini" title="novo local" onclick="novoCadInline('locais','vLocal')">+</button></span></label>
     <label class="campo span2" id="vTelBox" hidden>Telefone do novo cliente (opcional, ajuda na cobrança) <input id="vTelNovo" placeholder="(11) 9...."></label>
@@ -5459,10 +5459,12 @@ function editarCupom(id){
     {id:'ini',rotulo:'Começa em',tipo:'data',valor:c?c.ini:hoje(),pergunta:'Começa em (AAAA-MM-DD):'},
     {id:'fim',rotulo:'Termina em',tipo:'data',valor:c?c.fim:'',dica:'vazio = até você pausar',pergunta:'Termina em (AAAA-MM-DD):'},
     /* V10.2: limite de uso — já vem "1 vez por cliente" (pedido do Luan) */
-    {id:'porCliente',rotulo:'Quantas vezes cada cliente pode usar',tipo:'numero',valor:c?limitePorCliente(c):1,
-      dica:'0 = sem limite',pergunta:'Quantas vezes cada cliente pode usar (0 = sem limite)?'},
-    {id:'total',rotulo:'Total de usos',tipo:'numero',valor:c&&limiteTotalCupom(c)?limiteTotalCupom(c):'',
-      dica:'vazio = sem limite · ex.: 20 = só as 20 primeiras vendas',pergunta:'Total de usos (vazio = sem limite):'}
+    /* V11: o Luan leu "1" + "Total vazio" como "não vai respeitar o 1" — são dois
+       limites separados, e o texto agora diz isso */
+    {id:'porCliente',rotulo:'Limite por cliente — cada cliente usa quantas vezes?',tipo:'numero',valor:c?limitePorCliente(c):1,
+      dica:'1 = cada cliente usa uma vez só · 0 = sem limite por cliente',pergunta:'Quantas vezes cada cliente pode usar (0 = sem limite)?'},
+    {id:'total',rotulo:'Limite geral — quantas vendas no total, somando todas as clientes?',tipo:'numero',valor:c&&limiteTotalCupom(c)?limiteTotalCupom(c):'',
+      dica:'vazio = quantas clientes quiserem (cada uma no seu limite) · ex.: 20 = acaba na 20ª venda',pergunta:'Total de usos (vazio = sem limite):'}
   ]},v=>{
     const erro=conferir(v);if(erro){avisar(erro,{titulo:'Falta acertar'});return;}
     const o={codigo:chaveCupom(v.codigo),tipo:v.tipo==='valor'?'valor':'pct',valor:r2(v.valor),minimo:+v.minimo>0?r2(v.minimo):0,somaPromo:!!v.soma,ini:v.ini||'',fim:v.fim||'',
@@ -5575,19 +5577,25 @@ function preencherSelectsVenda(){
 function canalSelecionado(){return formaUsaCanal($('vForma').value)?$('vCanal').value:null;}
 /* taxa padrão da tabela para a combinação escolhida */
 function taxaPadraoVenda(){return taxaDaForma($('vForma').value,canalSelecionado(),bandeiraSelecionada(),parcCartaoSel());}
-/* taxa que vale nesta venda: a digitada (a InfinityPay às vezes cobra um pouco menos) ou a padrão */
+/* V11: em vez da % da maquininha, digita-se QUANTO VAI CAIR NA CONTA — o número
+   que o app da maquininha mostra. A % arredonda (240 a 6,12% dá 225,31, mas a
+   InfinityPay repassa 225,32); o valor líquido não. Vazio = taxa da tabela. */
+function numDigitado(s){
+  s=String(s||'').replace(/R\$|\s/g,'');if(!s)return null;
+  if(s.indexOf(',')>=0)s=s.replace(/\./g,'').replace(',','.');
+  const n=parseFloat(s);return isNaN(n)?null:n;
+}
+function fmtNum(n){return (+n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+// campo escondido (Pix, dinheiro, fiado) não vale: sobrou digitado de quando era cartão
+function liquidoManualVenda(){if($('vTaxaBox').hidden)return null;const n=numDigitado($('vLiquido').value);return n==null?null:Math.max(0,r2(n));}
+/* taxa que vale nesta venda (%): a que sai do valor digitado ou a da tabela */
 function taxaEfetivaVenda(){
-  const s=String($('vTaxaManual').value||'').trim();
-  if(s==='')return taxaPadraoVenda();
-  return Math.max(0,Math.min(100,parseFloat(s.replace(',','.'))||0));
+  const liq=liquidoManualVenda(),t=totalVenda();
+  if(liq!=null&&t>0)return Math.max(0,(t-Math.min(liq,t))/t*100);
+  return taxaPadraoVenda();
 }
-function taxaManualVenda(){const s=String($('vTaxaManual').value||'').trim();return s===''?null:Math.max(0,Math.min(100,parseFloat(s.replace(',','.'))||0));}
-function vTaxaPadraoMudou(){
-  const pad=taxaPadraoVenda();
-  $('vTaxaDica').textContent=pad>0?('padrão da tabela: '+pad.toLocaleString('pt-BR',{maximumFractionDigits:2})+'% — deixe vazio p/ usar ela'):'sem taxa configurada';
-  $('vTaxaManual').placeholder=pad>0?pad.toLocaleString('pt-BR',{maximumFractionDigits:2}):'0';
-  recalcVenda();
-}
+function taxaManualVenda(){return liquidoManualVenda()==null?null:taxaEfetivaVenda();}
+function vTaxaPadraoMudou(){recalcVenda();}
 function bandeiraSelecionada(){const c=canalSelecionado();return c?$('vBandeira').value||null:null;}
 function parcCartaoSel(){const f=formaDe($('vForma').value);return (f&&f.tipoCartao==='credito')?(parseInt($('vParcCartao').value)||1):1;}
 /* mostra bandeira (se o canal tiver mais de uma) e parcelas (só no crédito) */
@@ -5610,7 +5618,7 @@ function abrirNovaVenda(){
   itensVenda=[{nome:'',produtoId:null,qtd:1,preco:0,custo:0}];parcelasVenda=[];
   vendaPlanoAtual=null;pintarPlanoVenda(null);
   $('vDividir').checked=false;$('vParcBox').hidden=true;$('vVencUnicoBox').style.display='';
-  $('vVencUnico').value='';$('vNparc').value=2;$('vTaxaManual').value='';acFechar();
+  $('vVencUnico').value='';$('vNparc').value=2;$('vLiquido').value='';acFechar();
   pintarAvisoDia('vData','vDataAviso');pintarAvisoDia('vVencUnico','vVencAviso');
   renderItensVenda();vClienteMudou();vFormaMudou();recalcVenda();atualizarBarraBipe();dlgVenda.showModal();
   setTimeout(()=>$('vCliente').focus(),50);
@@ -5629,7 +5637,9 @@ function editarVenda(id){
   vCanalMudou();
   if(v.bandeiraId&&bandeirasDe(v.canalId).some(b=>b.id===v.bandeiraId))$('vBandeira').value=v.bandeiraId;
   if(v.parcelasCartao>1)$('vParcCartao').value=v.parcelasCartao;
-  $('vTaxaManual').value=(v.taxaPercManual!=null?v.taxaPercManual:'');
+  // venda antiga guardava a % ajustada: vira o valor que caiu
+  const liqV=v.liquidoManual!=null?+v.liquidoManual:(v.taxaPercManual!=null?r2(v.total-r2(v.total*v.taxaPercManual/100)):null);
+  $('vLiquido').value=liqV!=null?fmtNum(liqV):'';
   vTaxaPadraoMudou();
   itensVenda=v.itens.map(i=>Object.assign({},i));
   const parc=recParcelas(v);
@@ -6012,9 +6022,15 @@ function registrarEntrada(o){
   const bandeiraId=canalId?(o.bandeiraId||(bandeiraPadrao(canalId)||{}).id||null):null;
   const parcC=forma.tipoCartao==='credito'?Math.max(1,parseInt(o.parcelasCartao)||1):1;
   const d=destinoDe(o.formaId,canalId),conta=d.conta,prazo=d.prazo;
-  // taxa: usa a ajustada manualmente na venda, se houver; senão a da tabela
-  const perc=(o.taxaPerc!=null&&o.taxaPerc!=='')?Math.max(0,+o.taxaPerc||0):taxaDaForma(o.formaId,canalId,bandeiraId,parcC);
-  const tx=r2((+o.valor||0)*perc/100);
+  // taxa: o valor que cai digitado na venda (V11) > a % ajustada (vendas antigas) > a da tabela
+  let perc,tx;
+  if(o.liquido!=null&&o.liquido!==''){
+    const liq=Math.max(0,Math.min(+o.valor||0,+o.liquido||0));
+    tx=r2((+o.valor||0)-liq);perc=(+o.valor||0)>0?Math.round(tx/(+o.valor)*1e5)/1e3:0;
+  }else{
+    perc=(o.taxaPerc!=null&&o.taxaPerc!=='')?Math.max(0,+o.taxaPerc||0):taxaDaForma(o.formaId,canalId,bandeiraId,parcC);
+    tx=r2((+o.valor||0)*perc/100);
+  }
   const rot=(forma.nome||'')+(parcC>1?' '+parcC+'x':'')+(canalId?' · '+nomeDe(canais(),canalId,''):'')
     +(bandeiraId?' · '+nomeDe(bandeirasDe(canalId),bandeiraId,''):'');
   if(prazo>0){
@@ -6142,8 +6158,17 @@ function recalcVenda(){
   const cProd=r2(itensVenda.reduce((s,i)=>s+(+i.qtd||0)*(+i.custo||0),0));
   const cIns=custoInsumosDaVenda(itensVenda);
   const fiado=formaAtualFiado(),canalId=canalSelecionado(),bId=bandeiraSelecionada(),parcC=parcCartaoSel();
-  const perc=fiado?0:taxaEfetivaVenda(),tx=r2(total*perc/100);
+  const liq=fiado?null:liquidoManualVenda(),perc=fiado?0:taxaEfetivaVenda();
+  const tx=liq!=null?r2(total-Math.min(liq,total)):r2(total*perc/100);
   const lucro=r2(total-cProd-cIns-tx);
+  // dica do campo "Vai cair na conta": o que a tabela calcula, para comparar com o app
+  const pad=taxaPadraoVenda(),liqPad=r2(total-r2(total*pad/100)),inpL=$('vLiquido');
+  if(inpL){
+    inpL.placeholder=total>0?fmtNum(liqPad):'';
+    $('vTaxaDica').innerHTML=liq!=null&&liq>total?'<span style="color:var(--laranja)">maior que o total da venda — confira</span>'
+      :pad>0?'pela tabela ('+pad.toLocaleString('pt-BR',{maximumFractionDigits:2})+'%): '+fmt(liqPad)+' — digite o valor que o app mostrou'
+      :'sem taxa configurada';
+  }
   const box=$('vLucro');if(!box)return;
   if(total<=0){box.innerHTML='';return;}
   const partes=[];
@@ -6151,7 +6176,7 @@ function recalcVenda(){
   if(naoCobrado>0)partes.push('<span style="color:var(--laranja)">não cobrado '+fmt(naoCobrado)+'</span>');
   partes.push('custo peças '+fmt(cProd));
   if(cIns>0)partes.push('embalagem/insumos '+fmt(cIns));
-  if(tx>0)partes.push('taxa '+(parcC>1?parcC+'x ':'')+perc.toLocaleString('pt-BR',{maximumFractionDigits:2})+'%'+(taxaManualVenda()!=null?' (ajustada)':'')+' = '+fmt(tx));
+  if(tx>0)partes.push('taxa '+(parcC>1?parcC+'x ':'')+perc.toLocaleString('pt-BR',{maximumFractionDigits:liq!=null?3:2})+'%'+(liq!=null?' (pelo valor que cai)':'')+' = '+fmt(tx));
   const dest=destinoDe($('vForma').value,canalId),prazo=fiado?0:dest.prazo;
   const quando=prazo>0?` · cai ${fmtData(addDiasUteis($('vData').value||hoje(),prazo))} em ${esc(contaNome(dest.conta))}`:'';
   box.innerHTML=`<span class="mut">${partes.join(' · ')} →</span> lucro estimado <b class="${lucro>=0?'pos':'neg'}">${fmt(lucro)}</b>`
@@ -6260,7 +6285,8 @@ function salvarVenda(){
   const sub=subtotalVenda(),desc=descontoVenda(),dsc=descontoVendaBruto();
   const aj=ajusteVendaBruto(),ajValor=calcAjuste(r2(sub-desc),aj.tipo,aj.n),total=r2(Math.max(0,sub-desc+ajValor));
   const dv={data:$('vData').value,clienteId:cliente?cliente.id:null,clienteNome:nome,localId,formaId:forma.id,
-    canalId:canalSelecionado(),bandeiraId:bandeiraSelecionada(),parcelasCartao:parcCartaoSel(),taxaPercManual:taxaManualVenda(),
+    canalId:canalSelecionado(),bandeiraId:bandeiraSelecionada(),parcelasCartao:parcCartaoSel(),taxaPercManual:null,
+    liquidoManual:$('vTaxaBox').hidden?null:liquidoManualVenda(),
     itens:itensVenda.map(i=>({produtoId:i.produtoId,variacaoId:i.variacaoId||null,tamanho:i.tamanho||'',nome:i.nome.trim(),qtd:+i.qtd||0,preco:r2(i.preco),custo:r2(i.custo),status:i.status||'ok'})),
     // o custo do que voltou pro estoque não é custo da venda; o do defeito é (a peça se perdeu)
     totalBruto:sub,desconto:desc,descontoTipo:dsc.tipo,descontoValor:dsc.n,cupom:($('vCupom')&&$('vCupom').value)||'',ajusteTipo:aj.tipo,ajusteValor:aj.n,ajuste:ajValor,
@@ -6356,7 +6382,7 @@ function salvarVenda(){
 }
 function lancarVendaAvista(v,forma){
   const r=registrarEntrada({data:v.data,valor:v.total,formaId:forma.id,canalId:v.canalId,bandeiraId:v.bandeiraId,parcelasCartao:v.parcelasCartao,
-    taxaPerc:v.taxaPercManual,descricao:'Venda'+(v.clienteNome?' — '+v.clienteNome:''),origem:'venda',refId:v.id});
+    taxaPerc:v.taxaPercManual,liquido:v.liquidoManual,descricao:'Venda'+(v.clienteNome?' — '+v.clienteNome:''),origem:'venda',refId:v.id});
   v.lancId=r.lancId;v.lancTaxaId=r.lancTaxaId;v.recebivelId=r.recebivelId;v.taxaValor=r.taxa;
 }
 function excluirVenda(id){
@@ -8580,9 +8606,12 @@ a{color:inherit}
 .banners .pontos{position:absolute;left:50%;bottom:.7rem;transform:translateX(-50%);display:flex;gap:.45rem;background:rgba(0,0,0,.35);padding:.35rem .6rem;border-radius:20px}
 .banners .pontos button{width:9px;height:9px;border-radius:50%;border:1.5px solid #fff;background:transparent;padding:0;cursor:pointer}
 .banners .pontos button.on{background:#fff}
-.banners .seta{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border:none;border-radius:50%;
-  background:rgba(0,0,0,.4);color:#fff;font-size:1.6rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.banners .seta:hover{background:rgba(0,0,0,.7)}
+.banners .seta{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:36px;padding:0;border-radius:50%;
+  border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.2);color:#fff;cursor:pointer;
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 1px 8px rgba(0,0,0,.15);
+  display:flex;align-items:center;justify-content:center;opacity:.85;transition:opacity .15s,background .15s}
+.banners .seta svg{width:17px;height:17px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.4))}
+.banners .seta:hover{opacity:1;background:rgba(0,0,0,.38)}
 .banners .seta.ant{left:1.6rem}
 .banners .seta.prox{right:1.6rem}
 @media(max-width:699px){
@@ -8661,15 +8690,20 @@ a{color:inherit}
 .carrossel img.show,.carrossel video.show{opacity:1}
 /* só o quadro visível recebe clique; o vídeo precisa dele pra tocar */
 .carrossel video.show{pointer-events:auto;background:#000}
-/* setas de navegação — sobre a foto, sempre legíveis porque a joia pode ser
-   clara ou escura; por isso o fundo escuro fixo em vez de transparente */
+/* setas de navegação (V11: mais discretas, a pedido do Luan — o bloco escuro
+   pesava sobre a foto). Bolinha de vidro: fundo escuro bem leve + desfoque +
+   borda clara fina, então aparece em foto clara e em foto escura sem tampar a
+   peça. No celular o dedo também passa a foto (arrastar para o lado). */
+.carrossel{touch-action:pan-y}
 .carrossel .seta{position:absolute;top:50%;transform:translateY(-50%);z-index:3;
-  width:40px;height:52px;border:none;border-radius:8px;cursor:pointer;
-  background:rgba(0,0,0,.55);color:#fff;font-size:1.9rem;line-height:1;
-  display:flex;align-items:center;justify-content:center;transition:background .15s}
-.carrossel .seta:hover{background:rgba(0,0,0,.85)}
-.carrossel .seta.ant{left:.4rem}
-.carrossel .seta.prox{right:.4rem}
+  width:34px;height:34px;padding:0;border-radius:50%;cursor:pointer;
+  border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.2);color:#fff;
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 1px 8px rgba(0,0,0,.15);
+  display:flex;align-items:center;justify-content:center;opacity:.85;transition:opacity .15s,background .15s}
+.carrossel .seta svg{width:16px;height:16px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.4))}
+.carrossel .seta:hover{opacity:1;background:rgba(0,0,0,.38)}
+.carrossel .seta.ant{left:.55rem}
+.carrossel .seta.prox{right:.55rem}
 .dots{display:flex;gap:.35rem;justify-content:center;align-items:center;padding:.5rem}
 .dots span{width:7px;height:7px;border-radius:50%;background:var(--borda);cursor:pointer;
   display:flex;align-items:center;justify-content:center;font-size:.5rem;color:var(--bg);line-height:1}
@@ -8989,7 +9023,8 @@ var LOJA_APP = __LOJA_APP__;
   function renderCapa(){
     var el=$("lgCapa");
     // com qualquer filtro ligado a capa sai: as peças sobem e fica claro que o filtro pegou (V9)
-    if(estado.col||estado.cat||estado.tipo||(!loja.capaBanner&&!loja.capaTexto)){el.hidden=true;pintar(el,"");return;}
+    // — buscando também (V11): o resultado tem que aparecer logo, não depois da capa
+    if(algumFiltro()||(!loja.capaBanner&&!loja.capaTexto)){el.hidden=true;pintar(el,"");return;}
     el.hidden=false;
     el.className="col-banner capa"+(loja.capaBanner?"":" sem-foto")+(loja.capaFiltro?" link":"");
     pintar(el,"<div class=\\"faixa\\">"+
@@ -9017,6 +9052,9 @@ var LOJA_APP = __LOJA_APP__;
      a cada 5 s até a pessoa mexer — aí param, para não trocar o banner debaixo
      do dedo dela. */
   var bnIdx=0,bnTimer=null,bnMexeu=false;
+  /* setas finas desenhadas (V11) — o "‹" de texto ficava grosso e torto */
+  var SETA_ANT="<svg viewBox=\\"0 0 24 24\\" aria-hidden=\\"true\\"><path d=\\"M15 5l-7 7 7 7\\" fill=\\"none\\" stroke=\\"currentColor\\" stroke-width=\\"2.4\\" stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\"/></svg>";
+  var SETA_PROX="<svg viewBox=\\"0 0 24 24\\" aria-hidden=\\"true\\"><path d=\\"M9 5l7 7-7 7\\" fill=\\"none\\" stroke=\\"currentColor\\" stroke-width=\\"2.4\\" stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\"/></svg>";
   function listaBanners(){
     var bs=loja.banners||[],r=[];
     for(var i=0;i<bs.length;i++)if(bs[i]&&bs[i].img)r.push(bs[i]);
@@ -9024,7 +9062,7 @@ var LOJA_APP = __LOJA_APP__;
   }
   function renderBanners(){
     var el=$("lgBanners"),bs=listaBanners();
-    if(estado.col||estado.cat||estado.tipo||!bs.length){
+    if(algumFiltro()||!bs.length){
       if(bnTimer){clearInterval(bnTimer);bnTimer=null;}
       el.hidden=true;pintar(el,"");return;
     }
@@ -9037,8 +9075,8 @@ var LOJA_APP = __LOJA_APP__;
     }
     h+="</div>";
     if(bs.length>1){
-      h+="<button class=\\"seta ant\\" data-passo=\\"-1\\" aria-label=\\"banner anterior\\">‹</button>"+
-         "<button class=\\"seta prox\\" data-passo=\\"1\\" aria-label=\\"próximo banner\\">›</button><div class=\\"pontos\\">";
+      h+="<button class=\\"seta ant\\" data-passo=\\"-1\\" aria-label=\\"banner anterior\\">"+SETA_ANT+"</button>"+
+         "<button class=\\"seta prox\\" data-passo=\\"1\\" aria-label=\\"próximo banner\\">"+SETA_PROX+"</button><div class=\\"pontos\\">";
       for(var j=0;j<bs.length;j++)h+="<button data-ir=\\""+j+"\\" aria-label=\\"banner "+(j+1)+"\\"></button>";
       h+="</div>";
     }
@@ -9077,7 +9115,7 @@ var LOJA_APP = __LOJA_APP__;
     estado.busca="";$("lgBusca").value="";
     /* com o filtro ligado, capa e banners saem e a linha "Mostrando: Rosé ✕"
        aparece — antes a capa ficava na tela e parecia que o toque não fez nada */
-    render();
+    navegar();
     irParaPecas();
   }
 
@@ -9180,7 +9218,17 @@ var LOJA_APP = __LOJA_APP__;
     pintar($("lgGrade"),h);
   }
 
-  function render(){renderChips();renderTipos();renderColecoes();renderCapa();renderBanners();renderBanner();renderFiltros();renderFiltroDesc();renderGrade();marcarFiltrosNaUrl();}
+  /* passo=true: a escolha da pessoa vira um passo no histórico (V11) */
+  function render(passo){renderChips();renderTipos();renderColecoes();renderCapa();renderBanners();renderBanner();renderFiltros();renderFiltroDesc();renderGrade();marcarFiltrosNaUrl(passo);}
+  function algumFiltro(){return !!(estado.col||estado.cat||estado.tipo||chaveBusca(estado.busca));}
+  /* ---- cada escolha é um passo no "voltar" do celular (V11) ----
+     Quem tocava numa coleção, num banner ou na capa e depois no voltar saía da
+     loja: o filtro só trocava o endereço. Agora escolher coleção, material, tipo,
+     banner ou capa — ou começar uma busca — cria um passo no histórico, e o voltar
+     desfaz o passo: volta para a tela de antes, na mesma altura da página. O
+     endereço (?colecao=...) é quem guarda o filtro de cada passo. */
+  var yPasso=0;
+  function navegar(){yPasso=window.pageYOffset||0;render(true);}
 
   /* Filtros ligados à mostra (V9). Quem escolhia "Anel" e depois "Rosé"
      esquecia do primeiro e achava que a loja não tinha a peça. Cada filtro vira
@@ -9220,7 +9268,7 @@ var LOJA_APP = __LOJA_APP__;
     if(qual==="cat"||qual==="tudo")estado.cat="";
     if(qual==="tipo"||qual==="tudo")estado.tipo="";
     if(qual==="busca"||qual==="tudo"){estado.busca="";$("lgBusca").value="";}
-    render();
+    navegar();
   }
   $("lgFiltros").addEventListener("click",function(e){
     var b=e.target.closest("button");if(!b)return;
@@ -9256,23 +9304,30 @@ var LOJA_APP = __LOJA_APP__;
 
   $("lgChips").addEventListener("click",function(e){
     var b=e.target.closest("button");if(!b)return;
-    estado.cat=b.getAttribute("data-cat");render();irParaPecas(true);
+    estado.cat=b.getAttribute("data-cat");navegar();irParaPecas(true);
   });
   $("lgTipos").addEventListener("click",function(e){
     var b=e.target.closest("button");if(!b)return;
-    estado.tipo=b.getAttribute("data-tipo");render();irParaPecas(true);
+    estado.tipo=b.getAttribute("data-tipo");navegar();irParaPecas(true);
   });
   $("lgColecoes").addEventListener("click",function(e){
     var b=e.target.closest("button");if(!b)return;
     /* coleção escolhida mostra a coleção INTEIRA (V9): material, tipo e busca de
        antes saem — com "Rosé" ligado, a Black Essence aparecia vazia */
     estado.col=b.getAttribute("data-col");estado.cat="";estado.tipo="";estado.busca="";$("lgBusca").value="";
-    fecharLateral();render();irParaPecas();
+    fecharLateral();navegar();irParaPecas();
   });
   $("lgBtMenu").addEventListener("click",abrirLateral);
   $("lgFecharLat").addEventListener("click",fecharLateral);
   $("lgFundoLat").addEventListener("click",fecharLateral);
-  $("lgBusca").addEventListener("input",function(){estado.busca=this.value;renderGrade();renderFiltros();});
+  /* Busca (V11): capa e banners saem assim que a pessoa digita, e o resultado
+     aparece logo abaixo da barra. Começar a buscar é um passo (o voltar limpa a
+     busca); cada letra a mais só troca o endereço. */
+  $("lgBusca").addEventListener("input",function(){
+    var antes=chaveBusca(estado.busca);estado.busca=this.value;
+    if(!antes&&chaveBusca(estado.busca))navegar();else render();
+    irParaPecas(true);
+  });
   $("lgGrade").addEventListener("click",function(e){
     var card=e.target.closest(".prodcard");if(!card)return;
     abrirModal(card.getAttribute("data-id"));
@@ -9319,15 +9374,23 @@ var LOJA_APP = __LOJA_APP__;
     var tinha=camada;camada="";
     if(tinha&&noSite()&&history.state&&history.state.lg){voltando=true;try{history.back();}catch(e){voltando=false;}}
   }
-  window.addEventListener("popstate",function(){
+  function aplicarPendente(){var p=urlPendente;urlPendente=false;if(p)marcarFiltrosNaUrl(p==="passo");}
+  window.addEventListener("popstate",function(ev){
     // fui eu que voltei (✕ ou trocar de tela): a camada já foi fechada; só
     // acerta o endereço com os filtros que mudaram enquanto ela estava aberta
-    if(voltando){voltando=false;if(urlPendente){urlPendente=false;marcarFiltrosNaUrl();}return;}
+    if(voltando){voltando=false;aplicarPendente();return;}
     var c=camada;camada="";
     if(c==="peca")fecharModal("voltar");
     else if(c==="carrinho")fecharCarrinho("voltar");
     else if(c==="lateral")fecharLateral("voltar");
-    if(urlPendente){urlPendente=false;marcarFiltrosNaUrl();}
+    else{
+      // nada aberto: o voltar desfaz o último passo de filtro/busca (V11)
+      urlPendente=false;lerFiltrosDaUrl();render();
+      var y=(ev&&ev.state&&ev.state.y)||0;
+      try{window.scrollTo(0,y);}catch(e){}
+      return;
+    }
+    aplicarPendente();
   });
 
   /* ---- link direto de cada peça (22/10/2026) ----
@@ -9364,17 +9427,27 @@ var LOJA_APP = __LOJA_APP__;
   /* ---- link de cada coleção, material e tipo (V10.1) ----
      ?colecao=black-essence (e/ou &material=rose, &tipo=anel): a loja abre já
      filtrada — é o link que a loja posta para levar a cliente direto à coleção.
-     O endereço da barra acompanha o filtro escolhido (sem criar "voltar").
-     Nome no link é o mesmo jeito do link da peça (slugPeca). */
+     O endereço da barra acompanha o filtro escolhido (cada escolha é um passo
+     do voltar desde a V11). Nome no link é o mesmo jeito do link da peça
+     (slugPeca). A busca também vai no endereço (&busca=anel). */
   var filtrosPedidos=null,voltando=false,urlPendente=false;
   try{
     var qsF=new URLSearchParams(location.search);
-    filtrosPedidos={col:qsF.get("colecao")||"",cat:qsF.get("material")||"",tipo:qsF.get("tipo")||""};
-    if(!filtrosPedidos.col&&!filtrosPedidos.cat&&!filtrosPedidos.tipo)filtrosPedidos=null;
+    filtrosPedidos={col:qsF.get("colecao")||"",cat:qsF.get("material")||"",tipo:qsF.get("tipo")||"",busca:qsF.get("busca")||""};
+    if(!filtrosPedidos.col&&!filtrosPedidos.cat&&!filtrosPedidos.tipo&&!filtrosPedidos.busca)filtrosPedidos=null;
   }catch(e){filtrosPedidos=null;}
   function acharPorSlug(lista,s){
+    if(!s)return "";
     for(var i=0;i<lista.length;i++){var n=typeof lista[i]==="string"?lista[i]:lista[i].nome;if(slugPeca(n)===s)return n;}
     return "";
+  }
+  /* o voltar trouxe um endereço de antes: os filtros saem dele */
+  function lerFiltrosDaUrl(){
+    var q;try{q=new URLSearchParams(location.search);}catch(e){return;}
+    estado.col=acharPorSlug(colecoes,q.get("colecao")||"");
+    estado.cat=acharPorSlug(categorias,q.get("material")||"");
+    estado.tipo=acharPorSlug(tipos,q.get("tipo")||"");
+    estado.busca=q.get("busca")||"";$("lgBusca").value=estado.busca;
   }
   /* coleção nova (criada hoje) pode ainda não estar na página: tenta com o que
      já está na tela e de novo quando a vitrine do banco chega */
@@ -9384,6 +9457,7 @@ var LOJA_APP = __LOJA_APP__;
     if(f.col){var c=acharPorSlug(colecoes,f.col);if(c){estado.col=c;f.col="";}else falta=true;}
     if(f.cat){var m=acharPorSlug(categorias,f.cat);if(m){estado.cat=m;f.cat="";}else falta=true;}
     if(f.tipo){var tp=acharPorSlug(tipos,f.tipo);if(tp){estado.tipo=tp;f.tipo="";}else falta=true;}
+    if(f.busca){estado.busca=f.busca;$("lgBusca").value=f.busca;f.busca="";}
     if(!falta||ultimaChance)filtrosPedidos=null;
     render();
   }
@@ -9392,14 +9466,23 @@ var LOJA_APP = __LOJA_APP__;
     if(estado.col)q.push("colecao="+slugPeca(estado.col));
     if(estado.cat)q.push("material="+slugPeca(estado.cat));
     if(estado.tipo)q.push("tipo="+slugPeca(estado.tipo));
+    if(chaveBusca(estado.busca))q.push("busca="+encodeURIComponent(String(estado.busca).trim()));
     return location.pathname+(q.length?"?"+q.join("&"):"");
   }
   /* com uma peça/pedido/gaveta aberta, o endereço é o dela: o dos filtros
-     espera a camada fechar */
-  function marcarFiltrosNaUrl(){
+     espera a camada fechar. passo=true cria um passo no voltar (V11) e guarda
+     na entrada de antes a altura em que a pessoa estava. */
+  function marcarFiltrosNaUrl(passo){
     if(!noSite())return;
-    if(voltando||camada){urlPendente=true;return;}
-    try{history.replaceState(history.state,"",enderecoDosFiltros());}catch(e){}
+    if(voltando||camada){urlPendente=(passo||urlPendente==="passo")?"passo":"troca";return;}
+    var u=enderecoDosFiltros();
+    try{
+      if(u===location.pathname+location.search)return;
+      if(passo){
+        history.replaceState(Object.assign({},history.state||{},{y:yPasso}),"");
+        history.pushState({lgf:1},"",u);
+      }else history.replaceState(history.state,"",u);
+    }catch(e){}
   }
   /* A peça pedida pode ainda não estar na vitrine guardada (peça nova, postada
      hoje): tenta com o que já está na tela e, se não achar, espera a vitrine
@@ -9485,8 +9568,8 @@ var LOJA_APP = __LOJA_APP__;
       }
       // setas só fazem sentido com mais de um quadro
       if(mds.length>1){
-        ch+="<button class=\\"seta ant\\" id=\\"lgAnt\\" aria-label=\\"anterior\\">‹</button>"+
-            "<button class=\\"seta prox\\" id=\\"lgProx\\" aria-label=\\"próximo\\">›</button>";
+        ch+="<button class=\\"seta ant\\" id=\\"lgAnt\\" aria-label=\\"anterior\\">"+SETA_ANT+"</button>"+
+            "<button class=\\"seta prox\\" id=\\"lgProx\\" aria-label=\\"próximo\\">"+SETA_PROX+"</button>";
       }
     }else{
       ch="<div style=\\"display:flex;align-items:center;justify-content:center;height:100%;font-size:3rem;opacity:.3\\">💍</div>";
@@ -9591,9 +9674,26 @@ var LOJA_APP = __LOJA_APP__;
   // tocar na foto continua avançando (é o gesto natural no celular), mas tocar
   // no vídeo é dar play — avançar ali tiraria a peça da tela no meio do toque
   $("lgCarrossel").addEventListener("click",function(e){
+    if(arrastouFoto){arrastouFoto=false;return;}
     if(e.target&&e.target.tagName==="VIDEO")return;
     passarFoto(1);
   });
+  /* arrastar o dedo para o lado passa a foto (V11) — antes só as setas e o
+     toque avançavam. Só conta arraste mais de lado que de cima a baixo, para
+     não brigar com a rolagem da janela da peça. */
+  var toqueX=null,toqueY=0,arrastouFoto=false;
+  $("lgCarrossel").addEventListener("touchstart",function(e){
+    if(e.touches.length!==1){toqueX=null;return;}
+    toqueX=e.touches[0].clientX;toqueY=e.touches[0].clientY;arrastouFoto=false;
+  },{passive:true});
+  $("lgCarrossel").addEventListener("touchend",function(e){
+    if(toqueX==null||!e.changedTouches||!e.changedTouches.length)return;
+    var t=e.changedTouches[0],dx=t.clientX-toqueX,dy=t.clientY-toqueY;toqueX=null;
+    if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)*1.3){
+      arrastouFoto=true;setTimeout(function(){arrastouFoto=false;},400);
+      passarFoto(dx<0?1:-1);
+    }
+  },{passive:true});
   // e no computador as setas do teclado também funcionam
   document.addEventListener("keydown",function(e){
     if(!atual)return;
@@ -10574,7 +10674,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-10-26 15:52';
+const VERSAO_APP='2026-10-27 22:27';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
