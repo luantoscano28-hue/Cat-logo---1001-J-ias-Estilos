@@ -256,6 +256,14 @@ s.de{color:var(--texto3);font-weight:400;font-size:.85em;margin-right:.15rem}
 .selo-promo{position:absolute;top:.5rem;left:.5rem;z-index:2;background:#c0392b;color:#fff;font-size:.72rem;font-weight:700;
   padding:.2rem .5rem;border-radius:20px;letter-spacing:.2px}
 .selo-promo.em-linha{position:static;display:inline-block;vertical-align:middle;margin-left:.3rem}
+/* promoção só numa forma de pagamento (V11, "opção 2" escolhida pelo Luan): o
+   preço do Pix grande com "no Pix" verde ao lado; o de sempre embaixo, pequeno */
+.pix-tag{font-size:.6em;font-weight:800;color:#32bcad;margin-left:.25rem;letter-spacing:.2px;vertical-align:.15em}
+.outras{font-size:.62em;font-weight:500;color:var(--texto3);margin-top:.15rem;letter-spacing:0}
+.pix-txt{color:#32bcad;font-weight:700}
+.pix-economia{display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;margin:-.3rem 0 .8rem;padding:.55rem .7rem;
+  border-radius:10px;background:rgba(50,188,173,.12);border:1px solid rgba(50,188,173,.35);color:#32bcad;font-weight:800}
+.pix-economia small{display:block;font-weight:500;font-size:.72rem;color:var(--texto2)}
 /* quantidade nunca passa do que a loja tem (V10) */
 .qtd-wrap button:disabled,.carr-item .qtd button:disabled{opacity:.35;cursor:not-allowed}
 .limite{font-size:.78rem;color:var(--texto2);margin:-.5rem 0 .9rem;min-height:0}
@@ -366,6 +374,7 @@ html.lg-esperando body::after{content:"";position:fixed;top:50%;left:50%;width:3
         <div class="cupom-msg" id="lgCupomMsg"></div>
       </div>
       <div class="carr-total"><span>Total estimado</span><span id="lgCarrTotal">R$ 0,00</span></div>
+      <div id="lgCarrFormas"></div>
       <p style="font-size:.78rem;color:var(--texto2);margin-bottom:.8rem">Valores e disponibilidade são confirmados pelo WhatsApp antes de fechar.</p>
       <button class="btgrande wpp" id="lgBtEnviar">📱 Enviar pedido no WhatsApp</button>
     </div>
@@ -709,7 +718,7 @@ var LOJA_APP = true;
       var cols=(p.cols&&p.cols.length)?("<div class=\"cols\">"+esc(p.cols.join(" · "))+"</div>"):"";
       h+="<div class=\"prodcard\" data-id=\""+esc(p.id)+"\">"+
            "<div class=\"foto\">"+(p.esgotado?"<span class=\"ribbon\">Esgotado</span>":"")+
-             (p.video?"<span class=\"selo-video\">▶ vídeo</span>":"")+(promoAtual(p)?"<span class=\"selo-promo\">"+esc(promoAtual(p).rot||"promoção")+"</span>":"")+foto+"</div>"+
+             (p.video?"<span class=\"selo-video\">▶ vídeo</span>":"")+(seloDaPeca(p)?"<span class=\"selo-promo\">"+esc(seloDe(seloDaPeca(p)))+"</span>":"")+foto+"</div>"+
            "<div class=\"info\">"+
              "<div class=\"nome\">"+esc(p.nome)+"</div>"+
              "<div class=\"cat\">"+esc(p.cat||"")+(p.tipo?" · "+esc(p.tipo):"")+"</div>"+
@@ -1092,20 +1101,43 @@ var LOJA_APP = true;
      promoção começa e termina sozinha, sem ninguém precisar republicar nada.
      Peça em mais de uma promoção: vale a de menor preço (não somam). */
   function hojeISO(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
+  function valeHoje(x,h){return (!x.ini||h>=x.ini)&&(!x.fim||h<=x.fim);}
+  /* promoção de qualquer forma de pagamento: é o preço "de sempre" de hoje */
   function promoAtual(p){
     var ps=p&&p.promos,h=hojeISO(),m=null;
     if(!ps||!ps.length)return null;
     for(var i=0;i<ps.length;i++){
       var x=ps[i];
-      if((!x.ini||h>=x.ini)&&(!x.fim||h<=x.fim)&&+x.preco<+p.preco&&(!m||+x.preco<+m.preco))m=x;
+      if(!x.forma&&valeHoje(x,h)&&+x.preco<+p.preco&&(!m||+x.preco<+m.preco))m=x;
     }
     return m;
   }
   function precoAtual(p){var m=promoAtual(p);return m?+m.preco:+p.preco;}
-  function precoHTML(p){
-    var m=promoAtual(p);
-    return m?"<s class=\"de\">"+fmtR(p.preco)+"</s> <span class=\"por\">"+fmtR(m.preco)+"</span>":fmtR(p.preco);
+  /* Promoção só numa forma de pagamento (V11 — "10% no Pix"): o preço da forma
+     vem em destaque e o de sempre embaixo, pequeno ("nas outras formas"). A
+     promoção que pega no preço de sempre e a da forma não se somam: vale a menor. */
+  function promoDaForma(p,forma){
+    var ps=p&&p.promos,h=hojeISO(),base=precoAtual(p),m=null;
+    if(!ps||!ps.length)return null;
+    for(var i=0;i<ps.length;i++){
+      var x=ps[i];
+      if(x.forma&&(!forma||x.forma===forma)&&valeHoje(x,h)&&+x.preco<base&&(!m||+x.preco<+m.preco))m=x;
+    }
+    return m;
   }
+  function precoNaForma(p,forma){var m=promoDaForma(p,forma);return m?+m.preco:precoAtual(p);}
+  function precoHTML(p,naPeca){
+    var f=promoDaForma(p);
+    if(f)return fmtR(f.preco)+"<span class=\"pix-tag\">no "+esc(f.forma)+"</span>"+
+      (naPeca?" <span class=\"selo-promo em-linha\">"+esc(seloDe(f))+"</span>":"")+
+      "<div class=\"outras\">"+fmtR(precoAtual(p))+" nas outras formas"+(naPeca?" de pagamento":"")+"</div>";
+    var m=promoAtual(p);
+    return (m?"<s class=\"de\">"+fmtR(p.preco)+"</s> <span class=\"por\">"+fmtR(m.preco)+"</span>":fmtR(p.preco))+
+      (m&&naPeca?" <span class=\"selo-promo em-linha\">"+esc(seloDe(m))+"</span>":"");
+  }
+  /* o selo da foto: a promoção da forma (se houver) ganha da de sempre */
+  function seloDaPeca(p){return promoDaForma(p)||promoAtual(p);}
+  function seloDe(m){return (m.rot||"promoção")+(m.forma?" no "+m.forma:"");}
   /* ---- quanto a loja tem (V10) ----
      a quantidade no pedido para no que existe de verdade — a cliente não fica
      achando que tem 29 brincos quando a loja tem 3. Peça sem controle de
@@ -1126,8 +1158,7 @@ var LOJA_APP = true;
   function renderInfoModal(){
     var p=atual;
     $("lgMdNome").textContent=p.nome;
-    var pm=promoAtual(p);
-    $("lgMdPreco").innerHTML=precoHTML(p)+(pm?" <span class=\"selo-promo em-linha\">"+esc(pm.rot||"promoção")+"</span>":"");
+    $("lgMdPreco").innerHTML=precoHTML(p,true);
     // etiquetas: material, tipo e as coleções da peça
     var tags=[];
     if(p.cat)tags.push(p.cat);
@@ -1242,6 +1273,7 @@ var LOJA_APP = true;
       $("lgCarrItens").innerHTML="<p style=\"color:#b3a88f;font-size:.85rem\">Seu pedido está vazio. Escolha alguma peça no catálogo.</p>";
       $("lgCupomBox").hidden=true;
       $("lgCarrTotal").textContent=fmtR(0);
+      $("lgCarrFormas").innerHTML="";
       return;
     }
     var h="",c=contaDoPedido();
@@ -1253,7 +1285,8 @@ var LOJA_APP = true;
          "<div style=\"flex:1\">"+
            "<div class=\"nm\">"+esc(it.nome)+"</div>"+
            (it.tamanho?"<div class=\"tam\">Tam.: "+esc(it.tamanho)+"</div>":"")+
-           "<div class=\"tam\">"+(it.de>it.preco?"<s>"+fmtR(it.de)+"</s> ":"")+fmtR(it.preco)+(it.qtd>1?" cada":"")+"</div>"+
+           "<div class=\"tam\">"+(it.de>it.preco?"<s>"+fmtR(it.de)+"</s> ":"")+fmtR(it.preco)+(it.qtd>1?" cada":"")+
+             (it.pf?" · <b class=\"pix-txt\">"+fmtR(it.pf.preco)+" no "+esc(it.pf.forma)+"</b>":"")+"</div>"+
            "<div class=\"qtd\"><button data-acao=\"menos\" aria-label=\"menos uma\">−</button><span>"+it.qtd+"</span>"+
              "<button data-acao=\"mais\" aria-label=\"mais uma\""+(noMax?" disabled title=\"é tudo o que temos\"":"")+">+</button></div>"+
          "</div><button class=\"rm\" data-acao=\"remover\" aria-label=\"tirar do pedido\">✕</button></div>";
@@ -1261,22 +1294,44 @@ var LOJA_APP = true;
     $("lgCarrItens").innerHTML=h;
     renderCupom(c);
     $("lgCarrTotal").textContent=fmtR(c.total);
+    // "Pagando no Pix R$ 128,00" logo abaixo do total (V11)
+    var fh="";
+    for(var f=0;f<c.formas.length;f++){
+      var cf=c.formas[f];
+      fh+="<div class=\"pix-economia\"><span>Pagando no "+esc(cf.nome)+"<small>economia de "+fmtR(cf.economia)+
+        (cf.pecas.length===1?" ("+esc(cf.pecas[0])+")":" em "+cf.pecas.length+" peças")+"</small></span><span>"+fmtR(cf.total)+"</span></div>";
+    }
+    $("lgCarrFormas").innerHTML=fh;
   }
   /* ---- a conta do pedido (V10): preço de HOJE (promoção que acabou não vale
      mais, mesmo que a peça tenha entrado no pedido durante ela), cupom e total.
      É a mesma conta na tela e na mensagem do WhatsApp. */
-  function contaDoPedido(){
+  /* forma: conta "pagando em <forma>" (V11, ex.: "Pix") — só as peças que têm
+     promoção nessa forma mudam de preço; as outras ficam com o preço delas. */
+  function contaDoPedido(forma){
     var itens=[],sub=0,fora=0,n=0;
     for(var i=0;i<carrinho.length;i++){
       var it=carrinho[i],p=acharProduto(it.id);
-      var preco=p?precoAtual(p):+it.preco,de=p?+p.preco:(+it.precoDe||+it.preco);
-      itens.push({id:it.id,nome:it.nome,tamanho:it.tamanho||"",foto:it.foto,qtd:it.qtd,preco:preco,de:de,prod:p});
+      var preco=p?(forma?precoNaForma(p,forma):precoAtual(p)):+it.preco,de=p?+p.preco:(+it.precoDe||+it.preco);
+      itens.push({id:it.id,nome:it.nome,tamanho:it.tamanho||"",foto:it.foto,qtd:it.qtd,preco:preco,de:de,prod:p,
+        pf:(!forma&&p)?promoDaForma(p):null});
       sub+=preco*it.qtd;n+=it.qtd;
       if(!(de>preco))fora+=preco*it.qtd;   // peça SEM promoção (é onde o cupom que não soma vale)
     }
     sub=Math.round(sub*100)/100;fora=Math.round(fora*100)/100;
     var cp=cupomValido(cupomAplicado,sub,fora),desc=cp?cp.desconto:0;
-    return {itens:itens,subtotal:sub,foraPromo:fora,pecas:n,cupom:cp,desconto:desc,total:Math.round((sub-desc)*100)/100};
+    var r={itens:itens,subtotal:sub,foraPromo:fora,pecas:n,cupom:cp,desconto:desc,total:Math.round((sub-desc)*100)/100,formas:[]};
+    if(!forma){
+      // jeito A (escolha do Luan): o total de sempre e, embaixo, quanto fica em cada forma com desconto
+      var nomes=[];
+      for(var k=0;k<itens.length;k++)if(itens[k].pf&&nomes.indexOf(itens[k].pf.forma)<0)nomes.push(itens[k].pf.forma);
+      for(var j=0;j<nomes.length;j++){
+        var cf=contaDoPedido(nomes[j]),eco=Math.round((r.total-cf.total)*100)/100,quais=[];
+        for(var q=0;q<itens.length;q++)if(itens[q].pf&&itens[q].pf.forma===nomes[j])quais.push(itens[q].nome);
+        if(eco>0)r.formas.push({nome:nomes[j],total:cf.total,economia:eco,pecas:quais});
+      }
+    }
+    return r;
   }
   /* ---- cupom (V10) ---- código que a cliente digita no pedido; os cupons
      vêm do painel com período e pedido mínimo. Maiúscula/minúscula e espaço
@@ -1436,6 +1491,7 @@ var LOJA_APP = true;
       L.push("*"+(i+1)+") "+it.nome+"*"+(it.tamanho?" — "+qual+" "+it.tamanho:""));
       L.push(it.qtd+" × "+fmtR(it.preco)+" = *"+fmtR(Math.round(it.preco*it.qtd*100)/100)+"*"+
         (it.de>it.preco?" (promoção — de "+fmtR(it.de)+")":""));
+      if(it.pf)L.push("(no "+it.pf.forma+": "+fmtR(it.pf.preco)+(it.qtd>1?" cada":"")+" — "+it.pf.rot+")");
       if(noSite()&&it.id)L.push("📷 "+linkDaPeca({id:it.id,nome:it.nome}));
       L.push("");
     }
@@ -1444,6 +1500,8 @@ var LOJA_APP = true;
       L.push("Cupom "+c.cupom.codigo+" ("+c.cupom.rot+"): −"+fmtR(c.desconto));
     }
     L.push("*Total: "+fmtR(c.total)+"* · "+c.pecas+(c.pecas===1?" peça":" peças"));
+    for(var f=0;f<c.formas.length;f++)
+      L.push("*No "+c.formas[f].nome+": "+fmtR(c.formas[f].total)+"* (economia de "+fmtR(c.formas[f].economia)+")");
     L.push("");
     L.push("Valores e disponibilidade a confirmar com a loja.");
     return L;
