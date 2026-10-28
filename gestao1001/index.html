@@ -5254,19 +5254,27 @@ function precoComDesconto(preco,d){
   preco=+preco||0;
   return d.tipo==='valor'?r2(Math.max(0,preco-(+d.valor||0))):r2(preco*(1-(+d.valor||0)/100));
 }
+/* Promoção só numa forma de pagamento (V11 — caso real: 10% no Pix na Black
+   Essence). formaId vazio = qualquer forma. Sem forma informada (lista de
+   Produtos, preço "de sempre") só contam as promoções de qualquer forma. */
+function formaDaPromo(pr){return (pr&&pr.formaId)||'';}
+function nomeFormaDaPromo(pr){const f=formaDaPromo(pr);return f?nomeDe(C().formas,f,'forma apagada'):'';}
+function promoNaForma(pr,formaId){const f=formaDaPromo(pr);return !f||(!!formaId&&f===formaId);}
+function rotPromo(pr){const n=nomeFormaDaPromo(pr);return rotDesconto(pr)+(n?' no '+n:'');}
 /* a promoção que vale para a peça no dia (a de menor preço) — ou null */
-function promoDoProduto(p,dia){
+function promoDoProduto(p,dia,formaId){
   if(!p||!(+p.preco>0))return null;
   let m=null;
   promocoes().forEach(pr=>{
-    if(!promoValendo(pr,dia)||!promoPega(pr,p))return;
+    if(!promoValendo(pr,dia)||!promoPega(pr,p)||!promoNaForma(pr,formaId))return;
     const preco=precoComDesconto(p.preco,pr);
     if(preco<+p.preco&&(!m||preco<m.preco))m={promo:pr,preco};
   });
   return m;
 }
-/* preço que vale no dia (hoje, ou o dia da venda) — é o que a venda do painel usa */
-function precoDeVenda(p,dia){const m=promoDoProduto(p,dia);return m?m.preco:(+(p&&p.preco)||0);}
+/* preço que vale no dia (hoje, ou o dia da venda) e na forma de pagamento — é o
+   que a venda do painel usa */
+function precoDeVenda(p,dia,formaId){const m=promoDoProduto(p,dia,formaId);return m?m.preco:(+(p&&p.preco)||0);}
 function rotDesconto(d){return d.tipo==='valor'?'−'+fmt(d.valor):'−'+String(+d.valor).replace('.',',')+'%';}
 function alvoTexto(pr){
   const a=(pr&&pr.alvo)||{tipo:'todos'};
@@ -5302,7 +5310,10 @@ function promosParaLoja(p){
   promocoes().forEach(pr=>{
     if(pr.pausada||!(+pr.valor>0)||(pr.fim&&pr.fim<h)||!promoPega(pr,p))return;
     const preco=precoComDesconto(p.preco,pr);
-    if(preco<+p.preco)r.push({preco,ini:pr.ini||'',fim:pr.fim||'',rot:rotDesconto(pr)});
+    // promoção de uma forma só leva o NOME da forma (a loja não conhece os ids)
+    const o={preco,ini:pr.ini||'',fim:pr.fim||'',rot:rotDesconto(pr)},fn=nomeFormaDaPromo(pr);
+    if(fn)o.forma=fn;
+    if(preco<+p.preco)r.push(o);
   });
   return r;
 }
@@ -5346,7 +5357,7 @@ function painelPromocoes(){
   const ps=promocoes(),cs=cupons();
   const linhaPromo=pr=>{const [s,cl]=situacaoPeriodo(pr,'pausada');return `<li class="promo-item">
     <div class="pi-txt"><b>${esc(pr.nome||'Promoção')}</b> <span class="bd ${cl}">${s}</span>
-      <div class="mut">${rotDesconto(pr)} · ${esc(alvoTexto(pr))} · ${periodoTexto(pr)} · ${pecasDaPromo(pr).length} peça(s)</div></div>
+      <div class="mut">${esc(rotPromo(pr))} · ${esc(alvoTexto(pr))} · ${periodoTexto(pr)} · ${pecasDaPromo(pr).length} peça(s)</div></div>
     <span class="pi-bts"><button class="bt mini" onclick="editarPromocao('${pr.id}')">✎ editar</button>
       <button class="bt mini" onclick="pausarPromocao('${pr.id}')">${pr.pausada?'▶ retomar':'⏸ pausar'}</button>
       <button class="bt mini perigo" onclick="excluirPromocao('${pr.id}')" aria-label="excluir">✕</button></span></li>`;};
@@ -5373,7 +5384,11 @@ function painelPromocoes(){
 /* preço na lista de Produtos: em promoção hoje, o de antes riscado + o de agora */
 function precoNaLista(p){
   const m=promoDoProduto(p);
-  if(!m)return fmt(p.preco);
+  if(!m){
+    // promoção só numa forma (ex.: Pix): o preço é o de sempre, com o aviso ao lado
+    const pf=promocoes().find(pr=>formaDaPromo(pr)&&promoValendo(pr)&&promoPega(pr,p));
+    return pf?`${fmt(p.preco)}<span class="bd ent" title="${esc(pf.nome||'promoção')}">🏷️ ${esc(rotPromo(pf))}</span>`:fmt(p.preco);
+  }
   return `<s class="mut">${fmt(p.preco)}</s><div><b>${fmt(m.preco)}</b></div><span class="bd ent" title="${esc(m.promo.nome||'promoção')}">🏷️ ${rotDesconto(m.promo)}</span>`;
 }
 function selecionadosEmProdutos(){const s=ui.p.sel||{};return Object.keys(s).filter(k=>s[k]&&dados.produtos.some(p=>p.id===k));}
@@ -5406,13 +5421,17 @@ function editarPromocao(id){
     {id:'tp',rotulo:'Tipo de peça',tipo:'lista',opcoes:ops(C().tipos),valor:a.tipo==='tipo'?a.id:'',mostrarSe:v=>v.alvo==='tipo',pergunta:'Tipo:'},
     {id:'cor',rotulo:'Cor',tipo:'lista',opcoes:cores.map(c=>[c,c]),valor:a.tipo==='cor'?a.id:'',mostrarSe:v=>v.alvo==='cor',pergunta:'Cor:'},
     {id:'ini',rotulo:'Começa em',tipo:'data',valor:pr?pr.ini:hoje(),pergunta:'Começa em (AAAA-MM-DD):'},
-    {id:'fim',rotulo:'Termina em',tipo:'data',valor:pr?pr.fim:'',dica:'vazio = até você pausar',pergunta:'Termina em (AAAA-MM-DD):'}
+    {id:'fim',rotulo:'Termina em',tipo:'data',valor:pr?pr.fim:'',dica:'vazio = até você pausar',pergunta:'Termina em (AAAA-MM-DD):'},
+    /* V11: promoção só numa forma de pagamento (ex.: 10% no Pix) */
+    {id:'forma',rotulo:'Vale para pagamento em',tipo:'lista',valor:pr?formaDaPromo(pr):'',
+      dica:'ex.: só no Pix — na loja aparece "R$ 63,00 no Pix"; na venda do painel o desconto entra ao escolher essa forma',
+      opcoes:[['','Qualquer forma de pagamento']].concat(ops(C().formas)),pergunta:'Forma de pagamento:'}
   ]},v=>{
     const erro=conferir(v);if(erro){avisar(erro,{titulo:'Falta acertar'});return;}
     const alvo={tipo:v.alvo};
     if(v.alvo==='col')alvo.id=v.col;else if(v.alvo==='cat')alvo.id=v.cat;else if(v.alvo==='tipo')alvo.id=v.tp;
     else if(v.alvo==='cor')alvo.id=v.cor;else if(v.alvo==='pecas')alvo.ids=idsPecas.slice();
-    const o={nome:String(v.nome||'').trim(),tipo:v.tipo==='valor'?'valor':'pct',valor:r2(v.valor),alvo,ini:v.ini||'',fim:v.fim||''};
+    const o={nome:String(v.nome||'').trim(),tipo:v.tipo==='valor'?'valor':'pct',valor:r2(v.valor),alvo,ini:v.ini||'',fim:v.fim||'',formaId:v.forma||''};
     let alvoPr=pr;
     if(pr)Object.assign(pr,o);else{alvoPr=Object.assign({id:novoId(),pausada:false},o);listaPromocoes().push(alvoPr);}
     salvar();renderConfig();
@@ -5750,8 +5769,9 @@ function usarProdutoNoItem(i,p){
   if(!p||i<0||!itensVenda[i])return;
   const it=itensVenda[i];
   it.nome=p.nome;it.produtoId=p.id;it.custo=p.custo!=null?+p.custo:0;
-  // preço do dia da venda: com promoção valendo, já entra com desconto (V10)
-  if(+p.preco>0)it.preco=precoDeVenda(p,dataVendaAtual());
+  // preço do dia da venda: com promoção valendo, já entra com desconto (V10) —
+  // e da forma de pagamento escolhida (promoção só no Pix, V11)
+  if(+p.preco>0)it.preco=it.precoAuto=precoDeVenda(p,dataVendaAtual(),formaVendaAtual());
   it.variacaoId=temGrade(p)?((p.variacoes[0]||{}).id||null):null;
   renderItensVenda();
   const row=$('vItensBody').children[i];
@@ -5826,7 +5846,7 @@ function itemVenda(i,campo,val){
     // só vincula sozinho se houver UM produto com esse nome (nomes repetidos exigem escolher na lista)
     const iguais=dados.produtos.filter(x=>x.nome.toLowerCase()===val.trim().toLowerCase());
     const p=iguais.length===1?iguais[0]:null;
-    if(p){it.produtoId=p.id;it.novoProd=null;it.custo=p.custo!=null?+p.custo:0;if(!(+it.preco>0)&&+p.preco>0){it.preco=precoDeVenda(p,dataVendaAtual());if(row)row.querySelector(".prc").value=it.preco;}}
+    if(p){it.produtoId=p.id;it.novoProd=null;it.custo=p.custo!=null?+p.custo:0;if(!(+it.preco>0)&&+p.preco>0){it.preco=it.precoAuto=precoDeVenda(p,dataVendaAtual(),formaVendaAtual());if(row)row.querySelector(".prc").value=it.preco;}}
     else it.produtoId=null;
     // o rascunho do "✎ detalhar" só vale enquanto o nome continuar o mesmo
     if(it.novoProd&&it.novoProd.nome.trim().toLowerCase()!==val.trim().toLowerCase())it.novoProd=null;
@@ -5911,7 +5931,7 @@ function escolherCupomVenda(){
        promoção — vira um desconto em R$ calculado sobre elas */
     const dia=dataVendaAtual();
     const base=r2(itensVenda.filter(itemCobra).filter(i=>{
-      const p=i.produtoId&&prodPorId(i.produtoId);return !(p&&promoDoProduto(p,dia));
+      const p=i.produtoId&&prodPorId(i.produtoId);return !(p&&promoDoProduto(p,dia,formaVendaAtual()));
     }).reduce((s,i)=>s+(+i.qtd||0)*(+i.preco||0),0));
     if(!(base>0)){
       avisar('O cupom '+c.codigo+' não vale para peças em promoção — e todas as peças desta venda estão em promoção.',{titulo:'Cupom'});return;
@@ -6107,7 +6127,23 @@ function vFormaMudou(){
   const fiado=formaAtualFiado();$('vFiadoBox').hidden=!fiado;
   $('vCanalBox').hidden=!formaUsaCanal($('vForma').value);
   if(fiado&&!$('vVencUnico').value)$('vVencUnico').value=isoAddDias($('vData').value||hoje(),30);
+  reprecarPelaForma();
   vCanalMudou();
+}
+function formaVendaAtual(){return ($('vForma')&&$('vForma').value)||'';}
+/* Promoção só numa forma de pagamento (V11): trocou a forma, as peças que
+   entraram com o preço automático passam para o preço da forma nova (Pix com os
+   10%, cartão sem). Preço digitado à mão fica como está — e venda reaberta para
+   editar não muda sozinha (os itens dela não têm o preço automático marcado). */
+function reprecarPelaForma(){
+  const dia=dataVendaAtual(),f=formaVendaAtual();let mudou=false;
+  itensVenda.forEach(it=>{
+    const p=it.produtoId&&prodPorId(it.produtoId);
+    if(!p||it.precoAuto==null||+it.preco!==+it.precoAuto)return;
+    const novo=precoDeVenda(p,dia,f);
+    if(novo!==+it.preco){it.preco=it.precoAuto=novo;mudou=true;}
+  });
+  if(mudou)renderItensVenda();
 }
 function vDividirMudou(){
   const div=$('vDividir').checked;
@@ -8754,6 +8790,14 @@ s.de{color:var(--texto3);font-weight:400;font-size:.85em;margin-right:.15rem}
 .selo-promo{position:absolute;top:.5rem;left:.5rem;z-index:2;background:#c0392b;color:#fff;font-size:.72rem;font-weight:700;
   padding:.2rem .5rem;border-radius:20px;letter-spacing:.2px}
 .selo-promo.em-linha{position:static;display:inline-block;vertical-align:middle;margin-left:.3rem}
+/* promoção só numa forma de pagamento (V11, "opção 2" escolhida pelo Luan): o
+   preço do Pix grande com "no Pix" verde ao lado; o de sempre embaixo, pequeno */
+.pix-tag{font-size:.6em;font-weight:800;color:#32bcad;margin-left:.25rem;letter-spacing:.2px;vertical-align:.15em}
+.outras{font-size:.62em;font-weight:500;color:var(--texto3);margin-top:.15rem;letter-spacing:0}
+.pix-txt{color:#32bcad;font-weight:700}
+.pix-economia{display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;margin:-.3rem 0 .8rem;padding:.55rem .7rem;
+  border-radius:10px;background:rgba(50,188,173,.12);border:1px solid rgba(50,188,173,.35);color:#32bcad;font-weight:800}
+.pix-economia small{display:block;font-weight:500;font-size:.72rem;color:var(--texto2)}
 /* quantidade nunca passa do que a loja tem (V10) */
 .qtd-wrap button:disabled,.carr-item .qtd button:disabled{opacity:.35;cursor:not-allowed}
 .limite{font-size:.78rem;color:var(--texto2);margin:-.5rem 0 .9rem;min-height:0}
@@ -8864,6 +8908,7 @@ html.lg-esperando body::after{content:"";position:fixed;top:50%;left:50%;width:3
         <div class="cupom-msg" id="lgCupomMsg"></div>
       </div>
       <div class="carr-total"><span>Total estimado</span><span id="lgCarrTotal">R$ 0,00</span></div>
+      <div id="lgCarrFormas"></div>
       <p style="font-size:.78rem;color:var(--texto2);margin-bottom:.8rem">Valores e disponibilidade são confirmados pelo WhatsApp antes de fechar.</p>
       <button class="btgrande wpp" id="lgBtEnviar">📱 Enviar pedido no WhatsApp</button>
     </div>
@@ -9207,7 +9252,7 @@ var LOJA_APP = __LOJA_APP__;
       var cols=(p.cols&&p.cols.length)?("<div class=\\"cols\\">"+esc(p.cols.join(" · "))+"</div>"):"";
       h+="<div class=\\"prodcard\\" data-id=\\""+esc(p.id)+"\\">"+
            "<div class=\\"foto\\">"+(p.esgotado?"<span class=\\"ribbon\\">Esgotado</span>":"")+
-             (p.video?"<span class=\\"selo-video\\">▶ vídeo</span>":"")+(promoAtual(p)?"<span class=\\"selo-promo\\">"+esc(promoAtual(p).rot||"promoção")+"</span>":"")+foto+"</div>"+
+             (p.video?"<span class=\\"selo-video\\">▶ vídeo</span>":"")+(seloDaPeca(p)?"<span class=\\"selo-promo\\">"+esc(seloDe(seloDaPeca(p)))+"</span>":"")+foto+"</div>"+
            "<div class=\\"info\\">"+
              "<div class=\\"nome\\">"+esc(p.nome)+"</div>"+
              "<div class=\\"cat\\">"+esc(p.cat||"")+(p.tipo?" · "+esc(p.tipo):"")+"</div>"+
@@ -9590,20 +9635,43 @@ var LOJA_APP = __LOJA_APP__;
      promoção começa e termina sozinha, sem ninguém precisar republicar nada.
      Peça em mais de uma promoção: vale a de menor preço (não somam). */
   function hojeISO(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
+  function valeHoje(x,h){return (!x.ini||h>=x.ini)&&(!x.fim||h<=x.fim);}
+  /* promoção de qualquer forma de pagamento: é o preço "de sempre" de hoje */
   function promoAtual(p){
     var ps=p&&p.promos,h=hojeISO(),m=null;
     if(!ps||!ps.length)return null;
     for(var i=0;i<ps.length;i++){
       var x=ps[i];
-      if((!x.ini||h>=x.ini)&&(!x.fim||h<=x.fim)&&+x.preco<+p.preco&&(!m||+x.preco<+m.preco))m=x;
+      if(!x.forma&&valeHoje(x,h)&&+x.preco<+p.preco&&(!m||+x.preco<+m.preco))m=x;
     }
     return m;
   }
   function precoAtual(p){var m=promoAtual(p);return m?+m.preco:+p.preco;}
-  function precoHTML(p){
-    var m=promoAtual(p);
-    return m?"<s class=\\"de\\">"+fmtR(p.preco)+"</s> <span class=\\"por\\">"+fmtR(m.preco)+"</span>":fmtR(p.preco);
+  /* Promoção só numa forma de pagamento (V11 — "10% no Pix"): o preço da forma
+     vem em destaque e o de sempre embaixo, pequeno ("nas outras formas"). A
+     promoção que pega no preço de sempre e a da forma não se somam: vale a menor. */
+  function promoDaForma(p,forma){
+    var ps=p&&p.promos,h=hojeISO(),base=precoAtual(p),m=null;
+    if(!ps||!ps.length)return null;
+    for(var i=0;i<ps.length;i++){
+      var x=ps[i];
+      if(x.forma&&(!forma||x.forma===forma)&&valeHoje(x,h)&&+x.preco<base&&(!m||+x.preco<+m.preco))m=x;
+    }
+    return m;
   }
+  function precoNaForma(p,forma){var m=promoDaForma(p,forma);return m?+m.preco:precoAtual(p);}
+  function precoHTML(p,naPeca){
+    var f=promoDaForma(p);
+    if(f)return fmtR(f.preco)+"<span class=\\"pix-tag\\">no "+esc(f.forma)+"</span>"+
+      (naPeca?" <span class=\\"selo-promo em-linha\\">"+esc(seloDe(f))+"</span>":"")+
+      "<div class=\\"outras\\">"+fmtR(precoAtual(p))+" nas outras formas"+(naPeca?" de pagamento":"")+"</div>";
+    var m=promoAtual(p);
+    return (m?"<s class=\\"de\\">"+fmtR(p.preco)+"</s> <span class=\\"por\\">"+fmtR(m.preco)+"</span>":fmtR(p.preco))+
+      (m&&naPeca?" <span class=\\"selo-promo em-linha\\">"+esc(seloDe(m))+"</span>":"");
+  }
+  /* o selo da foto: a promoção da forma (se houver) ganha da de sempre */
+  function seloDaPeca(p){return promoDaForma(p)||promoAtual(p);}
+  function seloDe(m){return (m.rot||"promoção")+(m.forma?" no "+m.forma:"");}
   /* ---- quanto a loja tem (V10) ----
      a quantidade no pedido para no que existe de verdade — a cliente não fica
      achando que tem 29 brincos quando a loja tem 3. Peça sem controle de
@@ -9624,8 +9692,7 @@ var LOJA_APP = __LOJA_APP__;
   function renderInfoModal(){
     var p=atual;
     $("lgMdNome").textContent=p.nome;
-    var pm=promoAtual(p);
-    $("lgMdPreco").innerHTML=precoHTML(p)+(pm?" <span class=\\"selo-promo em-linha\\">"+esc(pm.rot||"promoção")+"</span>":"");
+    $("lgMdPreco").innerHTML=precoHTML(p,true);
     // etiquetas: material, tipo e as coleções da peça
     var tags=[];
     if(p.cat)tags.push(p.cat);
@@ -9740,6 +9807,7 @@ var LOJA_APP = __LOJA_APP__;
       $("lgCarrItens").innerHTML="<p style=\\"color:#b3a88f;font-size:.85rem\\">Seu pedido está vazio. Escolha alguma peça no catálogo.</p>";
       $("lgCupomBox").hidden=true;
       $("lgCarrTotal").textContent=fmtR(0);
+      $("lgCarrFormas").innerHTML="";
       return;
     }
     var h="",c=contaDoPedido();
@@ -9751,7 +9819,8 @@ var LOJA_APP = __LOJA_APP__;
          "<div style=\\"flex:1\\">"+
            "<div class=\\"nm\\">"+esc(it.nome)+"</div>"+
            (it.tamanho?"<div class=\\"tam\\">Tam.: "+esc(it.tamanho)+"</div>":"")+
-           "<div class=\\"tam\\">"+(it.de>it.preco?"<s>"+fmtR(it.de)+"</s> ":"")+fmtR(it.preco)+(it.qtd>1?" cada":"")+"</div>"+
+           "<div class=\\"tam\\">"+(it.de>it.preco?"<s>"+fmtR(it.de)+"</s> ":"")+fmtR(it.preco)+(it.qtd>1?" cada":"")+
+             (it.pf?" · <b class=\\"pix-txt\\">"+fmtR(it.pf.preco)+" no "+esc(it.pf.forma)+"</b>":"")+"</div>"+
            "<div class=\\"qtd\\"><button data-acao=\\"menos\\" aria-label=\\"menos uma\\">−</button><span>"+it.qtd+"</span>"+
              "<button data-acao=\\"mais\\" aria-label=\\"mais uma\\""+(noMax?" disabled title=\\"é tudo o que temos\\"":"")+">+</button></div>"+
          "</div><button class=\\"rm\\" data-acao=\\"remover\\" aria-label=\\"tirar do pedido\\">✕</button></div>";
@@ -9759,22 +9828,44 @@ var LOJA_APP = __LOJA_APP__;
     $("lgCarrItens").innerHTML=h;
     renderCupom(c);
     $("lgCarrTotal").textContent=fmtR(c.total);
+    // "Pagando no Pix R$ 128,00" logo abaixo do total (V11)
+    var fh="";
+    for(var f=0;f<c.formas.length;f++){
+      var cf=c.formas[f];
+      fh+="<div class=\\"pix-economia\\"><span>Pagando no "+esc(cf.nome)+"<small>economia de "+fmtR(cf.economia)+
+        (cf.pecas.length===1?" ("+esc(cf.pecas[0])+")":" em "+cf.pecas.length+" peças")+"</small></span><span>"+fmtR(cf.total)+"</span></div>";
+    }
+    $("lgCarrFormas").innerHTML=fh;
   }
   /* ---- a conta do pedido (V10): preço de HOJE (promoção que acabou não vale
      mais, mesmo que a peça tenha entrado no pedido durante ela), cupom e total.
      É a mesma conta na tela e na mensagem do WhatsApp. */
-  function contaDoPedido(){
+  /* forma: conta "pagando em <forma>" (V11, ex.: "Pix") — só as peças que têm
+     promoção nessa forma mudam de preço; as outras ficam com o preço delas. */
+  function contaDoPedido(forma){
     var itens=[],sub=0,fora=0,n=0;
     for(var i=0;i<carrinho.length;i++){
       var it=carrinho[i],p=acharProduto(it.id);
-      var preco=p?precoAtual(p):+it.preco,de=p?+p.preco:(+it.precoDe||+it.preco);
-      itens.push({id:it.id,nome:it.nome,tamanho:it.tamanho||"",foto:it.foto,qtd:it.qtd,preco:preco,de:de,prod:p});
+      var preco=p?(forma?precoNaForma(p,forma):precoAtual(p)):+it.preco,de=p?+p.preco:(+it.precoDe||+it.preco);
+      itens.push({id:it.id,nome:it.nome,tamanho:it.tamanho||"",foto:it.foto,qtd:it.qtd,preco:preco,de:de,prod:p,
+        pf:(!forma&&p)?promoDaForma(p):null});
       sub+=preco*it.qtd;n+=it.qtd;
       if(!(de>preco))fora+=preco*it.qtd;   // peça SEM promoção (é onde o cupom que não soma vale)
     }
     sub=Math.round(sub*100)/100;fora=Math.round(fora*100)/100;
     var cp=cupomValido(cupomAplicado,sub,fora),desc=cp?cp.desconto:0;
-    return {itens:itens,subtotal:sub,foraPromo:fora,pecas:n,cupom:cp,desconto:desc,total:Math.round((sub-desc)*100)/100};
+    var r={itens:itens,subtotal:sub,foraPromo:fora,pecas:n,cupom:cp,desconto:desc,total:Math.round((sub-desc)*100)/100,formas:[]};
+    if(!forma){
+      // jeito A (escolha do Luan): o total de sempre e, embaixo, quanto fica em cada forma com desconto
+      var nomes=[];
+      for(var k=0;k<itens.length;k++)if(itens[k].pf&&nomes.indexOf(itens[k].pf.forma)<0)nomes.push(itens[k].pf.forma);
+      for(var j=0;j<nomes.length;j++){
+        var cf=contaDoPedido(nomes[j]),eco=Math.round((r.total-cf.total)*100)/100,quais=[];
+        for(var q=0;q<itens.length;q++)if(itens[q].pf&&itens[q].pf.forma===nomes[j])quais.push(itens[q].nome);
+        if(eco>0)r.formas.push({nome:nomes[j],total:cf.total,economia:eco,pecas:quais});
+      }
+    }
+    return r;
   }
   /* ---- cupom (V10) ---- código que a cliente digita no pedido; os cupons
      vêm do painel com período e pedido mínimo. Maiúscula/minúscula e espaço
@@ -9934,6 +10025,7 @@ var LOJA_APP = __LOJA_APP__;
       L.push("*"+(i+1)+") "+it.nome+"*"+(it.tamanho?" — "+qual+" "+it.tamanho:""));
       L.push(it.qtd+" × "+fmtR(it.preco)+" = *"+fmtR(Math.round(it.preco*it.qtd*100)/100)+"*"+
         (it.de>it.preco?" (promoção — de "+fmtR(it.de)+")":""));
+      if(it.pf)L.push("(no "+it.pf.forma+": "+fmtR(it.pf.preco)+(it.qtd>1?" cada":"")+" — "+it.pf.rot+")");
       if(noSite()&&it.id)L.push("📷 "+linkDaPeca({id:it.id,nome:it.nome}));
       L.push("");
     }
@@ -9942,6 +10034,8 @@ var LOJA_APP = __LOJA_APP__;
       L.push("Cupom "+c.cupom.codigo+" ("+c.cupom.rot+"): −"+fmtR(c.desconto));
     }
     L.push("*Total: "+fmtR(c.total)+"* · "+c.pecas+(c.pecas===1?" peça":" peças"));
+    for(var f=0;f<c.formas.length;f++)
+      L.push("*No "+c.formas[f].nome+": "+fmtR(c.formas[f].total)+"* (economia de "+fmtR(c.formas[f].economia)+")");
     L.push("");
     L.push("Valores e disponibilidade a confirmar com a loja.");
     return L;
@@ -10674,7 +10768,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-10-27 22:27';
+const VERSAO_APP='2026-10-27 23:08';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -13062,8 +13156,11 @@ function biparNaVenda(txt,silencioso){
   const p=achou.p,v=achou.v;
   const ja=itensVenda.find(i=>i.produtoId===p.id&&(i.variacaoId||null)===(v?v.id:null));
   if(ja)ja.qtd=(+ja.qtd||0)+1;
-  else itensVenda.push({nome:p.nome,produtoId:p.id,qtd:1,preco:precoDeVenda(p,dataVendaAtual()),   // com promoção do dia (V10)
-    custo:p.custo!=null?+p.custo:0,variacaoId:v?v.id:null,tamanho:v?v.rotulo:''});
+  else{
+    const pr=precoDeVenda(p,dataVendaAtual(),formaVendaAtual());   // com promoção do dia (V10) e da forma (V11)
+    itensVenda.push({nome:p.nome,produtoId:p.id,qtd:1,preco:pr,precoAuto:pr,
+      custo:p.custo!=null?+p.custo:0,variacaoId:v?v.id:null,tamanho:v?v.rotulo:''});
+  }
   renderItensVenda();recalcVenda();
   if(!silencioso)bipSom(true);
   if(hint)hint.innerHTML=`<span class="linkok">✓ ${esc(p.nome)}${v?' · '+esc(v.rotulo):''}</span>`+
