@@ -380,6 +380,23 @@ tr.zerado:hover td{opacity:1}
 .dup-grupo{background:var(--painel2);border:1px solid var(--borda);border-radius:10px;margin-bottom:.7rem;overflow:hidden}
 .dup-grupo table{font-size:.84rem}
 .dup-grupo td,.dup-grupo th{padding:.45rem .55rem}
+/* clientes que parecem repetidos (V12): um cartão por par, os dois lado a lado */
+.par-cli{background:var(--painel2);border:1px solid var(--borda);border-radius:10px;margin-bottom:.7rem;padding:.6rem .7rem}
+.par-por{font-size:.72rem;margin-bottom:.35rem}
+.par-lados{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.par-lado{display:flex;flex-direction:column;gap:.25rem;align-items:flex-start;font-size:.86rem}
+.par-lado .mut{font-size:.76rem}
+.par-acoes{margin-top:.5rem;padding-top:.5rem;border-top:1px dashed var(--borda);text-align:right}
+@media(max-width:699px){.par-lados{grid-template-columns:1fr}.par-acoes{text-align:left}}
+/* peças sem estoque informado (V12): uma linha por peça, com a quantidade ali mesmo */
+.se-lista{display:flex;flex-direction:column;gap:.45rem}
+.se-item{display:flex;align-items:center;gap:.7rem;background:var(--painel2);border:1px solid var(--borda);border-radius:10px;padding:.45rem .6rem}
+.se-item .thumb,.se-item .thumb-vazio{flex:none}
+.se-txt{flex:1;min-width:0;font-size:.88rem}
+.se-txt .mut{font-size:.74rem}
+.se-acoes{display:flex;align-items:center;gap:.35rem;flex:none}
+.se-acoes input{width:4.6rem;text-align:center}
+@media(max-width:699px){.se-item{flex-wrap:wrap}.se-acoes{width:100%}.se-acoes input{flex:1}}
 /* banner da coleção: a proporção aqui é a mesma da faixa no catálogo, senão
    quem escolhe a imagem não vê o corte que vai acontecer lá */
 .banner-prev{width:100%;aspect-ratio:3/1;border-radius:10px;background:var(--painel3);
@@ -535,6 +552,10 @@ main.larga{max-width:1480px}
 .plano-parcelas span.paga{color:var(--verde);border-color:var(--verde)}
 .linkok{color:var(--verde);font-weight:700}
 .linknovo{color:var(--laranja);font-size:.72rem}
+/* de onde veio o preço da peça na venda (V12): promoção, preço cheio e o com desconto */
+.promo-venda{font-size:.74rem;color:var(--verde);margin-top:.25rem;line-height:1.35}
+.promo-venda s{color:var(--texto2)}
+.promo-venda.outra{color:var(--texto2)}
 .sel-add{display:flex;gap:.3rem;align-items:stretch}
 .sel-add select{flex:1;min-width:0}
 /* campo de escolha com busca: lista comprida vira botão + lista filtrável
@@ -664,6 +685,11 @@ main.larga{max-width:1480px}
 .caixa-erro{display:block;color:var(--vermelho);font-size:.78rem;margin-top:.25rem}
 .caixa-simnao{display:flex;flex-direction:column;gap:.35rem;margin-top:.35rem}
 .caixa-simnao .linha{font-size:.9rem;color:var(--texto)}
+/* número + "Sem limite" (V12): marcado, o número fica apagado e não vale */
+.caixa-limite{display:flex;align-items:center;gap:.8rem;margin-top:.35rem}
+.caixa-limite input[type="text"]{width:6.5rem;flex:none}
+.caixa-limite input[type="text"]:disabled{opacity:.4}
+.caixa-limite .linha{font-size:.9rem;color:var(--texto);white-space:nowrap}
 #dlgCaixa .bt.primario.perigo{background:var(--vermelho);color:#fff}
 .suporte-item{display:flex;flex-direction:column;gap:.25rem;padding:.7rem 0;border-top:1px solid var(--borda)}
 .suporte-item .mut{font-size:.8rem}
@@ -1726,8 +1752,9 @@ function toast(m){const t=$('toast');t.innerHTML=m;t.style.display='block';clear
    A janela NÃO trava o código como a caixa do navegador travava: o que
    depende da resposta vai dentro de sim/feito.
 
-   Campos: {id, rotulo, tipo:'texto'|'textoLongo'|'numero'|'lista'|'simnao',
+   Campos: {id, rotulo, tipo:'texto'|'textoLongo'|'numero'|'lista'|'simnao'|'data'|'limite',
    valor, opcoes:[[valor,rótulo]], dica, exemplo, obrigatorio, mostrarSe(vals)}.
+   'limite' = número + caixinha "Sem limite" (semLimite = texto dela); devolve 0 quando marcada.
 
    Testes: eles trocam window.alert/confirm/prompt por respostas prontas.
    Quando isso acontece as caixas usam essas respostas e chamam sim/feito NA
@@ -1751,7 +1778,7 @@ function caixaConverter(c,v,doTeste){
     if(doTeste&&/^\d+$/.test(s)&&+s<c.opcoes.length)return c.opcoes[+s][0];
     const o=c.opcoes.find(x=>String(x[0])===s);return o?o[0]:null;
   }
-  if(c.tipo==='numero')return numBR(v);
+  if(c.tipo==='numero'||c.tipo==='limite')return numBR(v);
   // data (V10): AAAA-MM-DD ou vazio; o teste antigo responde a mesma coisa
   if(c.tipo==='data'){const s=String(v==null?'':v).trim();return /^\d{4}-\d{2}-\d{2}$/.test(s)?s:'';}
   if(c.tipo==='simnao')return !!v;
@@ -1768,6 +1795,12 @@ function caixaCampoHTML(c,i){
       `<label class="linha"><input type="radio" name="${id}" value="${o[0]}"${(c.valor?'1':'0')===o[0]?' checked':''}> ${esc(o[1])}</label>`).join('')}</span>`;
   }else if(c.tipo==='data'){
     inp=`<input id="${id}" type="date" value="${esc(c.valor||'')}">`;
+  }else if(c.tipo==='limite'){
+    /* V12 (pedido do Luan): "1 = uma vez · 0 = sem limite" confundia. Agora é o
+       número livre e uma caixinha "Sem limite" — marcada, o número se apaga. */
+    const sem=!(+c.valor>0);
+    inp=`<span class="caixa-limite"><input id="${id}" type="text" inputmode="numeric" autocomplete="off" value="${sem?'':esc(String(c.valor))}"${sem?' disabled':''}>
+      <label class="linha"><input type="checkbox" id="${id}Sem"${sem?' checked':''} onchange="caixaLimiteMudou(${i})"> ${esc(c.semLimite||'Sem limite')}</label></span>`;
   }else if(c.tipo==='textoLongo'){
     inp=`<textarea id="${id}" rows="${c.linhas||3}"${ph}>${esc(c.valor||'')}</textarea>`;
   }else{
@@ -1775,11 +1808,21 @@ function caixaCampoHTML(c,i){
     const val=c.valor==null?'':(num?String(c.valor).replace('.',','):String(c.valor));
     inp=`<input id="${id}" type="text"${num?' inputmode="decimal"':''} autocomplete="off" value="${esc(val)}"${ph}${c.max?` maxlength="${c.max}"`:''}>`;
   }
-  return `<label class="campo caixa-campo" data-i="${i}">${esc(c.rotulo||'')}${c.dica?` <small class="mut">${esc(c.dica)}</small>`:''}
-    ${inp}<span class="caixa-erro" id="${id}Erro" hidden></span></label>`;
+  // com caixinha dentro, o bloco não pode ser <label> (rótulo dentro de rótulo)
+  const tag=c.tipo==='limite'?'div':'label';
+  return `<${tag} class="campo caixa-campo" data-i="${i}">${esc(c.rotulo||'')}${c.dica?` <small class="mut">${esc(c.dica)}</small>`:''}
+    ${inp}<span class="caixa-erro" id="${id}Erro" hidden></span></${tag}>`;
+}
+function caixaLimiteMudou(i){
+  const s=$('cxCampo'+i+'Sem'),el=$('cxCampo'+i);if(!s||!el)return;
+  el.disabled=s.checked;
+  if(s.checked)el.value='';
+  else{if(!el.value.trim())el.value='1';try{el.focus();el.select();}catch(e){}}
 }
 function caixaLerCampo(c,i){
   if(c.tipo==='simnao'){const r=document.querySelector('input[name="cxCampo'+i+'"]:checked');return !!(r&&r.value==='1');}
+  // "Sem limite" marcado = 0 (é assim que o resto do painel lê "sem limite")
+  if(c.tipo==='limite'){const s=$('cxCampo'+i+'Sem');if(s&&s.checked)return 0;}
   const el=$('cxCampo'+i);if(!el)return undefined;
   return caixaConverter(c,c.tipo==='lista'?el.value:el.value.trim(),false);
 }
@@ -1834,6 +1877,7 @@ function caixaOk(){
     let msg='';
     if(c.obrigatorio&&(v==null||v===''||(typeof v==='number'&&isNaN(v))))msg=c.tipo==='numero'?'Digite um número.':'Preencha este campo.';
     else if(c.tipo==='numero'&&v!==''&&isNaN(v)&&String(($('cxCampo'+i)||{}).value||'').trim()!=='')msg='Digite um número (ex.: 12,50).';
+    else if(c.tipo==='limite'&&!(($('cxCampo'+i+'Sem')||{}).checked)&&!(v>=1))msg='Digite quantas vezes (1 ou mais) ou marque "'+(c.semLimite||'Sem limite')+'".';
     if(e){e.textContent=msg;e.hidden=!msg;}
     if(msg)erro=true;
     vals[c.id]=v;
@@ -1891,9 +1935,16 @@ function noPeriodo(data,ini,fim){return (!ini||data>=ini)&&(!fim||data<=fim);}
 function diaFiscal(){try{const n=parseInt(C().fiscal&&C().fiscal.diaInicio);return (n>=1&&n<=28)?n:1;}catch(e){return 1;}}
 function usaMesFiscal(){return diaFiscal()!==1;}
 /* nomes que aparecem na tela: "Mês atual" para quem usa o mês normal,
-   "Mês fiscal atual (11→10)" para quem fecha em outro dia */
-function nomeMesAtual(){const D=diaFiscal();return D===1?'Mês atual':'Mês fiscal atual ('+D+'→'+(D-1)+')';}
-function nomeMesAnterior(){return usaMesFiscal()?'Mês fiscal anterior':'Mês anterior';}
+   "Mês fiscal atual" para quem fecha em outro dia. V12: sem o "(11→10)" — com
+   o mês fechado fora do dia (14/10 a 10/11) a regra escrita contradizia as
+   datas da tela. Onde as datas não aparecem ao lado (lista de período de Vendas
+   e Financeiro), comDatas acrescenta as datas de verdade. */
+function nomeMesAtual(comDatas){return (usaMesFiscal()?'Mês fiscal atual':'Mês atual')+(comDatas?datasDoMes(0):'');}
+function nomeMesAnterior(comDatas){return (usaMesFiscal()?'Mês fiscal anterior':'Mês anterior')+(comDatas?datasDoMes(-1):'');}
+function datasDoMes(desloca){
+  const f=mesDaLoja(hoje(),desloca),n=mesFiscalDe(hoje(),desloca),c=s=>fmtData(s).slice(0,5);
+  return (usaMesFiscal()||f.ini!==n.ini||f.fim!==n.fim)?' ('+c(f.ini)+' a '+c(f.fim)+')':'';
+}
 function mesFiscalDe(iso,desloca){
   const D=diaFiscal(),p2=n=>String(n).padStart(2,'0');
   let d=new Date(iso+'T12:00:00'),y=d.getFullYear(),m=d.getMonth();
@@ -3202,7 +3253,7 @@ function alertasEstoque(){return dados.produtos.filter(estoqueBaixo);}
 /* tocar no aviso (Produtos ou Resumo) abre a lista só com eles — sem outro
    filtro escondido que tirasse alguém da lista */
 function verEstoqueBaixo(){
-  Object.assign(ui.p,{busca:'',cat:'',tipo:'',forn:'',col:'',cor:'',status:'',ini:'',fim:'',estoque:'baixo',dups:false});
+  Object.assign(ui.p,{busca:'',cat:'',tipo:'',forn:'',col:'',cor:'',status:'',ini:'',fim:'',estoque:'baixo',dups:false,semEst:false});
   if(ui.tab==='produtos')renderProdutos();else trocarTab('produtos');
   const n=alertasEstoque().length;
   toast(n?'Mostrando os '+n+' produto(s) com estoque baixo':'Nenhum produto com estoque baixo agora');
@@ -3236,6 +3287,58 @@ function selecionarSemControle(){
   dados.produtos.filter(p=>p.estoque==null).forEach(p=>ui.p.sel[p.id]=true);
   renderProdutos();
   toast(selProdIds().length+' produto(s) sem estoque informado');
+}
+/* ---- peças sem estoque informado (V12) ----
+   O botãozinho "selecionar os sem estoque —" passava despercebido (pedido do
+   Luan: tem que chamar atenção como o dos repetidos). Agora é um aviso no topo
+   de Produtos que abre a lista: digitar quantas tem e salvar, ou "Deixar
+   assim" para a peça que de propósito não tem contagem (p.semControleOk — ela
+   continua sem controle e para de aparecer aqui). Oculta não entra: não está
+   na loja. Peça com grade tem o estoque na soma dos tamanhos. */
+function semEstoqueInformado(){
+  return dados.produtos.filter(p=>!temGrade(p)&&p.estoque==null&&p.status!=='oculto'&&!p.semControleOk);
+}
+function painelSemEstoque(){
+  const ps=semEstoqueInformado();
+  const fechar=`<div class="rodape"><button class="bt" onclick="ui.p.semEst=false;renderProdutos()">Fechar</button></div>`;
+  if(!ps.length)return `<div class="painel"><h3 style="margin-top:0">📦 Sem estoque informado</h3>
+    <p class="mut">Todas as peças à venda têm a quantidade informada — tudo certo.</p>${fechar}</div>`;
+  return `<div class="painel" style="border-color:var(--laranja)">
+    <h3 style="margin-top:0">📦 Peças sem estoque informado <span class="bd fiadoP">${ps.length}</span></h3>
+    <p class="mut" style="font-size:.84rem;margin-bottom:.7rem">Estas peças nunca tiveram a quantidade contada — na loja elas aparecem como disponíveis, sem limite. Digite quantas você tem e toque em <b>Salvar</b>. Se você não controla o estoque de alguma, toque em <b>Deixar assim</b>.</p>
+    <div class="barra" style="margin-bottom:.5rem"><span class="esp"></span><button class="bt mini" onclick="semEstoqueTodasAssim()">Deixar todas assim</button></div>
+    <div class="se-lista">${ps.map(linhaSemEstoque).join('')}</div>${fechar}</div>`;
+}
+function linhaSemEstoque(p){
+  const capa=fotoCapa(p);
+  return `<div class="se-item">
+    ${capa?`<img class="thumb" src="${capa}" alt="">`:'<div class="thumb-vazio">📷</div>'}
+    <div class="se-txt"><b>${esc(p.nome)}</b><div class="mut">${esc(catNome(p.catId))}${+p.preco>0?' · '+fmt(p.preco):''} · ${fmtN(vendasDoProduto(p.id))} vendida(s)${naLoja(p)?' · 🛍️ na loja':''}</div></div>
+    <span class="se-acoes"><input type="text" inputmode="numeric" autocomplete="off" placeholder="qtd" aria-label="quantas peças de ${esc(p.nome)}" id="seQtd-${p.id}" onkeydown="if(event.key==='Enter')salvarSemEstoque('${p.id}')">
+      <button class="bt mini primario" onclick="salvarSemEstoque('${p.id}')">Salvar</button>
+      <button class="bt mini" onclick="deixarSemControle('${p.id}')">Deixar assim</button></span></div>`;
+}
+function salvarSemEstoque(id){
+  const p=prodPorId(id),el=$('seQtd-'+id);if(!p||!el)return;
+  const q=numBR(el.value);
+  if(!(q>=0)){toast('Digite quantas peças você tem (0 se acabou).');try{el.focus();}catch(e){}return;}
+  p.estoque=r2(q);
+  dados.movEstoque.push({id:novoId(),data:hoje(),produtoId:p.id,variacaoId:null,tamanho:'',tipo:'ajuste',qtde:p.estoque,obs:'estoque informado (peças sem estoque)',fornId:null});
+  salvar();renderProdutos();
+  toast('"'+esc(p.nome)+'" agora tem '+fmtN(p.estoque)+' em estoque ✓');
+}
+function deixarSemControle(id){
+  const p=prodPorId(id);if(!p)return;
+  p.semControleOk=true;salvar();renderProdutos();
+  toast('"'+esc(p.nome)+'" fica sem controle de estoque — não aparece mais nesta lista.');
+}
+function semEstoqueTodasAssim(){
+  const ps=semEstoqueInformado();if(!ps.length)return;
+  confirmar(ps.length+' peça(s) vão continuar sem controle de estoque (na loja, sem limite de quantidade) e saem desta lista.',
+    {titulo:'Deixar todas assim',ok:'Deixar assim'},()=>{
+    ps.forEach(p=>{p.semControleOk=true;});salvar();renderProdutos();
+    toast(ps.length+' peça(s) ficam sem controle de estoque ✓');
+  });
 }
 
 /* ---------- mudar vários produtos de uma vez ----------
@@ -3321,7 +3424,8 @@ function massaEstoque(){
 function aplicarEstoqueLote(semControle){
   const v=semControle?null:(r2($('loteEstoque').value)||0);
   dlgLote.close();
-  aplicarEmMassa(p=>{if(temGrade(p))return false;p.estoque=v;return true;},
+  // voltar para "—" aqui é escolha: a peça não entra no aviso "sem estoque informado" (V12)
+  aplicarEmMassa(p=>{if(temGrade(p))return false;p.estoque=v;if(semControle)p.semControleOk=true;return true;},
     semControle?'voltaram para "—"':'ficaram com estoque '+fmtN(v));
 }
 function massaAviso(ligar){
@@ -3851,12 +3955,13 @@ function renderProdutos(){
     return;
   }
   if(ui.p.dups){$('tab-produtos').innerHTML=cabecalhoProdutos()+painelDuplicados();return;}
+  if(ui.p.semEst){$('tab-produtos').innerHTML=cabecalhoProdutos()+painelSemEstoque();return;}
   const sel=selProdIds(),T=totaisEstoque(sel),neg=estoqueNegativo().length;
   const escopo=sel.length?`<span class="bd cat">seleção: ${sel.length} produto(s)</span> <button class="bt mini" onclick="limparProdSel()">mostrar todos</button>`:'<span class="mut">mostrando todo o estoque</span>';
+  // "selecionar os sem estoque —" virou o aviso 📦 no topo (V12)
   $('tab-produtos').innerHTML=cabecalhoProdutos()+`
   <div class="barra" style="margin-bottom:.5rem">${escopo}${sel.length?'':`
-    <button class="bt mini" onclick="selecionarFiltrados()">selecionar os listados</button>
-    ${dados.produtos.some(p=>p.estoque==null)?`<button class="bt mini" onclick="selecionarSemControle()" title="produtos que nunca tiveram a quantidade informada">selecionar os sem estoque "—"</button>`:''}`}</div>
+    <button class="bt mini" onclick="selecionarFiltrados()">selecionar os listados</button>`}</div>
   ${sel.length?painelEmMassa(sel):''}
   <div class="mini-cards">
     <div class="card"><div class="rotulo">Custo do estoque${sel.length?' (seleção)':' ativo'}</div><div class="valor">${fmt(T.custo)}</div><div class="extra">o que está investido em mercadoria</div></div>
@@ -3922,10 +4027,11 @@ function limparFiltrosProdutos(){
    preencheu com a 1ª movimentação de estoque conhecida */
 function cadastradoEm(p){return p.criadoEm||'';}
 function cabecalhoProdutos(){
-  const al=alertasEstoque().length,dup=gruposDuplicados().length;
+  const al=alertasEstoque().length,dup=gruposDuplicados().length,se=semEstoqueInformado().length;
   return `<div class="barra"><h2 style="margin:0">Produtos</h2><span class="esp"></span>
     ${al?`<button type="button" class="bd fiadoP bd-clica" onclick="verEstoqueBaixo()" title="ver quais são">⚠️ ${al} com estoque baixo</button>`:''}
-    ${dup?`<button class="bt" style="color:var(--laranja)" onclick="ui.p.dups=true;renderProdutos()" title="cadastros que parecem ser a mesma peça">🔀 ${dup} repetido(s)</button>`:''}
+    ${dup?`<button class="bt" style="color:var(--laranja)" onclick="ui.p.semEst=false;ui.p.dups=true;renderProdutos()" title="cadastros que parecem ser a mesma peça">🔀 ${dup} repetido(s)</button>`:''}
+    ${se?`<button class="bt" style="color:var(--laranja)" onclick="ui.p.dups=false;ui.p.semEst=true;renderProdutos()" title="peças que nunca tiveram a quantidade informada">📦 ${se} sem estoque informado</button>`:''}
     <button class="bt" onclick="abrirEtiquetas()" title="código de barras para imprimir e colar na peça">🏷️ Etiquetas</button>
     <button class="bt primario" onclick="abrirNovoProduto()">+ Novo produto</button></div>`;
 }
@@ -4865,9 +4971,9 @@ function svgMenuProd(d){
 function menuEhFolha(){return telaEstreita();}   /* mesma regua da folha dos campos de escolha (part2) */
 function abrirMenuProduto(id,btn){
   const m=$('menuProduto');
-  if(!m.hidden&&m.dataset.id===id){fecharMenuProduto();return;}
+  if(!m.hidden&&m.dataset.id===id&&m.dataset.tipo!=='cli'){fecharMenuProduto();return;}
   const p=prodPorId(id);if(!p)return;
-  m.dataset.id=id;
+  m.dataset.id=id;m.dataset.tipo='prod';   // o mesmo menu serve aos clientes (V12)
   const item=(acao,rot)=>`<button type="button" role="menuitem"${acao==='excluir'?' class="perigo"':''} onclick="acaoProduto('${acao}')">${svgMenuProd(ICONES_MENU_PROD[acao])}<span>${rot}</span></button>`;
   m.innerHTML=`<div class="menu-cab">${esc(p.nome)}</div>
     ${item('estoque','Ajustar estoque')}${item('editar','Editar')}${item('link','Copiar link da peça na loja')}${item('mesclar','Mesclar com outro produto')}
@@ -5055,6 +5161,8 @@ function renderClientes(){
       <div class="mt"><button class="bt primario" onclick="abrirCliente('')">+ Cadastrar cliente</button></div></div>`;
     return;
   }
+  // repetidos têm tela própria (V12), como em Produtos
+  if(u.dups){$('tab-clientes').innerHTML=cabClientes()+painelClientesRepetidos();return;}
   $('tab-clientes').innerHTML=cabClientes()+`<div id="clientesTabela"></div>`;
   renderClientesTab();
 }
@@ -5072,20 +5180,49 @@ function renderClientesTab(){
     <td class="num"><b>${fmt(x.total)}</b></td>
     <td class="num ${x.fiado>0?'neg':''}">${x.fiado>0?'<b>'+fmt(x.fiado)+'</b>':'—'}</td>
     <td>${x.ult?fmtData(x.ult):'—'}</td>
-    <td class="acoes"><button class="bt mini" title="histórico" onclick="detalheCliente('${c.id}')">👁</button><button class="bt mini" title="editar" onclick="abrirCliente('${c.id}')">✎</button><button class="bt mini" title="juntar com outro cadastro do mesmo cliente" onclick="juntarClientes('${c.id}')">⇄</button></td></tr>`;}).join('');
-  const dups=clientesDuplicados();
-  const avisoDup=dups.length?`<div class="painel" style="border-color:var(--laranja);margin-bottom:.6rem">
-    <b style="color:var(--laranja)">⚠️ Parece que tem cliente cadastrado duas vezes</b>
-    <div class="mut" style="font-size:.82rem;margin-top:.3rem">${dups.map(g=>esc(g.map(c=>c.nome).join('  ↔  '))).join('<br>')}</div>
-    <div class="mut" style="font-size:.78rem;margin-top:.3rem">Se forem a mesma pessoa, abra um deles e clique em <b>⇄</b> para juntar as compras num cadastro só.</div></div>`:'';
-  $('clientesTabela').innerHTML=avisoDup+`<div class="painel"><div class="barra" style="margin-bottom:.4rem"><b>${cs.length}</b>&nbsp;cliente(s)</div>
+    <td class="acoes"><button class="bt mini bt-tres" title="Ações" aria-label="Ações de ${esc(c.nome)}" aria-haspopup="menu" onclick="abrirMenuCliente('${c.id}',this)">${IC_TRES_PONTOS}</button></td></tr>`;}).join('');
+  $('clientesTabela').innerHTML=`<div class="painel"><div class="barra" style="margin-bottom:.4rem"><b>${cs.length}</b>&nbsp;cliente(s)</div>
     <div class="rolagem"><table><tr><th>Cliente</th><th>Telefone</th><th class="num">Compras</th><th class="num">Total</th><th class="num">Fiado</th><th>Última</th><th></th></tr>
     ${linhas||'<tr><td colspan="7" class="centro">Nenhum cliente encontrado.</td></tr>'}</table></div></div>`;
 }
 function cabClientes(){
+  const nd=clientesRepetidos().length;
   return `<div class="barra"><h2 style="margin:0">Clientes</h2><span class="esp"></span>
-    <input placeholder="🔎 buscar..." value="${esc(ui.c.busca)}" oninput="ui.c.busca=this.value;renderClientesTab()" style="min-width:160px">
+    ${nd?`<button class="bt" style="color:var(--laranja)" onclick="ui.c.dups=true;renderClientes()" title="cadastros que parecem ser a mesma pessoa">🔀 ${nd} repetido(s)</button>`:''}
+    ${ui.c.dups?'':`<input placeholder="🔎 buscar..." value="${esc(ui.c.busca)}" oninput="ui.c.busca=this.value;renderClientesTab()" style="min-width:160px">`}
     <button class="bt primario" onclick="abrirCliente('')">+ Novo cliente</button></div>`;
+}
+/* ---- menu de ações do cliente (⋮, V12) ----
+   Os três ícones soltos da linha (👁 ✎ ⇄) viraram um menu, igual ao de
+   Produtos — é o mesmo #menuProduto, com as ações do cliente. */
+const ICONES_MENU_CLI={
+  historico:'M4 5h16v14H4zM8 9h8M8 13h8M8 17h5',
+  editar:'M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4',
+  whats:'M4 20l1.3-3.9A8 8 0 1 1 8 19.1L4 20zM9 9.5c.3 2 2.5 4.2 4.5 4.5l1.2-1.2 2 1-.4 1.5c-3.6.4-8-4-7.6-7.6L10.2 7l1 2z',
+  juntar:'M6 3v5c0 3 3 5 6 5s6-2 6-5V3M12 13v8'
+};
+/* número para o wa.me: sem o 55, o WhatsApp lê o DDD como código de outro país */
+function foneWa(tel){const d=String(tel||'').replace(/\D/g,'');return (d.length===10||d.length===11)?'55'+d:d;}
+function abrirMenuCliente(id,btn){
+  const m=$('menuProduto');
+  if(!m.hidden&&m.dataset.id===id&&m.dataset.tipo==='cli'){fecharMenuProduto();return;}
+  const c=clientePorId(id);if(!c)return;
+  m.dataset.id=id;m.dataset.tipo='cli';
+  const item=(acao,rot)=>`<button type="button" role="menuitem" onclick="acaoCliente('${acao}')">${svgMenuProd(ICONES_MENU_CLI[acao])}<span>${rot}</span></button>`;
+  m.innerHTML=`<div class="menu-cab">${esc(c.nome)}</div>
+    ${item('historico','Ver compras')}${item('editar','Editar')}${foneWa(c.tel)?item('whats','Abrir no WhatsApp'):''}
+    <div class="menu-sep"></div>${item('juntar','Juntar com outro cadastro')}`;
+  m.hidden=false;$('menuProdutoFundo').hidden=false;
+  posicionarMenuProduto(m,btn);
+  const pri=m.querySelector('button');if(pri)try{pri.focus({preventScroll:true});}catch(e){}
+}
+function acaoCliente(acao){
+  const id=$('menuProduto').dataset.id;
+  fecharMenuProduto();
+  if(acao==='historico')detalheCliente(id);
+  else if(acao==='editar')abrirCliente(id);
+  else if(acao==='whats'){const c=clientePorId(id),n=c&&foneWa(c.tel);if(n)window.open('https://wa.me/'+n,'_blank');}
+  else if(acao==='juntar')juntarClientes(id);
 }
 function abrirCliente(id){
   $('formCliente').reset();$('cLocal').innerHTML='<option value="">—</option>'+opcoes(C().locais);
@@ -5144,10 +5281,80 @@ function chaveCliente(nome){
   const loc=(p.slice(1).join(' - ')||'').trim();
   return (pri+'|'+loc).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
 }
-function clientesDuplicados(){
-  const g={};
-  (dados.clientes||[]).forEach(c=>{const k=chaveCliente(c.nome);(g[k]=g[k]||[]).push(c);});
-  return Object.keys(g).map(k=>g[k]).filter(a=>a.length>1);
+/* ============================================================
+   CLIENTES REPETIDOS (V12)
+   Antes bastava o PRIMEIRO nome e o local baterem: "Maria Aparecida - Heitor"
+   e "Maria Cecilia - Heitor" viravam a mesma pessoa, e com nome comum a tela
+   enchia de gente diferente. Agora parece repetido quando:
+   - o nome mais curto está inteiro no começo do outro, no mesmo local
+     ("Carla - Floresta" × "Carla Regina - Floresta"), ou
+   - os dois têm o mesmo telefone.
+   E o par que a pessoa marca "não é a mesma pessoa" não volta mais (fica
+   gravado nos dois cadastros, em naoRepete).
+   ============================================================ */
+const LIGACAO_CLI=['da','de','do','das','dos','e'];
+function semAcento(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,' ').trim();}
+function palavrasDoCliente(c){
+  return semAcento(String(c.nome||'').split(' - ')[0]).split(' ').filter(w=>w&&LIGACAO_CLI.indexOf(w)<0);
+}
+function mesmoLocalCli(a,b){
+  if(a.localId&&b.localId)return a.localId===b.localId;
+  const la=semAcento(String(a.nome||'').split(' - ').slice(1).join(' ')),lb=semAcento(String(b.nome||'').split(' - ').slice(1).join(' '));
+  return !la||!lb||la===lb;
+}
+/* '' = não parece; senão, o motivo (aparece no cartão do par) */
+function parecemMesmoCliente(a,b){
+  const ta=String(a.tel||'').replace(/\D/g,'').slice(-9),tb=String(b.tel||'').replace(/\D/g,'').slice(-9);
+  if(ta.length>=8&&ta===tb)return 'mesmo telefone';
+  if(!mesmoLocalCli(a,b))return '';
+  let c=palavrasDoCliente(a),l=palavrasDoCliente(b);
+  if(c.length>l.length){const x=c;c=l;l=x;}
+  if(!c.length)return '';
+  for(let i=0;i<c.length;i++)if(c[i]!==l[i])return '';
+  return c.length===l.length?'mesmo nome':'um nome começa igual ao outro';
+}
+function naoRepeteDe(c){return Array.isArray(c&&c.naoRepete)?c.naoRepete:[];}
+function clientesRepetidos(){
+  const cs=dados.clientes||[],pares=[];
+  for(let i=0;i<cs.length;i++)for(let j=i+1;j<cs.length;j++){
+    const a=cs[i],b=cs[j];
+    if(naoRepeteDe(a).indexOf(b.id)>=0||naoRepeteDe(b).indexOf(a.id)>=0)continue;
+    const por=parecemMesmoCliente(a,b);if(por)pares.push({a,b,por});
+  }
+  return pares;
+}
+/* o formato antigo (grupos) — ainda usado pelos testes */
+function clientesDuplicados(){return clientesRepetidos().map(x=>[x.a,x.b]);}
+function painelClientesRepetidos(){
+  const ps=clientesRepetidos();
+  const fechar=`<div class="rodape"><button class="bt" onclick="ui.c.dups=false;renderClientes()">Fechar</button></div>`;
+  if(!ps.length)return `<div class="painel"><h3 style="margin-top:0">🔀 Clientes repetidos</h3>
+    <p class="mut">Nenhum cadastro parecido — tudo certo.</p>${fechar}</div>`;
+  return `<div class="painel" style="border-color:var(--laranja)">
+    <h3 style="margin-top:0">🔀 Clientes que parecem repetidos <span class="bd fiadoP">${ps.length}</span></h3>
+    <p class="mut" style="font-size:.84rem;margin-bottom:.8rem">Se for a <b>mesma pessoa</b>, toque em <b>Ficar com este</b> no cadastro certo: as compras, o fiado e os pagamentos do outro passam para ele. Se forem <b>pessoas diferentes</b>, toque em <b>Não é a mesma pessoa</b> — o par não aparece mais.</p>
+    ${ps.map(cartaoParCliente).join('')}${fechar}</div>`;
+}
+function cartaoParCliente(x){
+  const lado=(c,outro)=>{const g=aggCliente(c.id);
+    return `<div class="par-lado"><b>${esc(c.nome)}</b>
+      <div class="mut">${c.tel?'📱 '+esc(c.tel)+' · ':''}${c.localId?'📍 '+esc(localNome(c.localId))+' · ':''}${g.n} compra(s) · ${fmt(g.total)}${g.fiado>0.005?` · <span class="neg">fiado ${fmt(g.fiado)}</span>`:''}${g.ult?' · última '+fmtData(g.ult):''}</div>
+      <button class="bt mini" onclick="ficarComCliente('${c.id}','${outro.id}')">Ficar com este</button></div>`;};
+  return `<div class="par-cli"><div class="par-por mut">${esc(x.por)}</div>
+    <div class="par-lados">${lado(x.a,x.b)}${lado(x.b,x.a)}</div>
+    <div class="par-acoes"><button class="bt mini" onclick="naoEhMesmoCliente('${x.a.id}','${x.b.id}')">Não é a mesma pessoa</button></div></div>`;
+}
+function ficarComCliente(idFica,idSai){
+  const fica=clientePorId(idFica),sai=clientePorId(idSai);if(!fica||!sai)return;
+  confirmar('Juntar tudo de "'+sai.nome+'" em "'+fica.nome+'"?\n\nCompras, fiado e pagamentos passam para "'+fica.nome+'", e o outro cadastro é apagado. Não dá para desfazer.',
+    {titulo:'Juntar clientes',ok:'Juntar',perigo:true},()=>juntarClientesAgora(sai,fica));
+}
+function naoEhMesmoCliente(idA,idB){
+  const a=clientePorId(idA),b=clientePorId(idB);if(!a||!b)return;
+  a.naoRepete=[...new Set(naoRepeteDe(a).concat(idB))];
+  b.naoRepete=[...new Set(naoRepeteDe(b).concat(idA))];
+  salvar();renderClientes();
+  toast('Certo — são pessoas diferentes. Esse par não aparece mais.');
 }
 /* junta dois cadastros do mesmo cliente num só */
 function juntarClientes(idOrigem){
@@ -5155,9 +5362,9 @@ function juntarClientes(idOrigem){
   const outros=dados.clientes.filter(c=>c.id!==idOrigem);
   if(!outros.length){toast('Não há outro cliente para juntar.');return;}
   // sugere primeiro os parecidos
-  const k=chaveCliente(orig.nome);
-  outros.sort((a,b)=>{const pa=chaveCliente(a.nome)===k?0:1,pb=chaveCliente(b.nome)===k?0:1;return pa!==pb?pa-pb:a.nome.localeCompare(b.nome);});
-  const ops=outros.map(c=>[c.id,c.nome+(chaveCliente(c.nome)===k?' — parece o mesmo':'')]);
+  const parece=c=>!!parecemMesmoCliente(orig,c);
+  outros.sort((a,b)=>{const pa=parece(a)?0:1,pb=parece(b)?0:1;return pa!==pb?pa-pb:a.nome.localeCompare(b.nome);});
+  const ops=outros.map(c=>[c.id,c.nome+(parece(c)?' — parece o mesmo':'')]);
   pedir({titulo:'Juntar cadastros de cliente',ok:'Continuar',
     texto:'Tudo de "'+orig.nome+'" (compras, fiado, pagamentos) passa para o cliente escolhido, e este cadastro é apagado.',
     campos:[{id:'destino',tipo:'lista',rotulo:'Juntar com',opcoes:ops,valor:ops[0][0],
@@ -5180,6 +5387,11 @@ function juntarClientesAgora(orig,destino){
   if(!destino.apelido&&orig.apelido)destino.apelido=orig.apelido;
   if(!destino.localId&&orig.localId)destino.localId=orig.localId;
   if(orig.obs)destino.obs=(destino.obs?destino.obs+' | ':'')+orig.obs;
+  // "não é a mesma pessoa" marcado no cadastro que some passa para o que fica (V12)
+  const nr=[...new Set(naoRepeteDe(destino).concat(naoRepeteDe(orig)))].filter(id=>id!==destino.id&&id!==orig.id);
+  if(nr.length)destino.naoRepete=nr;
+  dados.clientes.forEach(c=>{const l=naoRepeteDe(c);
+    if(c!==destino&&l.indexOf(orig.id)>=0)c.naoRepete=[...new Set(l.map(id=>id===orig.id?destino.id:id))];});
   dados.clientes=dados.clientes.filter(c=>c.id!==orig.id);
   if(ui.f.abertos&&ui.f.abertos[orig.nome]){delete ui.f.abertos[orig.nome];ui.f.abertos[destino.nome]=true;}
   salvar();renderTudo();
@@ -5376,10 +5588,23 @@ function painelPromocoes(){
     <p class="mut" style="font-size:.82rem;margin-bottom:.6rem">Código que a cliente digita no pedido da loja (ex.: HALLOWEEN10). O desconto vale para o pedido inteiro e vai escrito na mensagem do WhatsApp. Na venda do painel, toque em <b>🎟️ cupom</b>, ao lado do desconto.</p>
     <p class="mut" style="font-size:.82rem;margin-bottom:.6rem">Conta como usado quando a <b>venda é registrada</b> aqui no painel. O limite por cliente o painel confere na hora da venda; o total de usos a loja também confere sozinha (mostra "esgotou").</p>
     ${cs.length?`<ul class="promo-lista">${cs.map(linhaCupom).join('')}</ul>`:'<p class="mut">Nenhum cupom ainda.</p>'}
-    <div class="rodape"><button class="bt primario" onclick="editarCupom()">+ Novo cupom</button></div>
-    ${cuponsNoServidor()
-      ?'<p class="mut" style="font-size:.74rem;margin-top:.5rem">🔒 Os códigos ficam guardados no servidor: a loja só confere o código que a cliente digitar — ninguém consegue ver a lista.</p>'
-      :'<p class="mut" style="font-size:.74rem;margin-top:.5rem">⚠️ Os códigos ainda ficam dentro da página da loja: quem entende de navegador consegue achá-los.</p>'}</div>`;
+    ${avisoCupomHTML()}
+    <div class="rodape"><button class="bt primario" onclick="editarCupom()">+ Novo cupom</button></div></div>`;
+}
+/* V12: o aviso só fala depois de perguntar ao banco. Antes a pergunta só
+   acontecia com cupom cadastrado — sem nenhum, a tela dizia "os códigos ficam
+   na página" mesmo com o SQL já rodado (o Luan rodou e continuou vendo). */
+var CUPOM_AVISO={perguntou:false};
+function avisoCupomHTML(){
+  const p=t=>`<p class="mut" id="cupomSeguranca" style="font-size:.74rem;margin-top:.5rem">${t}</p>`;
+  if(cuponsNoServidor())return p('🔒 Códigos protegidos: ficam guardados no servidor e a loja só confere o código que a cliente digitar.');
+  if(typeof NUVEM!=='undefined'&&NUVEM.cupomConferido)return p('⚠️ Os códigos ainda ficam dentro da página da loja: quem entende de navegador consegue achá-los.');
+  // ainda não sabe: pergunta uma vez e redesenha só esta linha
+  if(!CUPOM_AVISO.perguntou&&typeof nuvemLigada==='function'&&nuvemLigada()&&typeof conferirCupomNoServidor==='function'){
+    CUPOM_AVISO.perguntou=true;
+    conferirCupomNoServidor(true).then(()=>{const el=$('cupomSeguranca');if(el)el.outerHTML=avisoCupomHTML();},()=>{});
+  }
+  return p('');
 }
 /* preço na lista de Produtos: em promoção hoje, o de antes riscado + o de agora */
 function precoNaLista(p){
@@ -5477,13 +5702,13 @@ function editarCupom(id){
       pergunta:'O cupom soma com a promoção (vale também nas peças em promoção)?'},
     {id:'ini',rotulo:'Começa em',tipo:'data',valor:c?c.ini:hoje(),pergunta:'Começa em (AAAA-MM-DD):'},
     {id:'fim',rotulo:'Termina em',tipo:'data',valor:c?c.fim:'',dica:'vazio = até você pausar',pergunta:'Termina em (AAAA-MM-DD):'},
-    /* V10.2: limite de uso — já vem "1 vez por cliente" (pedido do Luan) */
-    /* V11: o Luan leu "1" + "Total vazio" como "não vai respeitar o 1" — são dois
-       limites separados, e o texto agora diz isso */
-    {id:'porCliente',rotulo:'Limite por cliente — cada cliente usa quantas vezes?',tipo:'numero',valor:c?limitePorCliente(c):1,
-      dica:'1 = cada cliente usa uma vez só · 0 = sem limite por cliente',pergunta:'Quantas vezes cada cliente pode usar (0 = sem limite)?'},
-    {id:'total',rotulo:'Limite geral — quantas vendas no total, somando todas as clientes?',tipo:'numero',valor:c&&limiteTotalCupom(c)?limiteTotalCupom(c):'',
-      dica:'vazio = quantas clientes quiserem (cada uma no seu limite) · ex.: 20 = acaba na 20ª venda',pergunta:'Total de usos (vazio = sem limite):'}
+    /* V10.2: limite de uso — já vem "1 vez por cliente" (pedido do Luan).
+       V12: número livre + caixinha "Sem limite" (o "1 = uma vez · 0 = sem
+       limite" confundia); marcada, o número se apaga. Por dentro, 0 = sem limite. */
+    {id:'porCliente',rotulo:'Quantas vezes cada cliente pode usar',tipo:'limite',valor:c?limitePorCliente(c):1,semLimite:'Sem limite',
+      pergunta:'Quantas vezes cada cliente pode usar (0 = sem limite)?'},
+    {id:'total',rotulo:'Quantas vendas no total, somando todas as clientes',tipo:'limite',valor:c?limiteTotalCupom(c):0,semLimite:'Sem limite',
+      dica:'ex.: 20 = acaba na 20ª venda',pergunta:'Total de usos (vazio = sem limite):'}
   ]},v=>{
     const erro=conferir(v);if(erro){avisar(erro,{titulo:'Falta acertar'});return;}
     const o={codigo:chaveCupom(v.codigo),tipo:v.tipo==='valor'?'valor':'pct',valor:r2(v.valor),minimo:+v.minimo>0?r2(v.minimo):0,somaPromo:!!v.soma,ini:v.ini||'',fim:v.fim||'',
@@ -5534,6 +5759,21 @@ function fiadoPanorama(ateData){
     else if(ateData&&p.venc&&p.venc<=ateData)venceAte+=ab;
   }));
   return {total:r2(total),vencido:r2(vencido),venceAte:r2(venceAte)};
+}
+/* V12 (pedido do Luan): o cartão do Resumo mostra o fiado a receber NO MÊS, e
+   o total de todos os meses fica pequeno embaixo. Mês que contém hoje: tudo o
+   que vence até o fim dele, inclusive o que já atrasou (é dinheiro a cobrar
+   agora). Mês passado ou futuro: só o que vence dentro dele. */
+function fiadoDoPeriodo(ini,fim){
+  const h=hoje(),atual=ini<=h&&h<=fim;let noMes=0,atrasado=0,total=0;
+  fiadosPendentes().forEach(v=>recParcelas(v).forEach(p=>{
+    const ab=parcAberto(p);if(ab<=0.005)return;
+    total+=ab;
+    if(!p.venc||p.venc>fim||(!atual&&p.venc<ini))return;
+    noMes+=ab;
+    if(p.venc<h)atrasado+=ab;
+  }));
+  return {noMes:r2(noMes),atrasado:r2(atrasado),total:r2(total),atual};
 }
 function vencidoParc(p){return !parcPago(p)&&p.venc&&p.venc<hoje();}
 function vencParse(venc){
@@ -5829,9 +6069,36 @@ function dicaItemNovo(it){
     ? '<span class="linknovo">＋ novo produto (detalhado) — será cadastrado ao salvar</span>'
     : '<span class="linknovo">＋ novo produto — será cadastrado ao salvar</span>';
 }
+/* V12 (caso real: brinco da Black Essence no Pix entrou com 10% e a tela não
+   dizia nada): a linha da peça conta de onde veio o preço — o nome da promoção,
+   o preço cheio e o com desconto. Promoção que vale só noutra forma de
+   pagamento (ex.: Pix) vira dica de quanto sairia. */
+function promoDoItem(it){
+  const p=it&&it.produtoId&&prodPorId(it.produtoId);if(!p||!(+p.preco>0))return null;
+  const m=promoDoProduto(p,dataVendaAtual(),formaVendaAtual());
+  return m&&Math.abs((+it.preco||0)-m.preco)<0.005?{promo:m.promo,cheio:+p.preco,preco:m.preco}:null;
+}
+function dicaPromoItem(it){
+  const x=promoDoItem(it);
+  if(x)return `<div class="promo-venda">🏷️ <b>${esc(x.promo.nome||'Promoção')}</b> ${esc(rotPromo(x.promo))} — de <s>${fmt(x.cheio)}</s> por <b>${fmt(x.preco)}</b></div>`;
+  const p=it&&it.produtoId&&prodPorId(it.produtoId);
+  if(!p||!(+p.preco>0)||Math.abs((+it.preco||0)-(+p.preco))>=0.005)return '';
+  const dia=dataVendaAtual(),f=formaVendaAtual();
+  const pf=promocoes().find(pr=>formaDaPromo(pr)&&formaDaPromo(pr)!==f&&promoValendo(pr,dia)&&promoPega(pr,p));
+  return pf?`<div class="promo-venda outra">💡 ${esc(rotPromo(pf))}: sairia ${fmt(precoComDesconto(p.preco,pf))}</div>`:'';
+}
+function pintarPromoItem(i){
+  const row=$('vItensBody').children[i],it=itensVenda[i];if(!row||!it)return;
+  const cell=row.children[0],velha=cell.querySelector('.promo-venda');if(velha)velha.remove();
+  const h=dicaPromoItem(it);if(h)cell.insertAdjacentHTML('beforeend',h);
+}
+/* quanto a promoção já tirou do preço das peças (aparece embaixo do total) */
+function economiaPromoVenda(){
+  return r2(itensVenda.filter(itemCobra).reduce((s,it)=>{const x=promoDoItem(it);return s+(x?(x.cheio-x.preco)*(+it.qtd||0):0);},0));
+}
 function renderItensVenda(){
   $('vItensBody').innerHTML=itensVenda.map((it,i)=>`<tr>
-    <td><input value="${esc(it.nome)}" placeholder="produto" autocomplete="off" oninput="itemVenda(${i},'nome',this.value);acAbrir(${i},this)" onfocus="acAbrir(${i},this)" onkeydown="acTeclas(event,()=>acAbrir(${i},this))" onblur="acBlur()">${it.produtoId?'':(it.nome.trim()?dicaItemNovo(it):'')}${gradeSelHTML(i)}</td>
+    <td><input value="${esc(it.nome)}" placeholder="produto" autocomplete="off" oninput="itemVenda(${i},'nome',this.value);acAbrir(${i},this)" onfocus="acAbrir(${i},this)" onkeydown="acTeclas(event,()=>acAbrir(${i},this))" onblur="acBlur()">${it.produtoId?'':(it.nome.trim()?dicaItemNovo(it):'')}${gradeSelHTML(i)}${dicaPromoItem(it)}</td>
     <td><input class="qtd" type="number" min="0" step="any" value="${it.qtd}" oninput="itemVenda(${i},'qtd',this.value)"></td>
     <td><input class="prc" type="number" min="0" step="0.01" value="${it.preco}" oninput="itemVenda(${i},'preco',this.value)"></td>
     <td class="num">${itemCobra(it)?fmt((+it.qtd||0)*(+it.preco||0)):'<span class="riscado">'+fmt((+it.qtd||0)*(+it.preco||0))+'</span><div class="st-aviso">'+esc(ROT_STATUS[it.status]||'')+'</div>'}</td>
@@ -5859,11 +6126,12 @@ function itemVenda(i,campo,val){
       if(pg&&temGrade(pg)){if(!it.variacaoId||!pg.variacoes.find(x=>x.id===it.variacaoId))it.variacaoId=(pg.variacoes[0]||{}).id||'';const h=gradeSelHTML(i);if(sel)sel.outerHTML=h;else cell.insertAdjacentHTML('beforeend',h);}
       else{it.variacaoId=null;if(sel)sel.remove();}
     }
+    pintarPromoItem(i);
     recalcVenda();
   } else if(campo==='variacao'){it.variacaoId=val;}
   else if(campo==='status'){it.status=val;renderItensVenda();}
   else if(campo==='qtd'){it.qtd=val;if(row)row.children[3].textContent=fmt((+it.qtd||0)*(+it.preco||0));recalcVenda();}
-  else if(campo==='preco'){it.preco=val;if(row)row.children[3].textContent=fmt((+it.qtd||0)*(+it.preco||0));recalcVenda();}
+  else if(campo==='preco'){it.preco=val;if(row)row.children[3].textContent=fmt((+it.qtd||0)*(+it.preco||0));pintarPromoItem(i);recalcVenda();}
 }
 function addItemVenda(){itensVenda.push({nome:'',produtoId:null,qtd:1,preco:0,custo:0});renderItensVenda();}
 function removerItemVenda(i){
@@ -6143,7 +6411,8 @@ function reprecarPelaForma(){
     const novo=precoDeVenda(p,dia,f);
     if(novo!==+it.preco){it.preco=it.precoAuto=novo;mudou=true;}
   });
-  if(mudou)renderItensVenda();
+  // o aviso da promoção (V12) também depende da forma, mesmo sem o preço mudar
+  if(mudou||itensVenda.some(it=>it.produtoId))renderItensVenda();
 }
 function vDividirMudou(){
   const div=$('vDividir').checked;
@@ -6188,7 +6457,8 @@ function recalcVenda(){
   const dv=descontoVenda(),dsc=descontoVendaBruto();
   const txDesc=(dv>0&&dsc.tipo==='perc')?`Desconto de ${String(Math.min(dsc.n,100)).replace('.',',')}% = <b>${fmt(dv)}</b>.`:'';
   const txAj=aj?`${aj>0?'Somando':'Tirando'} <b>${fmt(Math.abs(aj))}</b> ${ajusteVendaBruto().tipo==='perc'?'(percentual sobre o subtotal com desconto)':''} — total já inclui.`:'';
-  if(ai)ai.innerHTML=[txDesc,txAj].filter(Boolean).join(' ');
+  const eco=economiaPromoVenda(),txPromo=eco>0.005?`🏷️ Promoção: <b>${fmt(eco)}</b> já descontado no preço das peças.`:'';
+  if(ai)ai.innerHTML=[txPromo,txDesc,txAj].filter(Boolean).join(' ');
   if(formaAtualFiado()&&$('vDividir').checked&&parcelasVenda.length>1)vAtualizaSoma();
   // resumo honesto do que sobra: custo das peças + embalagem + taxa da maquininha
   const cProd=r2(itensVenda.reduce((s,i)=>s+(+i.qtd||0)*(+i.custo||0),0));
@@ -6448,8 +6718,8 @@ function renderVendas(){
   }
   $('tab-vendas').innerHTML=cabVendas()+cardsVendasPeriodo()+`<div class="barra">
     <select onchange="ui.v.per=this.value;renderVendasTab()">
-      <option value="fiscal"${u.per==='fiscal'?' selected':''}>${nomeMesAtual()}</option>
-      <option value="fiscalAnt"${u.per==='fiscalAnt'?' selected':''}>${nomeMesAnterior()}</option>
+      <option value="fiscal"${u.per==='fiscal'?' selected':''}>${nomeMesAtual(true)}</option>
+      <option value="fiscalAnt"${u.per==='fiscalAnt'?' selected':''}>${nomeMesAnterior(true)}</option>
       <option value="30d"${u.per==='30d'?' selected':''}>Últimos 30 dias</option>
       <option value="ano"${u.per==='ano'?' selected':''}>Este ano</option>
       <option value="tudo"${u.per==='tudo'?' selected':''}>Tudo</option>
@@ -6689,7 +6959,7 @@ function painelCobrancas(){
   const r=resumoCobranca();
   if(!r.lista.length)return '';
   const linha=x=>{
-    const c=dados.clientes.find(y=>y.nome===x.cliente),tel=c?(c.tel||'').replace(/\D/g,''):'';
+    const c=dados.clientes.find(y=>y.nome===x.cliente),tel=c?foneWa(c.tel):'';
     const atraso=x.atraso>0?`<span class="bd fiadoV">${x.atraso} dia(s) de atraso</span>`
       :(x.venc===hoje()?'<span class="bd fiadoP">vence hoje</span>':`<span class="mut qdo">${fmtData(x.venc)}</span>`);
     return `<div class="cob-linha"><span class="nm">${esc(x.cliente)}</span>${atraso}
@@ -6747,10 +7017,11 @@ function renderFiadoCorpo(){
       const todasDoPlano=gruposDoPlano(n,pid);
       const vsPlano=[];todasDoPlano.forEach(g=>g.itens.forEach(x=>{if(vsPlano.indexOf(x.v)<0)vsPlano.push(x.v);}));
       const totPlano=r2(todasDoPlano.reduce((s,g)=>s+g.valor,0));
-      const nParcPlano=todasDoPlano.length;
+      // "2ª/2" conta o plano inteiro, com as já pagas (V12: antes a 2ª de 2 virava "2ª/1")
+      const nParcPlano=nParcelasDoPlano(n,pid),pagou=todasDoPlano.length<nParcPlano;
       const infoP=infoPlano(pid,{clienteNome:n,total:totPlano,n:nParcPlano}),obsP=infoP&&infoP.obs;
       corpo+=`<tr><td colspan="5" style="padding-top:.7rem;border-bottom:none">
-        ${nParcPlano===1?`<span class="bd rdb">📆 Compras juntas</span> <b>numa parcela só</b>`:`<span class="bd rdb">📆 Parcelamento do total</span> <b>${nParcPlano}x</b>`} <span class="mut">— ${fmt(totPlano)} · ${vsPlano.length} compra(s): ${esc(vsPlano.map(v=>fmtData(v.data)).join(', '))}</span>${grupos.length<nParcPlano?` <span class="bd inv">${grupos.length} no filtro</span>`:''}
+        ${nParcPlano===1?`<span class="bd rdb">📆 Compras juntas</span> <b>numa parcela só</b>`:`<span class="bd rdb">📆 Parcelamento do total</span> <b>${nParcPlano}x</b>`} <span class="mut">— ${pagou?'falta ':''}${fmt(totPlano)} · ${vsPlano.length} compra(s): ${esc(vsPlano.map(v=>fmtData(v.data)).join(', '))}</span>${grupos.length<todasDoPlano.length?` <span class="bd inv">${grupos.length} no filtro</span>`:''}
         <button class="bt mini" title="observação interna" onclick="editarObsPlano('${pid}')">📝 obs</button>
         <button class="bt mini" title="voltar a cobrar cada compra separada" onclick="cliqueDesfazerPlano('${attr(n)}','${pid}')">↩ desfazer</button>
         ${obsP?`<div class="obs-int">📝 ${esc(obsP)}</div>`:''}</td></tr>`;
@@ -6796,7 +7067,7 @@ function renderFiadoCorpo(){
         <button class="bt" title="abate um valor da dívida sem entrar dinheiro" onclick="abrirDescontoFiado('${attr(n)}')">🏷️ Dar desconto</button>
         <button class="bt" title="junta todas as compras em aberto num único parcelamento" onclick="abrirPlano('${attr(n)}')">📆 Parcelar tudo</button>
         <button class="bt mini" title="Gera a cobrança só das parcelas marcadas acima" onclick="copiarCobranca('${attr(n)}')">📋 Copiar cobrança</button>
-        ${tel?`<a class="bt mini" href="https://wa.me/${tel.replace(/\D/g,'')}" target="_blank">📱 WhatsApp</a>`:''}
+        ${tel?`<a class="bt mini" href="https://wa.me/${foneWa(tel)}" target="_blank">📱 WhatsApp</a>`:''}
         ${c?`<button class="bt mini" onclick="detalheCliente('${c.id}')">Histórico</button>`:''}</div></div></div>`;
   }).join('');
 
@@ -7419,11 +7690,13 @@ function reciboFiado(nome,sel){
      preço cheio de peças já pagas em parte e achava que a cobrança estava errada.
      Só aparece quando há diferença: compra nova, sem pagamento, continua enxuta. */
   const linhaValor=(rot,v,sinal)=>L.push(pR(rot,wN+4)+' '+pL((sinal||'')+moedaSimples(Math.abs(v)),wV));
+  let faltaTudo=0;const contadas=new Set();   // o que continua em aberto nas compras do recibo (V12)
   const conciliar=vs=>{
     let soma=0,devido=0,pago=0,descF=0,falta=0;
     vs.forEach(v=>{
       itensCobrados(v).forEach(i=>{soma+=(+i.qtd||1)*(+i.preco||0);});
       recParcelas(v).forEach(p=>{devido+=+p.valor||0;pago+=+p.recebido||0;descF+=parcDesconto(p);falta+=parcAberto(p);});
+      if(!contadas.has(v.id)){contadas.add(v.id);faltaTudo=r2(faltaTudo+Math.max(0,recAberto(v)));}
     });
     soma=r2(soma);devido=r2(devido);pago=r2(pago);descF=r2(descF);falta=r2(Math.max(0,falta));
     const ajuste=r2(devido-soma);
@@ -7448,18 +7721,18 @@ function reciboFiado(nome,sel){
   //    + só as parcelas SELECIONADAS entram na cobrança/total
   Object.keys(selPlano).forEach(pid=>{
     const itens=selPlano[pid];
-    const grupos=gruposDoPlano(nome,pid);
-    const vsTodas=[];
-    grupos.forEach(g=>g.itens.forEach(x=>{if(vsTodas.indexOf(x.v)<0)vsTodas.push(x.v);}));
-    vsTodas.sort(cmpDataAsc(gD,gId));
+    /* V12: TODAS as compras do plano, inclusive as já quitadas pela 1ª parcela —
+       antes elas saíam do recibo e o que a cliente pagou nelas sumia do "Já pago" */
+    const vsTodas=vendasDoPlano(nome,pid);
     if(L.length)L.push('');
     L.push('Compras de '+vsTodas.map(v=>fmtData(v.data)).join(', '));
     cab();
     vsTodas.forEach(v=>itensCobrados(v).forEach(i=>L.push(pR(cut(nomeItem(i)),wN)+' '+pL(+i.qtd||1,3)+' '+pL(moedaSimples((+i.qtd||1)*(+i.preco||0)),wV))));
     L.push(sep);
     conciliar(vsTodas);
-    // agrupa as parcelas SELECIONADAS por posição no plano (1ª, 2ª...)
-    const nTotal=grupos.length;
+    // agrupa as parcelas SELECIONADAS por posição no plano (1ª, 2ª...);
+    // "de quantas" = o plano inteiro, contando as já pagas (V12)
+    const nTotal=nParcelasDoPlano(nome,pid);
     const porIdx={};
     itens.forEach(x=>{const k=x.p.planoIdx==null?0:x.p.planoIdx;
       if(!porIdx[k])porIdx[k]={idx:k,venc:x.p.venc,valor:0};
@@ -7491,7 +7764,23 @@ function reciboFiado(nome,sel){
   });
   L.push('');
   L.push(pR('TOTAL A PAGAR',wN+4)+' '+pL(moedaSimples(total),wV));
+  /* V12: cobrança de só uma parte (ex.: a 2ª parcela) — o "Falta pagar" de cima
+     é maior que o total desta vez. A última linha fecha a conta para a cliente. */
+  const depois=r2(faltaTudo-total);
+  if(depois>0.005)L.push(pR('Depois disso, ainda falta',wN+4)+' '+pL(moedaSimples(depois),wV));
   return '🧾 *'+nomeDaLoja()+'*\n```\n'+L.join('\n')+'\n```';
+}
+/* compras do cliente que entraram no parcelamento, pagas ou não (V12) */
+function vendasDoPlano(nome,pid){
+  return dados.vendas.filter(v=>v.clienteNome===nome&&recParcelas(v).some(p=>p.planoId===pid)).sort(cmpDataAsc(gD,gId));
+}
+/* em quantas parcelas o plano foi feito — contando as já pagas. Antes contava
+   só as em aberto: paga a 1ª de 2, a 2ª virava "1/1" no Fiado e no recibo. */
+function nParcelasDoPlano(nome,pid){
+  let n=0;
+  vendasDoPlano(nome,pid).forEach(v=>recParcelas(v).forEach(p=>{if(p.planoId===pid)n=Math.max(n,(p.planoIdx==null?0:p.planoIdx)+1);}));
+  const info=planosFiado().find(x=>x.id===pid);
+  return Math.max(n,(info&&+info.n)||0,1);
 }
 function montarMsgCobranca(nome,sel){
   sel=(sel&&sel.length)?sel:selParcelasAbertas(nome);
@@ -7727,8 +8016,8 @@ function renderFin(){
   ${painelRecebiveis()}
   <div class="barra">
     <select onchange="ui.l.per=this.value;renderFinTab()">
-      <option value="fiscal"${u.per==='fiscal'?' selected':''}>${nomeMesAtual()}</option>
-      <option value="fiscalAnt"${u.per==='fiscalAnt'?' selected':''}>${nomeMesAnterior()}</option>
+      <option value="fiscal"${u.per==='fiscal'?' selected':''}>${nomeMesAtual(true)}</option>
+      <option value="fiscalAnt"${u.per==='fiscalAnt'?' selected':''}>${nomeMesAnterior(true)}</option>
       <option value="30d"${u.per==='30d'?' selected':''}>Últimos 30 dias</option>
       <option value="ano"${u.per==='ano'?' selected':''}>Este ano</option>
       <option value="tudo"${u.per==='tudo'?' selected':''}>Tudo</option>
@@ -8106,12 +8395,8 @@ function renderResumo(){
   const semDados=!dados.vendas.length&&!dados.lancamentos.length;
   const [ini,fim]=resumoPeriodo();
   const d=calcDRE(ini,fim),cx=calcCaixa(ini,fim);
-  // fiado do PERÍODO: o que foi vendido fiado neste mês e ainda está em aberto
-  const fiadosPer=fiadosPendentes().filter(v=>noPeriodo(v.data,ini,fim));
-  const fiadoTot=r2(fiadosPer.reduce((s,v)=>s+recAberto(v),0)),nFiado=fiadosPer.length;
-  const fiadoGeral=totalFiadoPendente();
-  const pan=fiadoPanorama(fim>=hoje()?fim:null);
-  const nDevedores=new Set(fiadosPendentes().map(v=>v.clienteNome)).size;
+  // fiado a receber no mês (V12): o valor grande é o do período; o total, embaixo
+  const fm=fiadoDoPeriodo(ini,fim);
   const alertas=alertasEstoque().length;
   // 6 meses
   const meses=[];
@@ -8136,8 +8421,8 @@ function renderResumo(){
   <div class="cards">
     <div class="card"><div class="rotulo">Faturamento (vendas)</div><div class="valor">${fmt(d.receita)}</div><div class="extra">${d.nV} venda(s) · ticket ${fmt(d.ticket)}</div></div>
     <div class="card"><div class="rotulo">Lucro do período (DRE)</div><div class="valor ${d.resultLiq>=0?'pos':'neg'}">${fmt(d.resultLiq)}</div><div class="extra">margem ${pct(d.margemLiq)}</div></div>
-    <div class="card clicavel" onclick="trocarTab('fiado')"><div class="rotulo">Fiado pendente de receber</div><div class="valor ${pan.total>0?'neg':'pos'}">${fmt(pan.total)}</div>
-      <div class="extra">${nDevedores} cliente(s) devendo${pan.vencido>0.005?` · <b class="neg">${fmt(pan.vencido)} vencido</b>`:''}${pan.venceAte>0.005?` · ${fmt(pan.venceAte)} vence até ${fmtData(fim)}`:''}${fiadoTot>0.005?` · ${fmt(fiadoTot)} vendido no período`:''}</div></div>
+    <div class="card clicavel" onclick="trocarTab('fiado')"><div class="rotulo">Fiado a receber ${fm.atual?'neste mês':'no período'}</div><div class="valor ${fm.noMes>0?'neg':'pos'}">${fmt(fm.noMes)}</div>
+      <div class="extra">${fm.atrasado>0.005?`<b class="neg">${fmt(fm.atrasado)} atrasado</b> · `:''}total a receber: ${fmt(fm.total)}</div></div>
     <div class="card"><div class="rotulo">Caixa no fim do período</div><div class="valor ${cx.saldoFim>=0?'pos':'neg'}">${fmt(cx.saldoFim)}</div><div class="extra">era ${fmt(cx.saldoIni)} no início</div></div>
     ${totalNaMaquininha()>0?`<div class="card clicavel" onclick="trocarTab('fin')"><div class="rotulo">Na maquininha (a cair)</div><div class="valor rdb">${fmt(totalNaMaquininha())}</div><div class="extra">${recebiveisPendentes().length} recebimento(s)</div></div>`:''}
     ${alertas?`<div class="card clicavel" onclick="verEstoqueBaixo()" title="ver quais produtos"><div class="rotulo">Estoque baixo</div><div class="valor neg">${alertas}</div><div class="extra">toque para ver quais →</div></div>`:''}
@@ -9336,7 +9621,8 @@ var LOJA_APP = __LOJA_APP__;
     if(qual==="col"||qual==="tudo")estado.col="";
     if(qual==="cat"||qual==="tudo")estado.cat="";
     if(qual==="tipo"||qual==="tudo")estado.tipo="";
-    if(qual==="busca"||qual==="tudo"){estado.busca="";$("lgBusca").value="";}
+    // busca limpa por qualquer caminho fecha a barra do celular (V12)
+    if(qual==="busca"||qual==="tudo"){estado.busca="";$("lgBusca").value="";buscaAberta=false;}
     navegar();
   }
   $("lgFiltros").addEventListener("click",function(e){
@@ -9383,7 +9669,7 @@ var LOJA_APP = __LOJA_APP__;
     var b=e.target.closest("button");if(!b)return;
     /* coleção escolhida mostra a coleção INTEIRA (V9): material, tipo e busca de
        antes saem — com "Rosé" ligado, a Black Essence aparecia vazia */
-    estado.col=b.getAttribute("data-col");estado.cat="";estado.tipo="";estado.busca="";$("lgBusca").value="";
+    estado.col=b.getAttribute("data-col");estado.cat="";estado.tipo="";estado.busca="";$("lgBusca").value="";buscaAberta=false;
     fecharLateral();navegar();irParaPecas();
   });
   $("lgBtMenu").addEventListener("click",abrirLateral);
@@ -9414,6 +9700,15 @@ var LOJA_APP = __LOJA_APP__;
     if(estado.busca)tirarFiltro("busca");else pintarTopoBusca();
   });
   $("lgBusca").addEventListener("keydown",function(e){if(e.key==="Escape")this.blur();});
+  /* V12 (pedido do Luan): saiu do campo sem nada escrito, a barra some de novo
+     para devolver o espaço. Espera um instante: fechar no meio do toque mudaria
+     o lugar do botão que a pessoa estava tocando. */
+  $("lgBusca").addEventListener("blur",function(){
+    setTimeout(function(){
+      if(document.activeElement===$("lgBusca")||chaveBusca(estado.busca)||!buscaAberta)return;
+      buscaAberta=false;pintarTopoBusca();
+    },250);
+  });
   $("lgGrade").addEventListener("click",function(e){
     var card=e.target.closest(".prodcard");if(!card)return;
     abrirModal(card.getAttribute("data-id"));
@@ -9534,6 +9829,7 @@ var LOJA_APP = __LOJA_APP__;
     estado.cat=acharPorSlug(categorias,q.get("material")||"");
     estado.tipo=acharPorSlug(tipos,q.get("tipo")||"");
     estado.busca=q.get("busca")||"";$("lgBusca").value=estado.busca;
+    if(!estado.busca)buscaAberta=false;
   }
   /* coleção nova (criada hoje) pode ainda não estar na página: tenta com o que
      já está na tela e de novo quando a vitrine do banco chega */
@@ -10809,7 +11105,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-10-27 23:21';
+const VERSAO_APP='2026-10-28 23:53';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -11809,10 +12105,12 @@ async function publicarCatalogo(){
    função existe (1 pergunta por sessão); enquanto não existir, tudo segue como
    antes (os códigos vão na vitrine). */
 var CUPOM_NO_SERVIDOR=false;
-async function conferirCupomNoServidor(){
+async function conferirCupomNoServidor(forcar){
   if(NUVEM.cupomConferido)return CUPOM_NO_SERVIDOR;
-  // loja sem cupom não tem o que esconder: nem pergunta
-  if(!cupons().length)return CUPOM_NO_SERVIDOR;
+  // loja sem cupom não tem o que esconder: nem pergunta ao publicar. A tela de
+  // cupons pergunta mesmo assim (forcar, V12) — sem isso ela mostrava "os
+  // códigos ficam na página" com a função do banco já criada.
+  if(!forcar&&!cupons().length)return CUPOM_NO_SERVIDOR;
   try{
     // código vazio: a função responde na hora, sem contar como tentativa errada (V10.2)
     await chamarApi('/rest/v1/rpc/buscar_cupom',{metodo:'POST',corpo:{p_loja:slugDaLoja(),p_codigo:''}});
