@@ -221,7 +221,7 @@ input,select,textarea{background:var(--painel2);border:1px solid var(--borda);co
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acento);
   box-shadow:0 0 0 3px var(--brilho)}
 textarea{resize:vertical;min-height:2.2rem}
-label.campo,div.caixa-campo{display:flex;flex-direction:column;gap:.25rem;font-size:.8rem;color:var(--texto2)}
+label.campo,div.caixa-campo,div.campo-div{display:flex;flex-direction:column;gap:.25rem;font-size:.8rem;color:var(--texto2)}
 label.linha{display:flex;align-items:center;gap:.45rem;font-size:.85rem;color:var(--texto2)}
 
 .bt{background:var(--painel2);color:var(--texto);border:1px solid var(--borda);border-radius:9px;padding:.5rem .9rem;font-size:.9rem;
@@ -293,6 +293,59 @@ button.bd-clica:hover{filter:brightness(.95);text-decoration:underline}
 .devedor .corpo{display:none;border-top:1px solid var(--borda);padding:.4rem .8rem .7rem}
 .devedor.aberto .corpo{display:block}
 .devedor .soma{margin-left:auto;font-weight:700;color:var(--vermelho)}
+/* ---- Fiado mais simples (V13) ---- */
+.f-busca{min-width:150px;max-width:240px}
+.f-cards .card.escolhido{border-color:var(--acento)}
+.f-cobrar{background:var(--cob-bg);border:1px solid var(--cob-ln);border-radius:12px;padding:.75rem .95rem;margin-bottom:1rem}
+.f-cobrar h3{font-size:.95rem;margin:0 0 .45rem;color:var(--cob-tx);font-family:"Figtree","Segoe UI",sans-serif;font-weight:700;display:flex;align-items:center;gap:.35rem}
+.f-cobrar .cob-linha{border-bottom-color:var(--cob-ln)}
+.f-cobrar .cob-mais{margin-top:.4rem}
+.f-filtros{gap:.5rem}
+.f-lista{display:flex;flex-direction:column;gap:.5rem}
+.f-cli{background:var(--painel);border-radius:12px;margin-bottom:0}
+.f-cli>header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"dot nome total" "dot prox acoes";
+  gap:.15rem .75rem;align-items:center;padding:.7rem .9rem;flex-wrap:nowrap}
+.f-dot{grid-area:dot;width:10px;height:10px;border-radius:50%;background:var(--cinza);align-self:start;margin-top:.4rem}
+.f-dot.atras{background:var(--vermelho)}.f-dot.sem{background:var(--laranja)}
+.f-nome{grid-area:nome;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.98rem}
+.f-nome small{font-weight:500;color:var(--texto2);font-size:.76rem;margin-left:.35rem}
+.f-total{grid-area:total;font-weight:800;font-size:1.05rem;text-align:right;color:var(--vermelho);font-variant-numeric:tabular-nums}
+.f-total small{display:block;font-size:.7rem;font-weight:400;color:var(--texto2)}
+.f-prox{grid-area:prox;font-size:.82rem;color:var(--texto2);min-width:0}
+.f-prox b{color:var(--texto);font-weight:600}.f-prox b.neg{color:var(--vermelho)}
+.f-paga{display:inline-block;font-size:.74rem;color:var(--verde);white-space:nowrap}
+.f-acoes{grid-area:acoes;display:flex;gap:.35rem;justify-content:flex-end}
+.f-cli .corpo{padding:.2rem .9rem .8rem}
+.f-bloco{border-top:1px dashed var(--borda);padding:.55rem 0 .2rem}
+.f-bloco:first-child{border-top:none}
+.f-bloco-cab{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;font-size:.86rem;margin-bottom:.3rem}
+.f-parc{display:grid;grid-template-columns:16px 78px minmax(0,1fr) auto auto;gap:.55rem;align-items:center;padding:.28rem 0;font-size:.86rem}
+.f-parc .bola{width:12px;height:12px;border-radius:50%;border:2px solid var(--texto2)}
+.f-parc.prox .bola{background:var(--laranja);border-color:var(--laranja)}
+.f-parc.paga{color:var(--texto2)}
+.f-parc.paga .bola{background:var(--verde);border-color:var(--verde)}
+.f-parc .vl{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+.f-parc .vl small{display:block;font-weight:400}
+.f-parc-ac{display:flex;align-items:center;gap:.35rem;justify-content:flex-end}
+.f-pecas{margin-top:.35rem;font-size:.8rem;color:var(--texto2)}
+.f-pecas>summary{cursor:pointer;color:var(--acento2);font-weight:600;list-style:none}
+.f-pecas>summary::-webkit-details-marker{display:none}
+.f-pecas>summary::after{content:" ▸"}.f-pecas[open]>summary::after{content:" ▾"}
+.f-rodape{text-align:center;margin:1rem 0;font-size:.85rem}
+.f-rodape a{color:var(--texto2)}
+.cob-parcs{display:flex;flex-direction:column;gap:.3rem;margin:.6rem 0}
+.cob-parc{display:flex;align-items:center;gap:.5rem;padding:.45rem .6rem;border:1px solid var(--borda);border-radius:9px;background:var(--painel2);font-size:.88rem;cursor:pointer}
+.cob-msg{white-space:pre-wrap;font:.76rem/1.4 ui-monospace,Consolas,monospace;background:var(--painel2);border:1px solid var(--borda);border-radius:9px;padding:.6rem;max-height:280px;overflow:auto}
+.menu-acoes .ic-emoji{width:17px;text-align:center;flex:none}
+/* ---- Produtos (V13) ---- */
+.so-cel{display:none}
+.p-alertas{display:flex;gap:.4rem;flex-wrap:wrap;margin:-.35rem 0 .9rem}
+.p-alertas .bd{font-size:.8rem;padding:.3rem .65rem;border-radius:16px}
+.p-filtros{background:var(--painel2);border:1px solid var(--borda);border-radius:12px;padding:.7rem .7rem .1rem;margin:-.3rem 0 .9rem}
+.bt.com-filtro{border-color:var(--acento);color:var(--acento2);font-weight:600}
+/* ⇅ ordem da lista (V13): discreto, ao lado dos filtros */
+.ordem-sel{display:inline-flex;align-items:center;gap:.25rem;color:var(--texto2);font-size:.85rem}
+.ordem-sel select{padding:.3rem .45rem;font-size:.84rem;max-width:170px}
 
 .grafico{width:100%;height:auto}
 .legenda{display:flex;gap:1rem;font-size:.78rem;color:var(--texto2);flex-wrap:wrap;margin-top:.3rem}
@@ -685,6 +738,48 @@ main.larga{max-width:1480px}
 .caixa-erro{display:block;color:var(--vermelho);font-size:.78rem;margin-top:.25rem}
 .caixa-simnao{display:flex;flex-direction:column;gap:.35rem;margin-top:.35rem}
 .caixa-simnao .linha{font-size:.9rem;color:var(--texto)}
+/* ---- Resumo sem "contabilês" (V13) ---- */
+.mut2{color:var(--texto2);font-size:.78rem;font-weight:400}
+.r-per{display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
+.r-per .meio{display:flex;flex-direction:column;align-items:center;min-width:190px}
+.r-per .nome{font-weight:700;font-size:1.02rem}
+.r-per .datas{font-size:.8rem;color:var(--texto2)}
+.r-datas{margin-top:-.4rem}
+.r-frase{background:var(--painel);border:1px solid var(--borda);border-left:3px solid var(--marca);border-radius:12px;
+  padding:.85rem 1rem;margin-bottom:1.1rem;font-size:.95rem;line-height:1.55}
+.r-frase b{font-weight:700}
+.r-tit{font-size:1.15rem;margin-bottom:.45rem;display:flex;align-items:center}
+.r-alerta{color:var(--laranja);font-size:.85rem;margin:.3rem 0 .6rem}
+.r-barra{display:flex;height:16px;border-radius:9px;overflow:hidden;margin:.45rem 0 .35rem;background:var(--painel3)}
+.r-barra i{display:block}
+.r-leg{display:flex;flex-wrap:wrap;gap:.25rem .9rem;font-size:.76rem;color:var(--texto2);margin-bottom:.8rem}
+.r-leg span{display:inline-flex;align-items:center;gap:.3rem}
+.r-leg i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.r-conta .ln{display:flex;align-items:baseline;gap:.6rem;padding:.42rem 0;border-bottom:1px solid var(--borda);font-size:.93rem}
+.r-conta .ln:last-child{border-bottom:none}
+.r-conta .ln span:nth-child(2){flex:1}
+.r-conta .sinal{width:1rem;color:var(--texto2);font-weight:700;flex:none}
+.r-conta .vl{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.r-conta .ln.sub{font-weight:700;background:var(--painel2);margin:0 -.6rem;padding:.42rem .6rem;border-radius:8px}
+.r-conta .ln.tot{font-weight:800;font-size:1.02rem;border-top:2px solid var(--texto);margin-top:.15rem}
+.r-mais{margin-top:.7rem}
+.r-mais>summary{cursor:pointer;font-size:.84rem;color:var(--acento2);font-weight:600;list-style:none}
+.r-mais>summary::-webkit-details-marker{display:none}
+.r-mais>summary::after{content:" ▸"}
+.r-mais[open]>summary::after{content:" ▾"}
+.r-mais[open]>summary{margin-bottom:.6rem}
+/* "?" no lugar do texto explicativo (V13): abre o balão ao passar o mouse ou tocar */
+.aj{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;padding:0;
+  border:1.5px solid var(--texto2);color:var(--texto2);background:none;font:700 .68rem/1 "Figtree","Segoe UI",sans-serif;
+  vertical-align:middle;margin-left:.35rem;cursor:help;flex:none;letter-spacing:0;text-transform:none}
+.aj:hover,.aj.on{background:var(--texto);border-color:var(--texto);color:var(--painel)}
+.aj-balao{position:fixed;z-index:300;background:var(--toast-bg);color:var(--toast-tx);border-radius:10px;
+  padding:.65rem .8rem;font:400 .8rem/1.45 "Figtree","Segoe UI",sans-serif;box-shadow:var(--sombra2);
+  text-transform:none;letter-spacing:0;text-align:left;max-width:calc(100vw - 24px)}
+.aj-balao::before{content:"";position:absolute;left:var(--seta,14px);top:-6px;border:6px solid transparent;
+  border-top:0;border-bottom-color:var(--toast-bg)}
+.aj-balao.cima::before{top:auto;bottom:-6px;border-bottom:0;border-top:6px solid var(--toast-bg)}
+.aj-balao b{font-weight:700}
 /* número + "Sem limite" (V12): marcado, o número fica apagado e não vale */
 .caixa-limite{display:flex;align-items:center;gap:.8rem;margin-top:.35rem}
 .caixa-limite input[type="text"]{width:6.5rem;flex:none}
@@ -906,6 +1001,58 @@ main.larga{max-width:1480px}
   .cartoes tr.zerado td{opacity:.8}
   /* campo de busca ocupa a linha toda (a classe evita o style inline vencer) */
   .barra>.busca-larga{flex:1 1 100%!important}
+  /* Fiado (V13): cliente em cartão — nome e total em cima, próxima parcela, e os
+     dois botões ocupando a largura (dedo acerta fácil) */
+  .barra>.f-busca{max-width:none}
+  .f-cli>header{grid-template-areas:"dot nome total" "dot prox prox" "acoes acoes acoes";padding:.65rem .75rem}
+  .f-acoes{margin-top:.45rem}
+  .f-acoes .bt{flex:1;text-align:center}
+  .f-acoes .bt-tres{flex:none}
+  .f-cli .corpo{padding:.2rem .75rem .7rem}
+  .f-parc{grid-template-columns:14px 66px minmax(0,1fr) auto;font-size:.82rem}
+  .f-parc-ac{grid-column:2/-1;justify-content:flex-start}
+  .f-filtros .filtro-chips{flex-wrap:nowrap;overflow-x:auto;width:100%;padding-bottom:2px}
+  .f-filtros .filtro-chips button{flex:none}
+  /* cada pessoa numa linha só: nome e atraso empilhados à esquerda, valor e botão à direita */
+  .f-cobrar .cob-linha{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"nm vl bt" "qd vl bt";column-gap:.55rem;row-gap:.1rem}
+  .f-cobrar .cob-linha .nm{grid-area:nm;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .f-cobrar .cob-linha>.bd,.f-cobrar .cob-linha>.qdo{grid-area:qd;justify-self:start;font-size:.68rem}
+  .f-cobrar .cob-linha>b{grid-area:vl}
+  .f-cobrar .cob-linha .bt{grid-area:bt}
+  /* Resumo (V13) */
+  /* ◀ mês ▶ numa linha inteira; "outro período" e "voltar" descem para a de baixo */
+  .r-per .meio{min-width:0;flex:1}
+  .r-per .esp{order:1;flex-basis:100%;height:0}
+  .r-per .bt.mini{order:2}
+  .r-conta .ln{font-size:.9rem}
+  /* Produtos (V13): topo numa linha, avisos deslizando e a peça num cartão baixo */
+  .so-pc{display:none}
+  .so-cel{display:inline}
+  .p-topo{flex-wrap:nowrap}
+  .p-alertas{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
+  .p-alertas .bd{flex:none}
+  .p-escopo:not(.com-sel){display:none}
+  .barra.p-busca{flex-wrap:nowrap}
+  .barra.p-busca>.busca-larga{flex:1 1 auto!important}
+  .barra.p-busca .bt{flex:none;white-space:nowrap}
+  .lista-prod tr:not(.grupo){display:grid;grid-template-columns:52px auto minmax(0,1fr) auto;gap:.15rem .55rem;align-items:center;padding:.55rem .6rem}
+  .lista-prod td::before{content:none}
+  .lista-prod td.capa{position:static;grid-area:1/1/3/2}
+  .lista-prod .thumb,.lista-prod .thumb-vazio{width:52px;height:52px}
+  .lista-prod td.titulo{grid-area:1/2/2/4;border:none;padding:0;margin:0;min-height:0;font-size:.92rem}
+  .lista-prod td.acoes{grid-area:1/4/2/5;padding:0}
+  .lista-prod td[data-rot="Material"]{grid-area:2/2/3/3;justify-content:flex-start}
+  .lista-prod td[data-rot="Preço"]{grid-area:2/3/3/4;justify-content:flex-start;font-weight:700}
+  .lista-prod td[data-rot="Estoque"]{grid-area:2/4/3/5;font-size:.78rem;font-weight:700;color:var(--bd-ok-tx);flex-wrap:wrap;justify-content:flex-end}
+  .lista-prod td[data-rot="Estoque"].alerta-estoque{color:var(--vermelho)}
+  /* peça com tamanhos: a fileira "16:5 · 17:10…" desce para uma linha própria —
+     no canto ela alargava a coluna e espremia o nome da peça */
+  .lista-prod td[data-rot="Estoque"]:has(.grade-mini){grid-area:3/2/4/5;justify-content:flex-start;align-items:baseline;gap:.15rem .5rem}
+  .lista-prod td[data-rot="Custo"],.lista-prod td[data-rot="Margem"],.lista-prod td[data-rot="Cadastro"],.lista-prod td[data-rot="Status"]{display:none}
+  .lista-prod tr.st-oculto td[data-rot="Status"],.lista-prod tr.st-esgotado td[data-rot="Status"]{display:flex;grid-column:2/-1;justify-content:flex-start}
+  .lista-prod tr.aberto td[data-rot="Custo"],.lista-prod tr.aberto td[data-rot="Margem"],.lista-prod tr.aberto td[data-rot="Cadastro"],.lista-prod tr.aberto td[data-rot="Status"]{display:flex;grid-column:2/-1;border-top:1px dashed var(--borda);padding-top:.25rem}
+  .lista-prod tr.aberto td::before{content:attr(data-rot)}
+  .lista-prod tr.aberto td.titulo::before,.lista-prod tr.aberto td.capa::before,.lista-prod tr.aberto td.acoes::before,.lista-prod tr.aberto td[data-rot="Material"]::before,.lista-prod tr.aberto td[data-rot="Preço"]::before,.lista-prod tr.aberto td[data-rot="Estoque"]::before{content:none}
 }
 @media print{.lateral,.topo-cel,.nav-cel,.barra,.acoes,.aviso,.rodape{display:none!important}.app{display:block}body{background:#fff;color:#000}}
 </style>
@@ -1143,7 +1290,7 @@ try{
       <div class="mut" style="font-size:.78rem;margin-top:.4rem">As parcelas continuam como estão — inclusive se você só corrigir a data da venda. Para mudá-las, use <b>Fiado → ✎ parcelas do parcelamento</b>.</div>
     </div>
     <div class="barra" id="vParcControles">
-      <label class="campo" id="vVencUnicoBox">Quando vai pagar <input type="date" id="vVencUnico" onchange="vVencMudou()"><small class="aviso-dia" id="vVencAviso"></small></label>
+      <label class="campo" id="vVencUnicoBox">Quando vai pagar <input type="date" id="vVencUnico" onchange="vVencMudou()"><small class="aviso-dia" id="vVencAviso"></small><small class="f-paga" id="vDiaPagaDica"></small></label>
       <label class="linha"><input type="checkbox" id="vDividir"> Dividir em parcelas</label>
     </div>
     <div id="vParcBox" hidden>
@@ -1153,7 +1300,7 @@ try{
       </div>
       <div id="vParcelas"></div>
       <p id="vParcSoma" style="font-size:.8rem"></p>
-      <p class="mut" style="font-size:.74rem">💡 Mudou a data da 1ª parcela? As seguintes se ajustam de mês em mês automaticamente.</p>
+      <p class="mut" style="font-size:.74rem">💡 Mudou a data da 1ª parcela? As seguintes se ajustam sozinhas — de mês em mês, ou no dia em que a cliente paga (se estiver no cadastro dela).</p>
     </div>
     <label class="campo mt">Observação do fiado <span class="mut">(só você vê — não vai na cobrança)</span>
       <input id="vObsFiado" placeholder="ex.: combinou de pagar quando receber o salário"></label>
@@ -1205,7 +1352,9 @@ try{
       <label class="linha"><input type="checkbox" id="pTemGradeCor" onchange="pGradeMudou()"> cor</label>
       <span class="mut" style="font-size:.74rem">— tamanho p/ anel e aliança; cor p/ a mesma peça em cores diferentes</span>
     </div>
-    <label class="campo" id="pEstoqueBox">Estoque atual <input type="number" id="pEstoque" step="any" placeholder="vazio = não controlar"></label>
+    <!-- V13: no lugar do "vazio = não controlar", a caixinha diz isso com todas as letras -->
+    <div class="campo campo-div" id="pEstoqueBox">Estoque atual <span class="caixa-limite"><input type="number" id="pEstoque" step="any" placeholder="quantas você tem">
+      <label class="linha"><input type="checkbox" id="pSemContagem" onchange="pSemContagemMudou()"> não controlo</label></span></div>
     <label class="linha span2"><input type="checkbox" id="pAvisarEstoque" onchange="pAvisarMudou()"> Avisar quando o estoque estiver baixo
       <span class="mut" style="font-size:.76rem">— marque só nas peças que você repõe</span></label>
     <!-- "Estoque mínimo" só faz sentido com o aviso ligado; solto, era
@@ -1317,6 +1466,20 @@ try{
 </form>
 </dialog>
 
+<!-- ====== COBRAR (V13): escolhe as parcelas, vê a mensagem e abre o WhatsApp da cliente ====== -->
+<dialog id="dlgCobrar">
+  <h3 id="cobTitulo">Cobrar</h3>
+  <p class="mut2" id="cobSub"></p>
+  <div id="cobParcelas" class="cob-parcs"></div>
+  <p id="cobTotal" style="text-align:right;margin:.2rem 0 .4rem"></p>
+  <details class="r-mais"><summary>ver a mensagem</summary><pre id="cobMsg" class="cob-msg"></pre></details>
+  <div class="rodape">
+    <button type="button" class="bt" onclick="dlgCobrar.close()">Fechar</button>
+    <button type="button" class="bt" onclick="cobrarCopiar()">📋 Copiar</button>
+    <button type="button" class="bt primario" id="cobBtWhats" onclick="cobrarWhats()">📲 Abrir no WhatsApp</button>
+  </div>
+</dialog>
+
 <!-- ====== CLIENTE ====== -->
 <dialog id="dlgCliente">
 <form id="formCliente">
@@ -1327,6 +1490,11 @@ try{
     <label class="campo span2">Apelido / como chamar na cobrança <input id="cApelido" placeholder="deixe vazio p/ usar o primeiro nome"></label>
     <label class="campo">Telefone / WhatsApp <input id="cTel" placeholder="(11) 9...."></label>
     <label class="campo">Local <select id="cLocal"></select></label>
+    <!-- V13: o dia em que ela recebe/prefere pagar — vira a sugestão de vencimento -->
+    <label class="campo">Costuma pagar <select id="cDiaPagaTipo" onchange="cDiaPagaMudou()">
+      <option value="">não sei</option><option value="dia">todo mês no dia…</option>
+      <option value="util">no dia útil nº… do mês</option><option value="ultimoUtil">no último dia útil do mês</option></select></label>
+    <label class="campo" id="cDiaPagaNBox" hidden>Qual dia <input id="cDiaPagaN" type="text" inputmode="numeric" placeholder="ex.: 5"></label>
     <label class="campo span2">Observações <input id="cObs"></label>
   </div>
   <div class="rodape">
@@ -1736,6 +1904,56 @@ function fmtData(iso){if(!iso)return '';const p=String(iso).split('-');return p.
 function hoje(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function toast(m){const t=$('toast');t.innerHTML=m;t.style.display='block';clearTimeout(toast._t);toast._t=setTimeout(()=>t.style.display='none',3200);}
 
+/* ---- "?" no lugar do texto explicativo (V13 — aprovado no rascunho V12) ----
+   A explicação sai da tela e abre num balão: ao passar o mouse no computador e
+   ao tocar no celular (lá não existe "passar o mouse"). Fica escrito na tela só
+   o que evita erro na hora. O texto é do painel (pode ter <b>); dado de cliente
+   que entrar nele tem que vir já com esc(). Um balão só para o painel inteiro;
+   dentro de janela aberta ele nasce na própria janela (senão ficaria por baixo). */
+function ajuda(txt){return `<button type="button" class="aj" aria-label="O que é isto?" data-ajuda="${esc(txt)}">?</button>`;}
+/* ⇅ ordem da lista (V13, pedido do Luan: "útil e discreto"): um seletor
+   pequeno ao lado dos filtros. opcoes=[[valor,rótulo]]; aoMudar = o código do onchange */
+function ordemSelHTML(atual,opcoes,aoMudar){
+  return `<label class="ordem-sel" title="Mudar a ordem da lista"><span aria-hidden="true">⇅</span><select onchange="${aoMudar}" aria-label="Ordem da lista">${
+    opcoes.map(o=>`<option value="${o[0]}"${o[0]===atual?' selected':''}>${esc(o[1])}</option>`).join('')}</select></label>`;
+}
+var AJ={de:null};
+function ajMostrar(bt){
+  let b=$('ajBalao');
+  if(!b){b=document.createElement('div');b.id='ajBalao';b.className='aj-balao';b.setAttribute('role','tooltip');}
+  const casa=(bt.closest&&bt.closest('dialog[open]'))||document.body;
+  if(b.parentNode!==casa)casa.appendChild(b);
+  if(AJ.de&&AJ.de!==bt)AJ.de.classList.remove('on');
+  b.innerHTML=bt.getAttribute('data-ajuda')||'';b.hidden=false;AJ.de=bt;bt.classList.add('on');
+  const r=bt.getBoundingClientRect(),w=Math.min(320,innerWidth-24);
+  b.style.width=w+'px';
+  const left=Math.min(Math.max(12,r.left-14),innerWidth-w-12);
+  let top=r.bottom+8;b.style.left=left+'px';b.style.top=top+'px';
+  const h=b.offsetHeight,cima=top+h>innerHeight-12&&r.top-h-8>12;
+  if(cima)top=r.top-h-8;
+  b.style.top=top+'px';b.classList.toggle('cima',cima);
+  b.style.setProperty('--seta',Math.max(10,Math.min(w-22,r.left+r.width/2-left-6))+'px');
+}
+function ajEsconder(){const b=$('ajBalao');if(b)b.hidden=true;if(AJ.de)AJ.de.classList.remove('on');AJ.de=null;}
+document.addEventListener('click',e=>{
+  const bt=e.target&&e.target.closest&&e.target.closest('.aj');
+  // o "?" não aciona o que está em volta (cartão clicável, rótulo de campo)
+  if(bt){e.preventDefault();e.stopPropagation();if(AJ.de===bt)ajEsconder();else ajMostrar(bt);return;}
+  if(AJ.de&&!(e.target.closest&&e.target.closest('#ajBalao')))ajEsconder();
+},true);
+var AJ_MOUSE=window.matchMedia?matchMedia('(hover:hover) and (pointer:fine)'):null;
+document.addEventListener('mouseover',e=>{
+  if(!AJ_MOUSE||!AJ_MOUSE.matches)return;
+  const bt=e.target&&e.target.closest&&e.target.closest('.aj');if(bt&&AJ.de!==bt)ajMostrar(bt);
+});
+document.addEventListener('mouseout',e=>{
+  if(!AJ_MOUSE||!AJ_MOUSE.matches||!AJ.de)return;
+  const bt=e.target&&e.target.closest&&e.target.closest('.aj');
+  if(bt===AJ.de&&!(e.relatedTarget&&bt.contains(e.relatedTarget)))ajEsconder();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')ajEsconder();});
+window.addEventListener('scroll',()=>{if(AJ.de)ajEsconder();},true);
+
 /* ============================================================
    CAIXAS DO PAINEL (V8)
    O painel não usa mais as caixas pretas do navegador (alert, confirm,
@@ -1754,7 +1972,8 @@ function toast(m){const t=$('toast');t.innerHTML=m;t.style.display='block';clear
 
    Campos: {id, rotulo, tipo:'texto'|'textoLongo'|'numero'|'lista'|'simnao'|'data'|'limite',
    valor, opcoes:[[valor,rótulo]], dica, exemplo, obrigatorio, mostrarSe(vals)}.
-   'limite' = número + caixinha "Sem limite" (semLimite = texto dela); devolve 0 quando marcada.
+   'limite' = número + caixinha "Sem limite" (semLimite = texto dela; decimal/minimo p/ dinheiro); devolve 0 quando marcada.
+   'dataSem' = data + caixinha (ex.: "Sem data para terminar"); devolve '' quando marcada.
 
    Testes: eles trocam window.alert/confirm/prompt por respostas prontas.
    Quando isso acontece as caixas usam essas respostas e chamam sim/feito NA
@@ -1780,7 +1999,7 @@ function caixaConverter(c,v,doTeste){
   }
   if(c.tipo==='numero'||c.tipo==='limite')return numBR(v);
   // data (V10): AAAA-MM-DD ou vazio; o teste antigo responde a mesma coisa
-  if(c.tipo==='data'){const s=String(v==null?'':v).trim();return /^\d{4}-\d{2}-\d{2}$/.test(s)?s:'';}
+  if(c.tipo==='data'||c.tipo==='dataSem'){const s=String(v==null?'':v).trim();return /^\d{4}-\d{2}-\d{2}$/.test(s)?s:'';}
   if(c.tipo==='simnao')return !!v;
   return String(v==null?'':v);
 }
@@ -1797,10 +2016,16 @@ function caixaCampoHTML(c,i){
     inp=`<input id="${id}" type="date" value="${esc(c.valor||'')}">`;
   }else if(c.tipo==='limite'){
     /* V12 (pedido do Luan): "1 = uma vez · 0 = sem limite" confundia. Agora é o
-       número livre e uma caixinha "Sem limite" — marcada, o número se apaga. */
-    const sem=!(+c.valor>0);
-    inp=`<span class="caixa-limite"><input id="${id}" type="text" inputmode="numeric" autocomplete="off" value="${sem?'':esc(String(c.valor))}"${sem?' disabled':''}>
+       número livre e uma caixinha "Sem limite" — marcada, o número se apaga.
+       V13: vale também para dinheiro (decimal: "Pedido mínimo" + "Sem mínimo"). */
+    const sem=!(+c.valor>0),val=sem?'':(c.decimal?String(c.valor).replace('.',','):String(c.valor));
+    inp=`<span class="caixa-limite"><input id="${id}" type="text" inputmode="${c.decimal?'decimal':'numeric'}" autocomplete="off" value="${esc(val)}"${sem?' disabled':''}${ph} data-padrao="${c.decimal?'':'1'}">
       <label class="linha"><input type="checkbox" id="${id}Sem"${sem?' checked':''} onchange="caixaLimiteMudou(${i})"> ${esc(c.semLimite||'Sem limite')}</label></span>`;
+  }else if(c.tipo==='dataSem'){
+    // V13: data + caixinha (ex.: "Termina em" + "Sem data para terminar") no lugar do "vazio = …"
+    const sem=!c.valor;
+    inp=`<span class="caixa-limite"><input id="${id}" type="date" value="${esc(c.valor||'')}"${sem?' disabled':''} data-padrao="">
+      <label class="linha"><input type="checkbox" id="${id}Sem"${sem?' checked':''} onchange="caixaLimiteMudou(${i})"> ${esc(c.semLimite||'Sem data')}</label></span>`;
   }else if(c.tipo==='textoLongo'){
     inp=`<textarea id="${id}" rows="${c.linhas||3}"${ph}>${esc(c.valor||'')}</textarea>`;
   }else{
@@ -1809,7 +2034,7 @@ function caixaCampoHTML(c,i){
     inp=`<input id="${id}" type="text"${num?' inputmode="decimal"':''} autocomplete="off" value="${esc(val)}"${ph}${c.max?` maxlength="${c.max}"`:''}>`;
   }
   // com caixinha dentro, o bloco não pode ser <label> (rótulo dentro de rótulo)
-  const tag=c.tipo==='limite'?'div':'label';
+  const tag=(c.tipo==='limite'||c.tipo==='dataSem')?'div':'label';
   return `<${tag} class="campo caixa-campo" data-i="${i}">${esc(c.rotulo||'')}${c.dica?` <small class="mut">${esc(c.dica)}</small>`:''}
     ${inp}<span class="caixa-erro" id="${id}Erro" hidden></span></${tag}>`;
 }
@@ -1817,12 +2042,13 @@ function caixaLimiteMudou(i){
   const s=$('cxCampo'+i+'Sem'),el=$('cxCampo'+i);if(!s||!el)return;
   el.disabled=s.checked;
   if(s.checked)el.value='';
-  else{if(!el.value.trim())el.value='1';try{el.focus();el.select();}catch(e){}}
+  else{if(!el.value.trim()&&el.dataset.padrao)el.value=el.dataset.padrao;try{el.focus();if(el.select)el.select();}catch(e){}}
 }
 function caixaLerCampo(c,i){
   if(c.tipo==='simnao'){const r=document.querySelector('input[name="cxCampo'+i+'"]:checked');return !!(r&&r.value==='1');}
   // "Sem limite" marcado = 0 (é assim que o resto do painel lê "sem limite")
   if(c.tipo==='limite'){const s=$('cxCampo'+i+'Sem');if(s&&s.checked)return 0;}
+  if(c.tipo==='dataSem'){const s=$('cxCampo'+i+'Sem');if(s&&s.checked)return '';}
   const el=$('cxCampo'+i);if(!el)return undefined;
   return caixaConverter(c,c.tipo==='lista'?el.value:el.value.trim(),false);
 }
@@ -1877,7 +2103,9 @@ function caixaOk(){
     let msg='';
     if(c.obrigatorio&&(v==null||v===''||(typeof v==='number'&&isNaN(v))))msg=c.tipo==='numero'?'Digite um número.':'Preencha este campo.';
     else if(c.tipo==='numero'&&v!==''&&isNaN(v)&&String(($('cxCampo'+i)||{}).value||'').trim()!=='')msg='Digite um número (ex.: 12,50).';
-    else if(c.tipo==='limite'&&!(($('cxCampo'+i+'Sem')||{}).checked)&&!(v>=1))msg='Digite quantas vezes (1 ou mais) ou marque "'+(c.semLimite||'Sem limite')+'".';
+    else if(c.tipo==='limite'&&!(($('cxCampo'+i+'Sem')||{}).checked)&&!(v>=(c.minimo!=null?c.minimo:1)))
+      msg=(c.decimal?'Digite o valor':'Digite quantas vezes (1 ou mais)')+' ou marque "'+(c.semLimite||'Sem limite')+'".';
+    else if(c.tipo==='dataSem'&&!(($('cxCampo'+i+'Sem')||{}).checked)&&!v)msg='Escolha a data ou marque "'+(c.semLimite||'Sem data')+'".';
     if(e){e.textContent=msg;e.hidden=!msg;}
     if(msg)erro=true;
     vals[c.id]=v;
@@ -3304,8 +3532,8 @@ function painelSemEstoque(){
   if(!ps.length)return `<div class="painel"><h3 style="margin-top:0">📦 Sem estoque informado</h3>
     <p class="mut">Todas as peças à venda têm a quantidade informada — tudo certo.</p>${fechar}</div>`;
   return `<div class="painel" style="border-color:var(--laranja)">
-    <h3 style="margin-top:0">📦 Peças sem estoque informado <span class="bd fiadoP">${ps.length}</span></h3>
-    <p class="mut" style="font-size:.84rem;margin-bottom:.7rem">Estas peças nunca tiveram a quantidade contada — na loja elas aparecem como disponíveis, sem limite. Digite quantas você tem e toque em <b>Salvar</b>. Se você não controla o estoque de alguma, toque em <b>Deixar assim</b>.</p>
+    <h3 style="margin-top:0;display:flex;align-items:center;gap:.4rem">📦 Peças sem estoque informado <span class="bd fiadoP">${ps.length}</span>
+      ${ajuda('Estas peças nunca tiveram a quantidade contada — na loja elas aparecem como disponíveis, sem limite. Digite quantas você tem e toque em <b>Salvar</b>. Se você não controla o estoque de alguma, toque em <b>Deixar assim</b>.')}</h3>
     <div class="barra" style="margin-bottom:.5rem"><span class="esp"></span><button class="bt mini" onclick="semEstoqueTodasAssim()">Deixar todas assim</button></div>
     <div class="se-lista">${ps.map(linhaSemEstoque).join('')}</div>${fechar}</div>`;
 }
@@ -3960,7 +4188,7 @@ function renderProdutos(){
   const escopo=sel.length?`<span class="bd cat">seleção: ${sel.length} produto(s)</span> <button class="bt mini" onclick="limparProdSel()">mostrar todos</button>`:'<span class="mut">mostrando todo o estoque</span>';
   // "selecionar os sem estoque —" virou o aviso 📦 no topo (V12)
   $('tab-produtos').innerHTML=cabecalhoProdutos()+`
-  <div class="barra" style="margin-bottom:.5rem">${escopo}${sel.length?'':`
+  <div class="barra p-escopo${sel.length?' com-sel':''}" style="margin-bottom:.5rem">${escopo}${sel.length?'':`
     <button class="bt mini" onclick="selecionarFiltrados()">selecionar os listados</button>`}</div>
   ${sel.length?painelEmMassa(sel):''}
   <div class="mini-cards">
@@ -3984,11 +4212,23 @@ function coresUsadas(){
   dados.produtos.forEach(p=>coresDoProduto(p).forEach(c=>{if(c.nome&&!m[c.nome])m[c.nome]=c;}));
   return Object.keys(m).sort((a,b)=>a.localeCompare(b,'pt-BR')).map(k=>m[k]);
 }
-function produtoTemCor(p,nome){return coresDoProduto(p).some(c=>(c.nome||'')===nome);}function barraFiltrosProdutos(){
-  const u=ui.p,cores=coresUsadas();
+function produtoTemCor(p,nome){return coresDoProduto(p).some(c=>(c.nome||'')===nome);}
+/* quantos filtros estão ligados (a busca não conta: ela está à vista) */
+function nFiltrosProdutos(){
+  const u=ui.p;return [u.cat,u.tipo,u.col,u.cor,u.forn,u.estoque,u.status,u.ini||u.fim,u.ord&&u.ord!=='nome'].filter(Boolean).length;
+}
+function barraFiltrosProdutos(){
+  const u=ui.p,cores=coresUsadas(),nf=nFiltrosProdutos(),aberto=!!u.verFiltros;
   const op=(v,rot)=>`<option value="${v}"${u.estoque===v?' selected':''}>${rot}</option>`;
-  return `<div class="barra">
+  /* V13: a busca fica à vista; os 9 filtros moram atrás do botão "Filtros" (no
+     celular eram meia tela de campos antes da primeira peça) */
+  return `<div class="barra p-busca">
     <input class="busca-larga" placeholder="🔎 nome do produto..." value="${esc(u.busca)}" oninput="ui.p.busca=this.value;renderProdutosTab()" style="flex:1;min-width:150px">
+    <button type="button" id="pBtFiltros" class="bt${nf?' com-filtro':''}" onclick="abrirFiltrosProdutos()" aria-expanded="${aberto}">⚙ Filtros${nf?' ('+nf+')':''}</button>
+    ${filtrosAtivosProdutos()?`<button class="bt mini" onclick="limparFiltrosProdutos()">limpar filtros</button>`:''}
+  </div>
+  <div class="p-filtros"${aberto?'':' hidden'}>
+  <div class="barra">
     <select onchange="ui.p.cat=this.value;renderProdutosTab()"><option value="">Material: todos</option>${opcoes(C().categorias,u.cat)}</select>
     <select onchange="ui.p.tipo=this.value;renderProdutosTab()"><option value="">Tipo: todos</option>${opcoes(C().tipos,u.tipo)}</select>
     ${colecoes().length?`<select onchange="ui.p.col=this.value;renderProdutosTab()"><option value="">Coleção: todas</option><option value="__sem"${u.col==='__sem'?' selected':''}>— sem coleção —</option>${opcoes(colecoes(),u.col)}</select>`:''}
@@ -4012,8 +4252,17 @@ function produtoTemCor(p,nome){return coresDoProduto(p).some(c=>(c.nome||'')===n
       <option value="estoque"${u.ord==='estoque'?' selected':''}>Menor estoque</option>
       <option value="precoMaior"${u.ord==='precoMaior'?' selected':''}>Preço: maior primeiro</option>
       <option value="precoMenor"${u.ord==='precoMenor'?' selected':''}>Preço: menor primeiro</option></select>
-    ${filtrosAtivosProdutos()?`<button class="bt mini" onclick="limparFiltrosProdutos()">limpar filtros</button>`:''}
-  </div>`;
+  </div></div>`;
+}
+/* abre/fecha sem redesenhar (os campos com busca continuam como estão) */
+function abrirFiltrosProdutos(){
+  ui.p.verFiltros=!ui.p.verFiltros;
+  const f=document.querySelector('#tab-produtos .p-filtros'),b=$('pBtFiltros');
+  if(f)f.hidden=!ui.p.verFiltros;if(b)b.setAttribute('aria-expanded',String(!!ui.p.verFiltros));
+}
+function pintarContagemFiltros(){
+  const b=$('pBtFiltros');if(!b)return;
+  const nf=nFiltrosProdutos();b.textContent='⚙ Filtros'+(nf?' ('+nf+')':'');b.classList.toggle('com-filtro',!!nf);
 }
 function filtrosAtivosProdutos(){
   const u=ui.p;
@@ -4028,12 +4277,15 @@ function limparFiltrosProdutos(){
 function cadastradoEm(p){return p.criadoEm||'';}
 function cabecalhoProdutos(){
   const al=alertasEstoque().length,dup=gruposDuplicados().length,se=semEstoqueInformado().length;
-  return `<div class="barra"><h2 style="margin:0">Produtos</h2><span class="esp"></span>
-    ${al?`<button type="button" class="bd fiadoP bd-clica" onclick="verEstoqueBaixo()" title="ver quais são">⚠️ ${al} com estoque baixo</button>`:''}
-    ${dup?`<button class="bt" style="color:var(--laranja)" onclick="ui.p.semEst=false;ui.p.dups=true;renderProdutos()" title="cadastros que parecem ser a mesma peça">🔀 ${dup} repetido(s)</button>`:''}
-    ${se?`<button class="bt" style="color:var(--laranja)" onclick="ui.p.dups=false;ui.p.semEst=true;renderProdutos()" title="peças que nunca tiveram a quantidade informada">📦 ${se} sem estoque informado</button>`:''}
-    <button class="bt" onclick="abrirEtiquetas()" title="código de barras para imprimir e colar na peça">🏷️ Etiquetas</button>
-    <button class="bt primario" onclick="abrirNovoProduto()">+ Novo produto</button></div>`;
+  /* V13 (rascunho aprovado): o topo numa linha só, e os avisos viram etiquetas
+     logo abaixo — no celular elas deslizam de lado */
+  const avisos=(al?`<button type="button" class="bd fiadoP bd-clica" onclick="verEstoqueBaixo()" title="ver quais são">⚠️ ${al} com estoque baixo</button>`:'')
+    +(se?`<button type="button" class="bd inv bd-clica" onclick="ui.p.dups=false;ui.p.semEst=true;renderProdutos()" title="peças que nunca tiveram a quantidade informada">📦 ${se} sem estoque informado</button>`:'')
+    +(dup?`<button type="button" class="bd inv bd-clica" onclick="ui.p.semEst=false;ui.p.dups=true;renderProdutos()" title="cadastros que parecem ser a mesma peça">🔀 ${dup} repetido(s)</button>`:'');
+  return `<div class="barra p-topo"><h2 style="margin:0">Produtos</h2><span class="esp"></span>
+    <button class="bt" onclick="abrirEtiquetas()" title="código de barras para imprimir e colar na peça" aria-label="Etiquetas">🏷️<span class="so-pc"> Etiquetas</span></button>
+    <button class="bt primario" onclick="abrirNovoProduto()">+ Novo<span class="so-pc"> produto</span></button></div>
+    ${avisos?`<div class="p-alertas">${avisos}</div>`:''}`;
 }
 function vendasDoProduto(id){return dados.vendas.reduce((n,v)=>n+v.itens.filter(i=>i.produtoId===id).reduce((s,i)=>s+(+i.qtd||0),0),0);}
 
@@ -4344,7 +4596,9 @@ function linhaProduto(p){
     const th=capa?`<img class="thumb" src="${capa}" alt="">${nMid>1?`<span class="mut" style="font-size:.66rem;display:block;text-align:center">${nMid} mídias</span>`:''}`:'<div class="thumb-vazio">📷</div>';
     /* data-rot: no celular a tabela vira cartão e cada célula precisa dizer
        de que campo ela é — o cabeçalho da tabela some lá (ver .cartoes) */
-    return `<tr${produtoZerado(p)?' class="zerado"':''}>
+    /* no celular a linha vira um cartão baixo (V13): foto, nome, material, preço e
+       estoque; tocar abre custo, margem, cadastro e situação */
+    return `<tr class="${produtoZerado(p)?'zerado ':''}st-${esc(p.status||'ativo')}" onclick="tocarProduto(event,this)">
       <td data-rot=""><input type="checkbox" ${ui.p.sel[p.id]?'checked':''} onchange="toggleProdSel('${p.id}',this.checked)"></td>
       <td class="capa" data-rot="">${th}</td>
       <td class="titulo" data-rot="Produto">${bolhaCor(p)}${esc(p.nome)}${p.tipoId?` <span class="mut" style="font-size:.76rem">(${esc(tipoNome(p.tipoId))})</span>`:''}${cols.length?`<div style="margin-top:.15rem">${cols.map(n=>`<span class="tag-col">${esc(n)}</span>`).join('')}</div>`:''}${!produtoAvisa(p)?'<div class="mut" style="font-size:.68rem">🔕 sem aviso de estoque</div>':''}${etiquetaDaLinha(p)}</td>
@@ -4352,12 +4606,18 @@ function linhaProduto(p){
       <td class="num" data-rot="Preço">${+p.preco>0?precoNaLista(p):"—"}</td>
       <td class="num" data-rot="Custo">${p.custo!=null?fmt(p.custo):'<span class="mut">—</span>'}</td>
       <td class="num" data-rot="Margem">${marg!=null?`<span class="${marg>=0?'pos':'neg'}">${pct(marg)}</span>`:'<span class="mut">—</span>'}</td>
-      <td class="num ${al?'alerta-estoque':''}" data-rot="Estoque">${p.estoque==null?'<span class="mut">—</span>':fmtN(p.estoque)+(al?' ⚠️':'')}${temGrade(p)?`<div class="grade-mini">${gradeResumo(p)}</div>`:''}</td>
+      <td class="num ${al?'alerta-estoque':''}" data-rot="Estoque">${p.estoque==null?'<span class="mut">—</span><span class="so-cel mut"> sem contagem</span>':fmtN(p.estoque)+'<span class="so-cel"> em estoque</span>'+(al?' ⚠️':'')}${temGrade(p)?`<div class="grade-mini">${gradeResumo(p)}</div>`:''}</td>
       <td class="num mut" style="font-size:.78rem" data-rot="Cadastro">${cadastradoEm(p)?fmtData(cadastradoEm(p)):'—'}</td>
       <td data-rot="Status">${statusBadge(p.status)}${naLoja(p)?' <span class="bd ok" title="aparecendo no catálogo agora">🛍️</span>':''}</td>
       <td class="acoes">
         <button class="bt mini bt-tres" title="Ações" aria-label="Ações de ${esc(p.nome)}" aria-haspopup="menu" onclick="abrirMenuProduto('${p.id}',this)">${IC_TRES_PONTOS}</button>
       </td></tr>`;
+}
+/* celular: tocar no cartão da peça mostra/esconde os detalhes (custo, margem...) */
+function tocarProduto(ev,tr){
+  if(!telaEstreita()||!tr)return;
+  if(ev&&ev.target&&ev.target.closest&&ev.target.closest('button,input,a,select,label'))return;
+  tr.classList.toggle('aberto');
 }
 /* produtos que aparecem de fato na tela, na ordem da tela — é daqui que
    "selecionar os listados" tira a lista, pra nunca marcar peça escondida */
@@ -4387,7 +4647,8 @@ function renderProdutosTab(){
     if(abertos)corpo+=zerados.slice(0,u.lim).map(linhaProduto).join('');
   }
   const maisQueLimite=ativos.length>u.lim||(abertos&&zerados.length>u.lim);
-  $('produtosTabela').innerHTML=`<div class="painel cartoes com-margem"><div class="rolagem"><table>
+  pintarContagemFiltros();
+  $('produtosTabela').innerHTML=`<div class="painel cartoes com-margem lista-prod"><div class="rolagem"><table>
     <thead><tr><th title="marque p/ ver os totais só deles">✓</th><th></th><th>Produto</th><th>Categoria</th><th class="num">Preço</th><th class="num">Custo</th><th class="num">Margem</th><th class="num">Estoque</th><th class="num">Cadastro</th><th>Status</th><th></th></tr></thead>
     ${corpo||`<tr><td colspan="11" class="centro">Nenhum produto encontrado.${filtrosAtivosProdutos()?' <button class="bt mini" onclick="limparFiltrosProdutos()">limpar filtros</button>':''}</td></tr>`}</table></div>
     <div class="mut" style="font-size:.8rem;padding:.3rem .2rem">${ativos.length} com estoque · ${zerados.length} sem estoque · ${ps.length} de ${dados.produtos.length} produto(s)${u.estoque||u.cat||u.tipo||u.forn||u.col||u.status||u.ini||u.fim?' — filtrado':''}</div>
@@ -4717,11 +4978,17 @@ function pAvisarMudou(){
   if(!on)$('pMinimo').value=0;
   else if(!(+$('pMinimo').value>0))$('pMinimo').value=1;
 }
+/* "não controlo" marcado: o número se apaga (V13, mesma ideia do "Sem limite") */
+function pSemContagemMudou(){
+  const s=$('pSemContagem'),e=$('pEstoque');if(!s||!e)return;
+  e.disabled=s.checked;if(s.checked)e.value='';
+}
 function abrirNovoProduto(){
   $('formProduto').reset();preencherSelectsProduto();
   $('dlgProdutoTitulo').textContent='Novo produto';$('pId').value='';$('pStatus').value='ativo';$('pMinimo').value=0;
   $('pTemGrade').checked=false;$('pTemGradeCor').checked=false;gradeRows=[];
   $('pGradeBox').hidden=true;$('pEstoqueBox').style.display='';
+  $('pSemContagem').checked=false;pSemContagemMudou();
   // desmarcado por padrão: a maioria das peças é compra única e não se repõe
   $('pAvisarEstoque').checked=false;pAvisarMudou();renderColecoesChecks('p',[]);
   $('pInsProprios').checked=false;$('pInsBox').hidden=true;$('pInsWrap').hidden=true;insRows=[];renderInsumosProduto();
@@ -4736,6 +5003,7 @@ function editarProduto(id){
   $('pForn').value=p.fornId||'';$('pStatus').value=p.status||'ativo';
   $('pPreco').value=+p.preco>0?p.preco:'';$('pCusto').value=p.custo!=null?p.custo:'';
   $('pEstoque').value=p.estoque!=null?p.estoque:'';$('pMinimo').value=p.minimo||0;$('pDesc').value=p.descricao||'';
+  $('pSemContagem').checked=p.estoque==null&&!!p.semControleOk;pSemContagemMudou();
   $('pAvisarEstoque').checked=p.avisarEstoque!==false;pAvisarMudou();
   $('pMinimo').value=p.minimo||0;   // pAvisarMudou pode ter sugerido 1; o valor gravado manda
   renderColecoesChecks('p',p.colecaoIds||[]);
@@ -4760,8 +5028,10 @@ function salvarProduto(){
     variacoes=variacoesDoForm('p',eixos);
     if(!variacoes)return;
     estoqueFinal=r2(variacoes.reduce((s,v)=>s+(+v.estoque||0),0));
-  }else{estoqueFinal=est===''?null:r2(est);}
-  const o={nome:$('pNome').value.trim(),catId:$('pCat').value,tipoId:$('pTipo').value||null,fornId:$('pForn').value||null,
+  }else{estoqueFinal=(est===''||$('pSemContagem').checked)?null:r2(est);}
+  // "não controlo" marcado é escolha: a peça não entra no aviso "sem estoque informado" (V13)
+  const semControleOk=!usaGrade&&estoqueFinal==null&&$('pSemContagem').checked;
+  const o={nome:$('pNome').value.trim(),catId:$('pCat').value,tipoId:$('pTipo').value||null,fornId:$('pForn').value||null,semControleOk,
     status:$('pStatus').value,preco:r2($('pPreco').value)||0,custo:$('pCusto').value===''?null:r2($('pCusto').value),
     estoque:estoqueFinal,minimo:r2($('pMinimo').value)||0,descricao:$('pDesc').value.trim(),
     avisarEstoque:$('pAvisarEstoque').checked,colecaoIds:lerColecoesChecks('p'),
@@ -5172,7 +5442,12 @@ function renderClientesTab(){
   // acha também pelo apelido, pelo telefone e pelo local da pessoa
   let cs=dados.clientes.filter(c=>casaBusca([c.nome,c.apelido,c.tel,localNome(c.localId)],termos))
     .map(c=>Object.assign({o:c},aggCliente(c.id)));
-  cs.sort((a,b)=>b.total-a.total);
+  // ⇅ ordem escolhida (V13); o padrão continua "quem mais comprou"
+  const ord=u.ordem||'total';
+  cs.sort(ord==='fiado'?(a,b)=>b.fiado-a.fiado||b.total-a.total
+    :ord==='nome'?(a,b)=>a.o.nome.localeCompare(b.o.nome,'pt-BR')
+    :ord==='recente'?(a,b)=>(b.ult||'').localeCompare(a.ult||'')
+    :(a,b)=>b.total-a.total);
   const linhas=cs.slice(0,u.lim).map(x=>{const c=x.o;return `<tr>
     <td><a href="javascript:void 0" style="color:var(--texto);text-decoration:none;font-weight:600" onclick="detalheCliente('${c.id}')">${esc(c.nome)}</a>${c.apelido?` <span class="mut" style="font-size:.75rem">(${esc(c.apelido)})</span>`:''}${c.localId?` <span class="mut" style="font-size:.75rem">📍${esc(localNome(c.localId))}</span>`:''}</td>
     <td>${c.tel?esc(c.tel):'<span class="mut">—</span>'}</td>
@@ -5181,7 +5456,8 @@ function renderClientesTab(){
     <td class="num ${x.fiado>0?'neg':''}">${x.fiado>0?'<b>'+fmt(x.fiado)+'</b>':'—'}</td>
     <td>${x.ult?fmtData(x.ult):'—'}</td>
     <td class="acoes"><button class="bt mini bt-tres" title="Ações" aria-label="Ações de ${esc(c.nome)}" aria-haspopup="menu" onclick="abrirMenuCliente('${c.id}',this)">${IC_TRES_PONTOS}</button></td></tr>`;}).join('');
-  $('clientesTabela').innerHTML=`<div class="painel"><div class="barra" style="margin-bottom:.4rem"><b>${cs.length}</b>&nbsp;cliente(s)</div>
+  $('clientesTabela').innerHTML=`<div class="painel"><div class="barra" style="margin-bottom:.4rem"><b>${cs.length}</b>&nbsp;cliente(s)<span class="esp"></span>
+    ${ordemSelHTML(ord,[['total','Quem mais comprou'],['fiado','Mais fiado em aberto'],['nome','Nome (A–Z)'],['recente','Compraram por último']],"ui.c.ordem=this.value;renderClientesTab()")}</div>
     <div class="rolagem"><table><tr><th>Cliente</th><th>Telefone</th><th class="num">Compras</th><th class="num">Total</th><th class="num">Fiado</th><th>Última</th><th></th></tr>
     ${linhas||'<tr><td colspan="7" class="centro">Nenhum cliente encontrado.</td></tr>'}</table></div></div>`;
 }
@@ -5228,7 +5504,19 @@ function abrirCliente(id){
   $('formCliente').reset();$('cLocal').innerHTML='<option value="">—</option>'+opcoes(C().locais);
   if(id){const c=clientePorId(id);$('cId').value=c.id;$('cNome').value=c.nome;$('cApelido').value=c.apelido||'';$('cTel').value=c.tel||'';$('cLocal').value=c.localId||'';$('cObs').value=c.obs||'';}
   else $('cId').value='';
+  const dp=id?diaPagaDe(clientePorId(id)):null;
+  $('cDiaPagaTipo').value=dp?dp.tipo:'';$('cDiaPagaN').value=dp&&dp.tipo!=='ultimoUtil'?dp.n:'';cDiaPagaMudou();
   dlgCliente.showModal();
+}
+function cDiaPagaMudou(){const t=$('cDiaPagaTipo').value;$('cDiaPagaNBox').hidden=!(t==='dia'||t==='util');}
+/* o que está na tela do cadastro → c.diaPaga (null = "não sei") */
+function lerDiaPagaCliente(){
+  const t=$('cDiaPagaTipo').value,n=Math.floor(numBR($('cDiaPagaN').value));
+  if(!t)return {ok:true,v:null};
+  if(t==='ultimoUtil')return {ok:true,v:{tipo:t,n:0}};
+  if(t==='dia'&&!(n>=1&&n<=31))return {ok:false,msg:'Digite o dia em que ela paga (1 a 31).'};
+  if(t==='util'&&!(n>=1&&n<=22))return {ok:false,msg:'Digite qual dia útil (1 a 22).'};
+  return {ok:true,v:{tipo:t,n}};
 }
 function acharOuCriarCliente(nome,localId,tel){
   nome=(nome||'').trim();if(!nome)return null;
@@ -5239,7 +5527,8 @@ function acharOuCriarCliente(nome,localId,tel){
 }
 function salvarCliente(){
   const id=$('cId').value,nome=$('cNome').value.trim();if(!nome){toast('Informe o nome.');return;}
-  const o={nome,apelido:$('cApelido').value.trim(),tel:$('cTel').value.trim(),localId:$('cLocal').value||null,obs:$('cObs').value.trim()};
+  const dp=lerDiaPagaCliente();if(!dp.ok){toast(dp.msg);return;}
+  const o={nome,apelido:$('cApelido').value.trim(),tel:$('cTel').value.trim(),localId:$('cLocal').value||null,obs:$('cObs').value.trim(),diaPaga:dp.v};
   let renomeou=0;
   if(id){
     const c=clientePorId(id),antigo=c.nome;
@@ -5331,8 +5620,8 @@ function painelClientesRepetidos(){
   if(!ps.length)return `<div class="painel"><h3 style="margin-top:0">🔀 Clientes repetidos</h3>
     <p class="mut">Nenhum cadastro parecido — tudo certo.</p>${fechar}</div>`;
   return `<div class="painel" style="border-color:var(--laranja)">
-    <h3 style="margin-top:0">🔀 Clientes que parecem repetidos <span class="bd fiadoP">${ps.length}</span></h3>
-    <p class="mut" style="font-size:.84rem;margin-bottom:.8rem">Se for a <b>mesma pessoa</b>, toque em <b>Ficar com este</b> no cadastro certo: as compras, o fiado e os pagamentos do outro passam para ele. Se forem <b>pessoas diferentes</b>, toque em <b>Não é a mesma pessoa</b> — o par não aparece mais.</p>
+    <h3 style="margin-top:0;display:flex;align-items:center;gap:.4rem">🔀 Clientes que parecem repetidos <span class="bd fiadoP">${ps.length}</span>
+      ${ajuda('Se for a <b>mesma pessoa</b>, toque em <b>Ficar com este</b> no cadastro certo: as compras, o fiado e os pagamentos do outro passam para ele. Se forem <b>pessoas diferentes</b>, toque em <b>Não é a mesma pessoa</b> — o par não aparece mais.')}</h3>
     ${ps.map(cartaoParCliente).join('')}${fechar}</div>`;
 }
 function cartaoParCliente(x){
@@ -5580,13 +5869,10 @@ function painelPromocoes(){
     <span class="pi-bts"><button class="bt mini" onclick="editarCupom('${c.id}')">✎ editar</button>
       <button class="bt mini" onclick="pausarCupom('${c.id}')">${c.pausado?'▶ retomar':'⏸ pausar'}</button>
       <button class="bt mini perigo" onclick="excluirCupom('${c.id}')" aria-label="excluir">✕</button></span></li>`;};
-  return `<div class="painel"><h3>🏷️ Promoções</h3>
-    <p class="mut" style="font-size:.82rem;margin-bottom:.6rem">Desconto que já aparece no preço: na loja (preço riscado e o preço com desconto) e na venda do painel. Vale só no período escolhido — começa e termina sozinha. Peça que cai em duas promoções fica com a de menor preço (elas não se somam).</p>
+  return `<div class="painel"><h3 style="display:flex;align-items:center">🏷️ Promoções ${ajuda('Desconto que já aparece no preço: na loja (preço riscado e o preço com desconto) e na venda do painel. Vale só no período escolhido — começa e termina sozinha. Peça que cai em duas promoções fica com a de menor preço (elas não se somam).')}</h3>
     ${ps.length?`<ul class="promo-lista">${ps.map(linhaPromo).join('')}</ul>`:'<p class="mut">Nenhuma promoção ainda.</p>'}
     <div class="rodape"><button class="bt primario" onclick="editarPromocao()">+ Nova promoção</button></div></div>
-  <div class="painel"><h3>🎟️ Cupons de desconto</h3>
-    <p class="mut" style="font-size:.82rem;margin-bottom:.6rem">Código que a cliente digita no pedido da loja (ex.: HALLOWEEN10). O desconto vale para o pedido inteiro e vai escrito na mensagem do WhatsApp. Na venda do painel, toque em <b>🎟️ cupom</b>, ao lado do desconto.</p>
-    <p class="mut" style="font-size:.82rem;margin-bottom:.6rem">Conta como usado quando a <b>venda é registrada</b> aqui no painel. O limite por cliente o painel confere na hora da venda; o total de usos a loja também confere sozinha (mostra "esgotou").</p>
+  <div class="painel"><h3 style="display:flex;align-items:center">🎟️ Cupons de desconto ${ajuda('Código que a cliente digita no pedido da loja (ex.: HALLOWEEN10). O desconto vale para o pedido inteiro e vai escrito na mensagem do WhatsApp. Na venda do painel, toque em <b>🎟️ cupom</b>, ao lado do desconto.<br><br>Conta como usado quando a venda é registrada aqui no painel. O limite por cliente o painel confere na hora da venda; o total de usos a loja também confere sozinha (mostra "esgotou").')}</h3>
     ${cs.length?`<ul class="promo-lista">${cs.map(linhaCupom).join('')}</ul>`:'<p class="mut">Nenhum cupom ainda.</p>'}
     ${avisoCupomHTML()}
     <div class="rodape"><button class="bt primario" onclick="editarCupom()">+ Novo cupom</button></div></div>`;
@@ -5646,7 +5932,7 @@ function editarPromocao(id){
     {id:'tp',rotulo:'Tipo de peça',tipo:'lista',opcoes:ops(C().tipos),valor:a.tipo==='tipo'?a.id:'',mostrarSe:v=>v.alvo==='tipo',pergunta:'Tipo:'},
     {id:'cor',rotulo:'Cor',tipo:'lista',opcoes:cores.map(c=>[c,c]),valor:a.tipo==='cor'?a.id:'',mostrarSe:v=>v.alvo==='cor',pergunta:'Cor:'},
     {id:'ini',rotulo:'Começa em',tipo:'data',valor:pr?pr.ini:hoje(),pergunta:'Começa em (AAAA-MM-DD):'},
-    {id:'fim',rotulo:'Termina em',tipo:'data',valor:pr?pr.fim:'',dica:'vazio = até você pausar',pergunta:'Termina em (AAAA-MM-DD):'},
+    {id:'fim',rotulo:'Termina em',tipo:'dataSem',semLimite:'Sem data para terminar',valor:pr?pr.fim:'',pergunta:'Termina em (AAAA-MM-DD):'},
     /* V11: promoção só numa forma de pagamento (ex.: 10% no Pix) */
     {id:'forma',rotulo:'Vale para pagamento em',tipo:'lista',valor:pr?formaDaPromo(pr):'',
       dica:'ex.: só no Pix — na loja aparece "R$ 63,00 no Pix"; na venda do painel o desconto entra ao escolher essa forma',
@@ -5694,14 +5980,14 @@ function editarCupom(id){
     {id:'codigo',rotulo:'Código',tipo:'texto',valor:c?c.codigo:'',exemplo:'ex.: HALLOWEEN10',obrigatorio:true,max:20,pergunta:'Código do cupom:'},
     {id:'tipo',rotulo:'Desconto em',tipo:'lista',opcoes:[['pct','% do pedido'],['valor','R$ no pedido']],valor:c?c.tipo:'pct',pergunta:'Desconto em % ou R$?'},
     {id:'valor',rotulo:'Quanto',tipo:'numero',valor:c?c.valor:10,obrigatorio:true,pergunta:'Quanto de desconto?'},
-    {id:'minimo',rotulo:'Pedido mínimo (R$)',tipo:'numero',valor:c&&+c.minimo?c.minimo:'',dica:'vazio = qualquer valor',pergunta:'Pedido mínimo:'},
+    {id:'minimo',rotulo:'Pedido mínimo (R$)',tipo:'limite',decimal:true,minimo:0.01,semLimite:'Sem mínimo',valor:c&&+c.minimo?c.minimo:0,pergunta:'Pedido mínimo:'},
     /* V10: a loja escolhe, cupom a cupom — somar com a promoção (10% + 10%) ou
        o desconto valer só nas peças que NÃO estão em promoção */
     {id:'soma',rotulo:'Vale também nas peças que já estão em promoção?',tipo:'simnao',
       sim:'Sim — soma com a promoção',nao:'Não — só nas peças sem promoção',valor:c?!!c.somaPromo:false,
       pergunta:'O cupom soma com a promoção (vale também nas peças em promoção)?'},
     {id:'ini',rotulo:'Começa em',tipo:'data',valor:c?c.ini:hoje(),pergunta:'Começa em (AAAA-MM-DD):'},
-    {id:'fim',rotulo:'Termina em',tipo:'data',valor:c?c.fim:'',dica:'vazio = até você pausar',pergunta:'Termina em (AAAA-MM-DD):'},
+    {id:'fim',rotulo:'Termina em',tipo:'dataSem',semLimite:'Sem data para terminar',valor:c?c.fim:'',pergunta:'Termina em (AAAA-MM-DD):'},
     /* V10.2: limite de uso — já vem "1 vez por cliente" (pedido do Luan).
        V12: número livre + caixinha "Sem limite" (o "1 = uma vez · 0 = sem
        limite" confundia); marcada, o número se apaga. Por dentro, 0 = sem limite. */
@@ -5877,7 +6163,7 @@ function abrirNovaVenda(){
   itensVenda=[{nome:'',produtoId:null,qtd:1,preco:0,custo:0}];parcelasVenda=[];
   vendaPlanoAtual=null;pintarPlanoVenda(null);
   $('vDividir').checked=false;$('vParcBox').hidden=true;$('vVencUnicoBox').style.display='';
-  $('vVencUnico').value='';$('vNparc').value=2;$('vLiquido').value='';acFechar();
+  $('vVencUnico').value='';V_VENC_AUTO='';$('vNparc').value=2;$('vLiquido').value='';acFechar();
   pintarAvisoDia('vData','vDataAviso');pintarAvisoDia('vVencUnico','vVencAviso');
   renderItensVenda();vClienteMudou();vFormaMudou();recalcVenda();atualizarBarraBipe();dlgVenda.showModal();
   setTimeout(()=>$('vCliente').focus(),50);
@@ -5886,7 +6172,7 @@ function editarVenda(id){
   const v=vendaPorId(id);if(!v)return;
   if(v.receber&&recParcelas(v).some(parcTocada)){avisar('Este fiado já tem valor recebido ou desconto aplicado. Ajuste em "✎ parcelas" na aba Fiado, ou desfaça o recebimento primeiro.');return;}
   $('formVenda').reset();preencherSelectsVenda();
-  $('dlgVendaTitulo').textContent='Editar venda';$('vId').value=v.id;$('vData').value=v.data;
+  $('dlgVendaTitulo').textContent='Editar venda';$('vId').value=v.id;$('vData').value=v.data;V_VENC_AUTO='';
   $('vCliente').value=v.clienteNome||'';$('vLocal').value=v.localId||'';$('vForma').value=v.formaId;$('vObs').value=v.obs||'';
   $('vDescontoTipo').value=v.descontoTipo==='perc'?'perc':'valor';marcarCupomVenda(v.cupom||'');
   $('vDesconto').value=v.descontoTipo==='perc'?(+v.descontoValor||0):(v.desconto||0);
@@ -6394,7 +6680,7 @@ function cliqueDesfazerRecebivel(id){
 function vFormaMudou(){
   const fiado=formaAtualFiado();$('vFiadoBox').hidden=!fiado;
   $('vCanalBox').hidden=!formaUsaCanal($('vForma').value);
-  if(fiado&&!$('vVencUnico').value)$('vVencUnico').value=isoAddDias($('vData').value||hoje(),30);
+  if(fiado&&!$('vVencUnico').value)sugerirVencimento();
   reprecarPelaForma();
   vCanalMudou();
 }
@@ -6431,6 +6717,9 @@ function vClienteMudou(){
   $('vTelBox').hidden=!novo;
   $('vClienteHint').innerHTML=!nome?'':ex?('<span class="linkok">✓ cliente cadastrado</span>'+(ex.localId?(' · 📍'+esc(localNome(ex.localId))):'')):'<span class="linknovo">＋ novo cliente — será cadastrado ao salvar</span>';
   if(ex&&ex.localId&&!$('vLocal').value)$('vLocal').value=ex.localId;
+  // a cliente tem dia de pagamento: o vencimento sugerido acompanha (V13)
+  // (só em venda nova: editar não mexe na data que já estava)
+  if(formaAtualFiado()&&!$('vId').value&&vencEhAuto())sugerirVencimento();else pintarDicaPaga();
 }
 /* avisos de dia não útil: cobrança quase sempre é em dia útil, então vale
    avisar (sem impedir) quando a data cai em feriado nacional ou fim de semana */
@@ -6447,8 +6736,32 @@ function pintarAvisoDia(idCampo,idAviso){
   el.textContent=t;
   if(t)el.title='Próximo dia útil: '+fmtData(proximoDiaUtil(iso));
 }
-function vDataMudou(){pintarAvisoDia('vData','vDataAviso');recalcVenda();}
-function vVencMudou(){pintarAvisoDia('vVencUnico','vVencAviso');}
+function vDataMudou(){pintarAvisoDia('vData','vDataAviso');if(vencEhAuto())sugerirVencimento();recalcVenda();}
+function vVencMudou(){V_VENC_AUTO='';pintarAvisoDia('vVencUnico','vVencAviso');}
+/* vencimento sugerido da venda fiado (V13): o próximo dia em que a cliente paga
+   (cadastro) ou, sem isso, 30 dias. Só troca sozinho enquanto a data ainda é a
+   sugerida — digitou outra, fica a dela. */
+var V_VENC_AUTO='';
+function vencEhAuto(){const v=$('vVencUnico').value;return !v||(!!V_VENC_AUTO&&v===V_VENC_AUTO);}
+function sugerirVencimento(){
+  const data=$('vData').value||hoje(),c=clientePeloNome($('vCliente').value);
+  const s=(c&&proximaDataPaga(c,data))||isoAddDias(data,30);
+  $('vVencUnico').value=s;V_VENC_AUTO=s;
+  pintarAvisoDia('vVencUnico','vVencAviso');pintarDicaPaga();
+}
+function pintarDicaPaga(){
+  const el=$('vDiaPagaDica');if(!el)return;
+  const c=clientePeloNome($('vCliente').value),t=c?diaPagaTexto(c):'';
+  el.textContent=t?'💰 ela '+t:'';
+}
+/* datas das parcelas a partir da 1ª: de mês em mês ou, se a cliente tem dia de
+   pagamento, sempre nele (o "5º dia útil" muda de dia a cada mês) */
+function datasDasParcelas(base,n,c){
+  const resto=c&&diaPagaDe(c)?datasPaga(c,base,n-1):[],out=[base];
+  for(let i=1;i<n;i++)out.push(resto[i-1]||addMeses(base,i));
+  return out;
+}
+function aplicarDatas(parc,base,c){const ds=datasDasParcelas(base,parc.length,c);parc.forEach((p,i)=>{p.venc=ds[i];});return parc;}
 function recalcVenda(){
   const total=totalVenda();
   $('vSubtotal').textContent=fmt(subtotalVenda());$('vTotal').textContent=fmt(total);
@@ -6492,7 +6805,8 @@ function recalcVenda(){
 function vGerarParcelas(){
   if(!formaAtualFiado()||!$('vDividir').checked)return;
   const n=Math.max(2,parseInt($('vNparc').value)||2);
-  parcelasVenda=dividirParcelas(totalVenda(),n,baseParcelas());renderParcelasVenda();
+  const base=baseParcelas();
+  parcelasVenda=aplicarDatas(dividirParcelas(totalVenda(),n,base),base,clientePeloNome($('vCliente').value));renderParcelasVenda();
 }
 function renderParcelasVenda(){
   $('vParcelas').innerHTML=parcelasVenda.map((p,i)=>`<div class="parc-row"><span class="lbl">${i+1}ª parcela</span>
@@ -6504,7 +6818,8 @@ function parcVenda(i,campo,val){
   parcelasVenda[i][campo]=campo==='valor'?(+val||0):val;
   // mudou a data da 1ª parcela? as seguintes se espaçam de mês em mês
   if(i===0&&campo==='venc'&&val&&parcelasVenda.length>1){
-    for(let k=1;k<parcelasVenda.length;k++)parcelasVenda[k].venc=addMeses(val,k);
+    const ds=datasDasParcelas(val,parcelasVenda.length,clientePeloNome($('vCliente').value));
+    for(let k=1;k<parcelasVenda.length;k++)parcelasVenda[k].venc=ds[k];
     renderParcelasVenda();return;
   }
   // redesenha pra o aviso de feriado/fim de semana acompanhar a data escolhida.
@@ -6802,8 +7117,11 @@ function vendasFiltradas(){
   return dados.vendas.filter(v=>noPeriodo(v.data,ini,fim)
       &&casaBusca([v.clienteNome,(v.itens||[]).map(i=>i.nome).join(' '),v.obs],termos)
       &&vendaCasaAtributos(v,u))
-    .sort(cmpDataDesc(gD,gId));
+    .sort(ORDEM_VENDAS[u.ordem]||ORDEM_VENDAS.recentes);
 }
+/* ⇅ ordem da lista de vendas (V13) */
+const ORDEM_VENDAS={recentes:cmpDataDesc(gD,gId),antigas:cmpDataAsc(gD,gId),
+  valor:(a,b)=>(+b.total||0)-(+a.total||0),cliente:(a,b)=>(a.clienteNome||'~').localeCompare(b.clienteNome||'~','pt-BR')};
 function renderVendasTab(){
   const vs=vendasFiltradas(),tot=r2(vs.reduce((s,v)=>s+(+v.total||0),0));
   // data-rot alimenta o layout de cartão do celular (ver .cartoes no CSS)
@@ -6816,7 +7134,8 @@ function renderVendasTab(){
     <td class="acoes"><button class="bt mini" onclick="editarVenda('${v.id}')">✎</button><button class="bt mini perigo" onclick="excluirVenda('${v.id}')">✕</button></td>
   </tr>`).join('');
   const totFiltro=totalItensFiltrados(vs);
-  $('vendasTabela').innerHTML=`<div class="painel cartoes"><div class="barra" style="margin-bottom:.4rem"><b>${vs.length}</b>&nbsp;venda(s) — total&nbsp;<b class="pos">${fmt(tot)}</b>${totFiltro!=null?`<span class="mut" style="font-size:.82rem">· só as peças do filtro:&nbsp;<b class="pos">${fmt(totFiltro)}</b></span>`:''}</div>
+  $('vendasTabela').innerHTML=`<div class="painel cartoes"><div class="barra" style="margin-bottom:.4rem"><b>${vs.length}</b>&nbsp;venda(s) — total&nbsp;<b class="pos">${fmt(tot)}</b>${totFiltro!=null?`<span class="mut" style="font-size:.82rem">· só as peças do filtro:&nbsp;<b class="pos">${fmt(totFiltro)}</b></span>`:''}
+      <span class="esp"></span>${ordemSelHTML(ui.v.ordem||'recentes',[['recentes','Mais recentes'],['antigas','Mais antigas'],['valor','Maior valor'],['cliente','Cliente (A–Z)']],"ui.v.ordem=this.value;renderVendasTab()")}</div>
     <div class="rolagem"><table><thead><tr><th>Cliente</th><th>Data</th><th>Itens</th><th class="num">Valor</th><th>Situação</th><th></th></tr></thead>
     ${linhas||'<tr><td colspan="6" class="centro">Nenhuma venda.</td></tr>'}</table></div>
     ${vs.length>ui.v.lim?`<div class="centro"><button class="bt" onclick="ui.v.lim+=300;renderVendasTab()">Mostrar mais</button></div>`:''}</div>`;
@@ -6955,120 +7274,205 @@ function mandarResumoCobranca(){
   dispensarAvisoCobranca();
 }
 /* bloco no topo da aba Fiado: o que cobrar hoje, com o botão de cada cliente */
+/* ============================================================
+   FIADO MAIS SIMPLES (V13 — rascunho V12 aprovado pelo Luan)
+   Em cima, 4 números na ordem que ele pediu: Atrasado · Vence essa semana ·
+   Vence nesse mês (fiscal) · A receber. Depois "Cobrar hoje" e a lista: cada
+   cliente numa linha, com a próxima parcela e só dois botões (Receber e
+   Cobrar); o resto mora no ⋮. Tocar no cliente abre as parcelas numa linha do
+   tempo — com as já PAGAS também (caso da Magda: o plano era 3x, a 1ª de R$ 20
+   já paga, e a tela só mostrava "2ª/3" e "3ª/3", sem dizer qual era a 1ª).
+   A coluna de caixinhas saiu da lista: o que entra na cobrança se escolhe na
+   janela "Cobrar". A lista vem por quem vence primeiro; o ⇅ muda a ordem.
+   ============================================================ */
 function painelCobrancas(){
   const r=resumoCobranca();
   if(!r.lista.length)return '';
+  // um por cliente: a lista vem parcela a parcela
+  const porCli=[];
+  r.lista.forEach(x=>{
+    let g=porCli.find(y=>y.cliente===x.cliente);
+    if(!g){g={cliente:x.cliente,valor:0,venc:x.venc,atraso:x.atraso};porCli.push(g);}
+    g.valor=r2(g.valor+x.valor);
+    if(x.venc<g.venc){g.venc=x.venc;g.atraso=x.atraso;}
+  });
   const linha=x=>{
-    const c=dados.clientes.find(y=>y.nome===x.cliente),tel=c?foneWa(c.tel):'';
-    const atraso=x.atraso>0?`<span class="bd fiadoV">${x.atraso} dia(s) de atraso</span>`
+    const quando=x.atraso>0?`<span class="bd fiadoV">${x.atraso} dia(s) de atraso</span>`
       :(x.venc===hoje()?'<span class="bd fiadoP">vence hoje</span>':`<span class="mut qdo">${fmtData(x.venc)}</span>`);
-    return `<div class="cob-linha"><span class="nm">${esc(x.cliente)}</span>${atraso}
+    return `<div class="cob-linha"><span class="nm">${esc(x.cliente)}</span>${quando}
       <b class="neg">${fmt(x.valor)}</b>
-      ${tel?`<a class="bt mini" href="https://wa.me/${tel}" target="_blank">📱</a>`:''}</div>`;
+      <button class="bt mini primario" onclick="abrirCobrar('${attr(x.cliente)}')">📲 Cobrar</button></div>`;
   };
-  return `<div class="painel" style="border-color:${r.vencidas.length?'var(--vermelho)':'var(--ouro)'}">
-    <h3 style="margin-top:0">🔔 Cobranças ${r.vencidas.length?'<span class="bd fiadoV">'+r.vencidas.length+' vencida(s)</span>':''}</h3>
-    <div class="cob-lista">${r.lista.slice(0,12).map(linha).join('')}</div>
-    ${r.lista.length>12?`<p class="mut" style="font-size:.8rem;margin-top:.4rem">e mais ${r.lista.length-12}…</p>`:''}
-    <div class="barra" style="margin:.7rem 0 0">
-      <b>Total a cobrar: <span class="neg">${fmt(r.total)}</span></b><span class="esp"></span>
-      <button class="bt mini" onclick="mandarResumoCobranca()">📱 mandar resumo no meu WhatsApp</button>
-    </div>
-    <p class="mut" style="font-size:.76rem;margin-top:.4rem">Aparece o que vence até ${cfgAvisos().diasAntes>0?`daqui a ${cfgAvisos().diasAntes} dia(s)`:'hoje'} — ajuste em Configurações → Geral.</p>
+  const dias=cfgAvisos().diasAntes;
+  // 5 de cara: com muita gente atrasada o bloco empurrava a lista de clientes para longe
+  const LIM=5,todos=!!ui.f.cobTodos||porCli.length<=LIM+1;
+  return `<div class="f-cobrar">
+    <h3>🔔 Cobrar hoje ${r.vencidas.length?'<span class="bd fiadoV">'+r.vencidas.length+' vencida(s)</span>':''}
+      ${ajuda('Aparece o que já venceu e o que vence até '+(dias>0?'daqui a '+dias+' dia(s)':'hoje')+'. Dá para mudar em Configurações → Geral.')}</h3>
+    <div class="cob-lista">${(todos?porCli:porCli.slice(0,LIM)).map(linha).join('')}</div>
+    ${porCli.length>LIM+1?`<button class="bt mini cob-mais" onclick="ui.f.cobTodos=!ui.f.cobTodos;renderFiadoCorpo()">${todos?'mostrar menos':'ver todos os '+porCli.length+' clientes'}</button>`:''}
+    <div class="barra" style="margin:.6rem 0 0"><b>Total a cobrar: <span class="neg">${fmt(r.total)}</span></b><span class="esp"></span>
+      <button class="bt mini" onclick="mandarResumoCobranca()">📱 mandar resumo no meu WhatsApp</button></div>
   </div>`;
 }
 
 function renderFiado(){
-  $('tab-fiado').innerHTML=cabFiado()+painelCobrancas()+`<div id="fiadoCorpo"></div>`;
+  $('tab-fiado').innerHTML=cabFiado()+`<div id="fiadoCorpo"></div>`;
   renderFiadoCorpo();
 }
 function cabFiado(){
-  const u=ui.f;
-  return `<div class="barra"><h2 style="margin:0">Controle de fiado</h2><span class="esp"></span>
-    <input placeholder="🔎 cliente..." value="${esc(u.busca)}" oninput="ui.f.busca=this.value;renderFiadoCorpo()" style="min-width:150px">
-    <label class="linha"><input type="checkbox" ${u.mostrarPagos?'checked':''} onchange="ui.f.mostrarPagos=this.checked;renderFiadoCorpo()"> ver recebidos</label></div>`;
+  return `<div class="barra"><h2 style="margin:0">Fiado</h2><span class="esp"></span>
+    <input placeholder="🔎 cliente..." value="${esc(ui.f.busca)}" oninput="ui.f.busca=this.value;renderFiadoCorpo()" class="f-busca"></div>`;
 }
-/* corpo separado do cabeçalho: assim digitar na busca não recria o campo (senão perde o foco a cada letra) */
+/* parcelas em aberto do cliente, uma por linha do tempo (plano: uma por posição),
+   a que vence primeiro na frente — com o "Nª de M" de verdade */
+function parcelasAbertasDoCliente(nome){
+  const out=[],planos={};
+  vendasEmAbertoDe(nome).forEach(v=>{
+    const soltas=recParcelas(v).filter(p=>!p.planoId);
+    recParcelas(v).forEach(p=>{
+      if(parcPago(p))return;
+      if(p.planoId){(planos[p.planoId]=planos[p.planoId]||[]).push({v,p});return;}
+      const i=soltas.indexOf(p);
+      out.push({venc:p.venc||'',valor:parcAberto(p),rot:soltas.length>1?(i+1)+'ª de '+soltas.length:'parcela única',itens:[{v,p}]});
+    });
+  });
+  Object.keys(planos).forEach(pid=>{
+    const n=nParcelasDoPlano(nome,pid),g={};
+    planos[pid].forEach(x=>{
+      const k=x.p.planoIdx==null?0:x.p.planoIdx;
+      if(!g[k])g[k]={venc:x.p.venc||'',valor:0,rot:n===1?'parcela única':(k+1)+'ª de '+n,itens:[]};
+      g[k].valor=r2(g[k].valor+parcAberto(x.p));g[k].itens.push(x);
+      if(x.p.venc&&(!g[k].venc||x.p.venc<g[k].venc))g[k].venc=x.p.venc;
+    });
+    Object.keys(g).forEach(k=>out.push(g[k]));
+  });
+  const d=x=>x.venc||'9999';
+  return out.sort((a,b)=>d(a)<d(b)?-1:d(a)>d(b)?1:0);
+}
+/* bolinha do cliente: vermelho = atrasado ou vence hoje; laranja = nesta semana */
+function estadoFiadoCliente(px){
+  if(!px||!px.venc)return '';
+  const h=hoje();
+  if(px.venc<=h)return 'atras';
+  return px.venc<=isoAddDias(h,7)?'sem':'';
+}
+function proximaHTML(px){
+  if(!px)return '';
+  const h=hoje();
+  if(!px.venc)return `Sem data de vencimento · <b>${fmt(px.valor)}</b>`;
+  if(px.venc<h)return `<b class="neg">Atrasada desde ${fmtData(px.venc).slice(0,5)}</b> · ${fmt(px.valor)} · ${px.rot}`;
+  if(px.venc===h)return `<b class="neg">Vence hoje</b> · ${fmt(px.valor)} · ${px.rot}`;
+  return `Próxima: <b>${fmtData(px.venc).slice(0,5)} · ${fmt(px.valor)}</b> · ${px.rot}`;
+}
+/* todas as parcelas de um plano, pagas ou não, agrupadas por posição */
+function gruposDoPlanoTodos(nome,pid){
+  const g={};
+  vendasDoPlano(nome,pid).forEach(v=>recParcelas(v).forEach(p=>{
+    if(p.planoId!==pid)return;
+    const k=p.planoIdx==null?0:p.planoIdx;
+    if(!g[k])g[k]={idx:k,venc:p.venc||'',valor:0,aberto:0,recebido:0,itens:[],pagoEm:''};
+    g[k].valor=r2(g[k].valor+(+p.valor||0));g[k].aberto=r2(g[k].aberto+parcAberto(p));
+    g[k].recebido=r2(g[k].recebido+(+p.recebido||0));g[k].itens.push({v,p});
+    if(p.venc&&(!g[k].venc||p.venc<g[k].venc))g[k].venc=p.venc;
+    if(p.pagoEm&&p.pagoEm>g[k].pagoEm)g[k].pagoEm=p.pagoEm;
+  }));
+  return Object.keys(g).map(k=>g[k]).sort((a,b)=>a.idx-b.idx).map(x=>Object.assign(x,{pago:x.aberto<=0.005}));
+}
+function linhaParcelaFiado(n,o){
+  const h=hoje(),venc=o.venc?fmtData(o.venc):'sem data';
+  const st=o.pago?`<span class="mut2">paga${o.pagoEm?' em '+fmtData(o.pagoEm).slice(0,5):''} ✓</span>`
+    :(o.venc&&o.venc<h?'<span class="bd fiadoV">vencida</span>':'');
+  return `<div class="f-parc${o.pago?' paga':(o.proxima?' prox':'')}"><span class="bola"></span><b>${venc}</b><span class="mut2">${o.rot}</span>
+    <span class="vl">${fmt(o.pago?o.valor:o.aberto)}${o.jaPago>0.005?`<small class="parc-parcial">já pagou ${fmt(o.jaPago)}</small>`:''}</span>
+    <span class="f-parc-ac">${st}${o.pago?'':` <button class="bt mini verde" onclick="abrirReceber('${attr(n)}','${o.pids}')">✓ Receber</button>`}</span></div>`;
+}
+/* o que aparece ao tocar no cliente */
+function detalheFiadoHTML(n,modo){
+  let h=sugestaoJuntarHTML(n);
+  Object.keys(planosDoCliente(n)).forEach(pid=>{
+    const abertos=gruposDoPlano(n,pid,modo);if(!abertos.length)return;
+    const todasAbertas=gruposDoPlano(n,pid),nTot=nParcelasDoPlano(n,pid),vsPlano=vendasDoPlano(n,pid);
+    const totAberto=r2(todasAbertas.reduce((s,g)=>s+g.valor,0)),pagou=todasAbertas.length<nTot;
+    const infoP=infoPlano(pid,{clienteNome:n,total:totAberto,n:nTot}),obsP=infoP&&infoP.obs;
+    // sem filtro, a linha do tempo inteira (com as pagas); com filtro, só o que passa nele
+    const linhas=modo==='todos'?gruposDoPlanoTodos(n,pid)
+      :abertos.map(g=>({idx:g.idx,venc:g.venc,valor:g.valor,aberto:g.valor,recebido:0,itens:g.itens,pago:false}));
+    const prox=linhas.find(g=>!g.pago);
+    h+=`<div class="f-bloco">
+      <div class="f-bloco-cab">${nTot===1?'<span class="bd rdb">📆 Compras juntas</span> <b>numa parcela só</b>':`<span class="bd rdb">📆 Parcelamento do total</span> <b>${nTot}x</b>`}
+        <span class="mut2">— ${pagou?'falta ':''}${fmt(totAberto)} · ${vsPlano.length} compra(s)</span>${abertos.length<todasAbertas.length?` <span class="bd inv">${abertos.length} no filtro</span>`:''}
+        <span class="esp"></span>
+        <button class="bt mini" title="observação interna" onclick="editarObsPlano('${pid}')">📝 obs</button>
+        <button class="bt mini" title="voltar a cobrar cada compra separada" onclick="cliqueDesfazerPlano('${attr(n)}','${pid}')">↩ desfazer</button></div>
+      ${obsP?`<div class="obs-int">📝 ${esc(obsP)}</div>`:''}
+      ${linhas.map(g=>linhaParcelaFiado(n,{rot:nTot===1?'parcela única':(g.idx+1)+'ª de '+nTot,venc:g.venc,valor:g.valor,aberto:g.aberto,
+        pago:g.pago,pagoEm:g.pagoEm,proxima:g===prox,jaPago:g.pago?0:g.recebido,
+        pids:(g.itens||[]).filter(x=>!parcPago(x.p)).map(x=>x.v.id+':'+x.p.id).join(',')})).join('')}
+      <details class="f-pecas"><summary>ver as peças</summary>${vsPlano.map(v=>`<div>${fmtData(v.data)} — ${esc(resumoItens(v))}</div>`).join('')}</details>
+    </div>`;
+  });
+  vendasSoltasDe(n).forEach(v=>{
+    const parc=recParcelas(v).filter(p=>!p.planoId);
+    const visiveis=parc.filter(p=>!parcPago(p)&&(modo==='todos'||parcNoFiltro(p,modo)));
+    if(!visiveis.length)return;
+    const mostrar=modo==='todos'?parc:visiveis,prox=mostrar.find(p=>!parcPago(p)),obsV=v.receber&&v.receber.obs;
+    h+=`<div class="f-bloco">
+      <div class="f-bloco-cab"><span>Compra de <b>${fmtData(v.data)}</b> <span class="mut2">— ${esc(resumoItens(v))}${v.desconto>0?` (desc. ${fmt(v.desconto)})`:''}</span></span>
+        <span class="esp"></span>
+        <button class="bt mini" onclick="abrirFiadoEdit('${v.id}')">✎ parcelas</button>
+        <button class="bt mini" title="observação interna" onclick="editarObsFiado('${v.id}')">📝 obs</button></div>
+      ${obsV?`<div class="obs-int">📝 ${esc(obsV)}</div>`:''}
+      ${mostrar.map(p=>{const i=parc.indexOf(p),rec=+p.recebido||0;
+        return linhaParcelaFiado(n,{rot:parc.length>1?(i+1)+'ª de '+parc.length:'parcela única',venc:p.venc,valor:+p.valor||0,
+          aberto:parcAberto(p),pago:parcPago(p),pagoEm:p.pagoEm,proxima:p===prox,jaPago:rec>0&&!parcPago(p)?rec:0,pids:v.id+':'+p.id});}).join('')}
+    </div>`;
+  });
+  return h||'<p class="mut2">Nada em aberto com esse filtro.</p>';
+}
+const ORDENS_FIADO=[['vence','Vence primeiro'],['valor','Maior valor'],['nome','Nome (A–Z)'],['local','Local']];
 function renderFiadoCorpo(){
-  const u=ui.f,modo=u.filtro||'todos',loc=u.local||'',termos=termosBusca(u.busca);
+  const u=ui.f,modo=u.filtro||'todos',loc=u.local||'',termos=termosBusca(u.busca),ord=u.ordem||'vence';
   let pend=fiadosPendentes();
   if(modo!=='todos')pend=pend.filter(v=>recParcelas(v).some(p=>parcNoFiltro(p,modo)));
   if(loc)pend=pend.filter(v=>localDaVenda(v)===loc);
   const grupos={};pend.forEach(v=>{const n=v.clienteNome||'(sem nome)';(grupos[n]=grupos[n]||[]).push(v);});
-  let nomes=Object.keys(grupos).sort((a,b)=>somaFiltrada(grupos[b],modo)-somaFiltrada(grupos[a],modo));
+  let nomes=Object.keys(grupos);
   if(termos.length)nomes=nomes.filter(n=>casaBusca(n,termos));
+  const prox={};
+  nomes.forEach(n=>{prox[n]=parcelasAbertasDoCliente(n).filter(x=>modo==='todos'||x.itens.some(y=>parcNoFiltro(y.p,modo)))[0]||null;});
+  const soma=n=>somaFiltrada(grupos[n],modo);
+  const cliDe=n=>dados.clientes.find(x=>x.nome===n);
+  const locNome=n=>{const c=cliDe(n);return c&&c.localId?localNome(c.localId):'';};
+  nomes.sort(ord==='valor'?(a,b)=>soma(b)-soma(a)
+    :ord==='nome'?(a,b)=>a.localeCompare(b,'pt-BR')
+    :ord==='local'?(a,b)=>(locNome(a)||'~').localeCompare(locNome(b)||'~','pt-BR')||a.localeCompare(b,'pt-BR')
+    :(a,b)=>{const va=(prox[a]&&prox[a].venc)||'9999',vb=(prox[b]&&prox[b].venc)||'9999';return va<vb?-1:va>vb?1:soma(b)-soma(a);});
   const totGeral=totalFiadoPendente();
   // com filtro ativo, o total mostrado é o das PARCELAS que aparecem (não o saldo inteiro das compras)
-  const totFiltro=r2(nomes.reduce((s,n)=>s+somaFiltrada(grupos[n],modo),0));
+  const totFiltro=r2(nomes.reduce((s,n)=>s+soma(n),0));
   const todos=fiadosPendentes();
   const venc=r2(todos.reduce((s,v)=>s+recParcelas(v).filter(vencidoParc).reduce((a,p)=>a+parcAberto(p),0),0));
   const prox7=r2(todos.reduce((s,v)=>s+recParcelas(v).filter(p=>parcNoFiltro(p,'7dias')).reduce((a,p)=>a+parcAberto(p),0),0));
   const doMes=r2(todos.reduce((s,v)=>s+recParcelas(v).filter(p=>parcNoFiltro(p,'mes')).reduce((a,p)=>a+parcAberto(p),0),0));
+  const nCli=new Set(todos.map(v=>v.clienteNome)).size,mes=mesDaLoja(hoje(),0);
 
   const blocos=nomes.map(n=>{
-    const itens=grupos[n].sort(cmpDataAsc(gD,gId)),aberto=!!u.abertos[n];
-    const soma=somaFiltrada(itens,modo),somaTotalCli=somaGrupoFiado(vendasEmAbertoDe(n));
-    const c=dados.clientes.find(x=>x.nome===n),tel=c?c.tel:'';
-    const planos=planosDoCliente(n),planoIds=Object.keys(planos);
-    let corpo=sugestaoJuntarHTML(n);
-    // 1) parcelamentos do TOTAL (juntando compras) — só as parcelas que passam no filtro
-    planoIds.forEach(pid=>{
-      const grupos=gruposDoPlano(n,pid,modo);if(!grupos.length)return;
-      const todasDoPlano=gruposDoPlano(n,pid);
-      const vsPlano=[];todasDoPlano.forEach(g=>g.itens.forEach(x=>{if(vsPlano.indexOf(x.v)<0)vsPlano.push(x.v);}));
-      const totPlano=r2(todasDoPlano.reduce((s,g)=>s+g.valor,0));
-      // "2ª/2" conta o plano inteiro, com as já pagas (V12: antes a 2ª de 2 virava "2ª/1")
-      const nParcPlano=nParcelasDoPlano(n,pid),pagou=todasDoPlano.length<nParcPlano;
-      const infoP=infoPlano(pid,{clienteNome:n,total:totPlano,n:nParcPlano}),obsP=infoP&&infoP.obs;
-      corpo+=`<tr><td colspan="5" style="padding-top:.7rem;border-bottom:none">
-        ${nParcPlano===1?`<span class="bd rdb">📆 Compras juntas</span> <b>numa parcela só</b>`:`<span class="bd rdb">📆 Parcelamento do total</span> <b>${nParcPlano}x</b>`} <span class="mut">— ${pagou?'falta ':''}${fmt(totPlano)} · ${vsPlano.length} compra(s): ${esc(vsPlano.map(v=>fmtData(v.data)).join(', '))}</span>${grupos.length<todasDoPlano.length?` <span class="bd inv">${grupos.length} no filtro</span>`:''}
-        <button class="bt mini" title="observação interna" onclick="editarObsPlano('${pid}')">📝 obs</button>
-        <button class="bt mini" title="voltar a cobrar cada compra separada" onclick="cliqueDesfazerPlano('${attr(n)}','${pid}')">↩ desfazer</button>
-        ${obsP?`<div class="obs-int">📝 ${esc(obsP)}</div>`:''}</td></tr>`;
-      grupos.forEach(g=>{
-        const pids=g.itens.map(x=>x.v.id+':'+x.p.id).join(',');
-        const venc=g.venc,vencida=venc&&venc<hoje();
-        const jaPago=r2(g.itens.reduce((s,x)=>s+parcQuitado(x.p),0));
-        corpo+=`<tr>
-          <td><input type="checkbox" class="chkParc" data-cli="${attr(n)}" data-pids="${pids}" checked></td>
-          <td>${g.idx+1}ª/${nParcPlano}</td>
-          <td>${venc?fmtData(venc):'<span class="mut">—</span>'}${vencida?' <span class="bd fiadoV">vencida</span>':''}</td>
-          <td class="num"><b>${fmt(g.valor)}</b>${jaPago>0?`<div class="parc-parcial">já pagou ${fmt(jaPago)}</div>`:''}</td>
-          <td class="acoes"><button class="bt mini verde" onclick="abrirReceber('${attr(n)}','${pids}')">✓ Receber</button></td></tr>`;
-      });
-      corpo+=`<tr><td colspan="5" class="mut" style="font-size:.72rem;border-bottom:none">Compras incluídas: ${esc(vsPlano.map(v=>resumoItens(v)).join(' | '))}</td></tr>`;
-    });
-    // 2) compras que não entraram em nenhum parcelamento — só as parcelas do filtro
-    vendasSoltasDe(n).forEach(v=>{
-      const parc=recParcelas(v).filter(p=>!p.planoId);
-      const visiveis=parc.filter(p=>!parcPago(p)&&(modo==='todos'||parcNoFiltro(p,modo)));
-      if(!visiveis.length)return;
-      const lp=visiveis.map(p=>{
-        const idx=parc.indexOf(p);
-        const ab=parcAberto(p),rec=+p.recebido||0;
-        return `<tr>
-        <td><input type="checkbox" class="chkParc" data-cli="${attr(n)}" data-pids="${v.id}:${p.id}" checked></td>
-        <td>${parc.length>1?(idx+1)+'ª/'+parc.length:'única'}</td>
-        <td>${p.venc?fmtData(p.venc):'<span class="mut">—</span>'}${vencidoParc(p)?' <span class="bd fiadoV">vencida</span>':''}</td>
-        <td class="num"><b>${fmt(ab)}</b>${rec>0&&!parcPago(p)?`<div class="parc-parcial">já pagou ${fmt(rec)} de ${fmt(p.valor)}</div>`:''}</td>
-        <td class="acoes">${parcPago(p)?'<span class="bd fiadoOk">paga ✓</span>':`<button class="bt mini verde" onclick="abrirReceber('${attr(n)}','${v.id}:${p.id}')">✓ Receber</button>`}</td></tr>`;}).join('');
-      const obsV=v.receber&&v.receber.obs;
-      corpo+=`<tr><td colspan="5" style="padding-top:.6rem;border-bottom:none"><span class="mut">${fmtData(v.data)} — ${esc(resumoItens(v))}${v.desconto>0?` (desc. ${fmt(v.desconto)})`:''}</span>
-        <button class="bt mini" onclick="abrirFiadoEdit('${v.id}')">✎ parcelas</button>
-        <button class="bt mini" title="observação interna" onclick="editarObsFiado('${v.id}')">📝 obs</button>
-        ${obsV?`<div class="obs-int">📝 ${esc(obsV)}</div>`:''}</td></tr>${lp}`;
-    });
-    return `<div class="devedor${aberto?' aberto':''}"><header onclick="toggleDevedor('${attr(n)}')">
-      <b>${esc(n)}</b>${c&&c.localId?`<span class="mut" style="font-size:.78rem">📍${esc(localNome(c.localId))}</span>`:''}${tel?`<span class="mut" style="font-size:.78rem">📱 ${esc(tel)}</span>`:''}
-      <span class="soma">${fmt(soma)}${modo!=='todos'&&Math.abs(soma-somaTotalCli)>0.005?`<span class="mut" style="font-size:.72rem;font-weight:400;display:block;text-align:right">de ${fmt(somaTotalCli)} no total</span>`:''}</span></header>
-      <div class="corpo"><div class="rolagem"><table><tr><th></th><th>Parcela</th><th>Vence</th><th class="num">Em aberto</th><th></th></tr>${corpo}</table></div>
-      <div class="barra mt"><button class="bt verde" onclick="abrirReceber('${attr(n)}','')">✓ Receber selecionadas</button>
-        <button class="bt" onclick="abrirReceberValor('${attr(n)}')">💵 Receber valor</button>
-        <button class="bt" title="abate um valor da dívida sem entrar dinheiro" onclick="abrirDescontoFiado('${attr(n)}')">🏷️ Dar desconto</button>
-        <button class="bt" title="junta todas as compras em aberto num único parcelamento" onclick="abrirPlano('${attr(n)}')">📆 Parcelar tudo</button>
-        <button class="bt mini" title="Gera a cobrança só das parcelas marcadas acima" onclick="copiarCobranca('${attr(n)}')">📋 Copiar cobrança</button>
-        ${tel?`<a class="bt mini" href="https://wa.me/${foneWa(tel)}" target="_blank">📱 WhatsApp</a>`:''}
-        ${c?`<button class="bt mini" onclick="detalheCliente('${c.id}')">Histórico</button>`:''}</div></div></div>`;
+    const aberto=!!u.abertos[n],s=soma(n),somaTotalCli=somaGrupoFiado(vendasEmAbertoDe(n));
+    const c=cliDe(n),px=prox[n],lc=locNome(n),dp=c?diaPagaTexto(c):'';
+    return `<div class="devedor f-cli${aberto?' aberto':''}">
+      <header onclick="toggleDevedor('${attr(n)}')">
+        <span class="f-dot ${estadoFiadoCliente(px)}"></span>
+        <span class="f-nome"><b>${esc(n)}</b>${lc?`<small>📍${esc(lc)}</small>`:''}</span>
+        <span class="f-total">${fmt(s)}${modo!=='todos'&&Math.abs(s-somaTotalCli)>0.005?`<small>de ${fmt(somaTotalCli)} no total</small>`:''}</span>
+        <span class="f-prox">${proximaHTML(px)}${dp?` <span class="f-paga">💰 ${esc(dp)}</span>`:''}</span>
+        <span class="f-acoes">
+          <button class="bt mini verde" onclick="event.stopPropagation();abrirReceberValor('${attr(n)}')">✓ Receber</button>
+          <button class="bt mini" onclick="event.stopPropagation();abrirCobrar('${attr(n)}')">📲 Cobrar</button>
+          <button class="bt mini bt-tres" title="mais ações" aria-label="Mais ações de ${esc(n)}" aria-haspopup="menu" onclick="event.stopPropagation();abrirMenuFiado('${attr(n)}',this)">${IC_TRES_PONTOS}</button>
+        </span></header>
+      ${aberto?`<div class="corpo">${detalheFiadoHTML(n,modo)}</div>`:''}
+    </div>`;
   }).join('');
 
   let pagosHtml='';
@@ -7080,9 +7484,9 @@ function renderFiadoCorpo(){
       <td class="mut">${p.alocacoes.length} parcela(s)${+p.acrescimo>0.005?` <span class="bd" style="border-color:var(--laranja);color:var(--laranja)">+${fmt(p.acrescimo)} acréscimo</span>`:''}</td><td>${esc(nomeDe(C().formas,p.formaId,'—'))}</td>
       <td class="num"><b class="pos">${fmt(p.valor)}</b></td>
       <td class="acoes"><button class="bt mini" onclick="cliqueDesfazerPagamento('${p.id}')">↩ Desfazer</button></td></tr>`).join('');
-    pagosHtml=`<div class="painel" style="border-color:var(--verde)">
+    pagosHtml=`<div class="painel" id="fiadoPagos" style="border-color:var(--verde)">
       <div class="barra" style="margin-bottom:.4rem"><h2 style="margin:0">✅ Pagamentos recebidos (${pgs.length})</h2>
-        <span class="mut" style="font-size:.8rem">clique em ↩ para desfazer um recebimento</span>
+        ${ajuda('Clique em ↩ para desfazer um recebimento: o valor volta a ficar em aberto e sai do caixa.')}
         <span class="esp"></span>
         <button class="bt mini" onclick="ui.f.mostrarPagos=false;renderFiadoCorpo()">✕ fechar</button></div>
       <div class="rolagem"><table><tr><th>Data</th><th>Cliente</th><th>Aplicado em</th><th>Forma</th><th class="num">Valor</th><th></th></tr>${lp||'<tr><td colspan="6" class="centro">Nenhum recebimento registrado ainda.</td></tr>'}</table></div></div>`;
@@ -7104,22 +7508,161 @@ function renderFiadoCorpo(){
   }
 
   const chip=(id,rot)=>`<button class="${modo===id?'ativo':''}" onclick="ui.f.filtro='${id}';renderFiadoCorpo()">${rot}</button>`;
-  $('fiadoCorpo').innerHTML=`<div class="cards">
-    <div class="card"><div class="rotulo">Total a receber</div><div class="valor ${totGeral>0?'neg':'pos'}">${fmt(totGeral)}</div></div>
-    <div class="card clicavel ${venc>0?'alerta':''}" onclick="ui.f.filtro='vencidos';renderFiadoCorpo()"><div class="rotulo">${venc>0?'⚠️ ':''}Vencido</div><div class="valor ${venc>0?'neg':''}">${fmt(venc)}</div><div class="extra">${venc>0?'<b>cobre esses clientes</b>':'nada atrasado ✓'}</div></div>
-    <div class="card clicavel" onclick="ui.f.filtro='7dias';renderFiadoCorpo()"><div class="rotulo">Vence em 7 dias</div><div class="valor ${prox7>0?'laranja':''}" style="${prox7>0?'color:var(--laranja)':''}">${fmt(prox7)}</div></div>
-    <div class="card clicavel" onclick="ui.f.filtro='mes';renderFiadoCorpo()"><div class="rotulo">${usaMesFiscal()?'Vence no mês fiscal':'Vence neste mês'}</div><div class="valor">${fmt(doMes)}</div><div class="extra">${fmtData(mesDaLoja(hoje(),0).ini)} a ${fmtData(mesDaLoja(hoje(),0).fim)}</div></div>
+  const card=(id,alerta,rot,val,cor,extra)=>`<div class="card clicavel${alerta?' alerta':''}${modo===id&&id!=='todos'?' escolhido':''}" onclick="ui.f.filtro='${id}';renderFiadoCorpo()">
+    <div class="rotulo">${rot}</div><div class="valor"${cor?` style="color:${cor}"`:''}>${val}</div><div class="extra">${extra}</div></div>`;
+  $('fiadoCorpo').innerHTML=`<div class="cards f-cards">
+    ${card('vencidos',venc>0,(venc>0?'⚠️ ':'')+'Atrasado',fmt(venc),venc>0?'var(--vermelho)':'var(--verde)',venc>0?'<b>cobre esses clientes</b>':'nada atrasado ✓')}
+    ${card('7dias',false,'Vence essa semana',fmt(prox7),prox7>0?'var(--laranja)':'','até '+fmtData(isoAddDias(hoje(),7)).slice(0,5))}
+    ${card('mes',false,usaMesFiscal()?'Vence nesse mês fiscal':'Vence nesse mês',fmt(doMes),'',fmtData(mes.ini).slice(0,5)+' a '+fmtData(mes.fim))}
+    ${card('todos',false,'A receber',fmt(totGeral),totGeral>0?'var(--vermelho)':'var(--verde)',nCli+' cliente(s)')}
   </div>
-  <div class="barra">
-    <div class="filtro-chips">${chip('todos','Todos')}${chip('vencidos','Vencidos')}${chip('7dias','Próximos 7 dias')}${chip('mes',usaMesFiscal()?'Vence no mês fiscal':'Vence neste mês')}</div>
+  ${painelCobrancas()}
+  <div class="barra f-filtros">
+    <div class="filtro-chips">${chip('todos','Todos')}${chip('vencidos','Atrasados')}${chip('7dias','Esta semana')}${chip('mes',usaMesFiscal()?'Este mês fiscal':'Este mês')}</div>
     <span class="esp"></span>
-    <label class="linha">Local <select onchange="ui.f.local=this.value;renderFiadoCorpo()"><option value="">todos</option>${opcoes(C().locais,loc)}</select></label>
+    <label class="linha">📍 <select onchange="ui.f.local=this.value;renderFiadoCorpo()" aria-label="Local"><option value="">todos os locais</option>${opcoes(C().locais,loc)}</select></label>
+    ${ordemSelHTML(ord,ORDENS_FIADO,"ui.f.ordem=this.value;renderFiadoCorpo()")}
   </div>
   ${(modo!=='todos'||loc)?`<p class="mut" style="margin-bottom:.6rem">Filtro ativo — mostrando <b>${fmt(totFiltro)}</b> de ${fmt(totGeral)} em aberto. <button class="bt mini" onclick="ui.f.filtro='todos';ui.f.local='';renderFiadoCorpo()">limpar filtros</button></p>`:''}
-  ${pagosHtml}
-  ${blocos||'<div class="painel centro">Nenhum fiado com esse filtro.</div>'}`;
+  <div class="f-lista">${blocos||'<div class="painel centro">Nenhum fiado com esse filtro.</div>'}</div>
+  <p class="f-rodape"><a href="#" onclick="event.preventDefault();ui.f.mostrarPagos=!ui.f.mostrarPagos;renderFiadoCorpo();if(ui.f.mostrarPagos){const e=$('fiadoPagos');if(e&&e.scrollIntoView)e.scrollIntoView({block:'start'});}">${u.mostrarPagos?'Esconder':'Ver'} pagamentos recebidos</a></p>
+  ${pagosHtml}`;
 }
 function toggleDevedor(nEnc){const n=decodeURIComponent(nEnc);ui.f.abertos[n]=!ui.f.abertos[n];renderFiadoCorpo();}
+
+/* ---- ⋮ do cliente no Fiado (o mesmo #menuProduto, com as ações do fiado) ---- */
+function abrirMenuFiado(nEnc,btn){
+  const m=$('menuProduto'),n=decodeURIComponent(nEnc);
+  if(!m.hidden&&m.dataset.id===nEnc&&m.dataset.tipo==='fiado'){fecharMenuProduto();return;}
+  m.dataset.id=nEnc;m.dataset.tipo='fiado';
+  const c=dados.clientes.find(x=>x.nome===n);
+  const item=(acao,ic,rot)=>`<button type="button" role="menuitem" onclick="acaoFiado('${acao}')"><span class="ic-emoji" aria-hidden="true">${ic}</span><span>${rot}</span></button>`;
+  m.innerHTML=`<div class="menu-cab">${esc(n)}</div>
+    ${item('copiar','📋','Copiar cobrança')}${item('desconto','🏷️','Dar desconto')}${item('parcelar','📆','Parcelar tudo')}
+    ${item('diapaga','💰',c&&diaPagaDe(c)?'Dia que paga: '+esc(diaPagaTexto(c).replace(/^paga /,'')):'Anotar o dia que ela paga')}
+    ${c?item('historico','👤','Histórico do cliente'):''}`;
+  m.hidden=false;$('menuProdutoFundo').hidden=false;
+  posicionarMenuProduto(m,btn);
+  const pri=m.querySelector('button');if(pri)try{pri.focus({preventScroll:true});}catch(e){}
+}
+function acaoFiado(acao){
+  const nEnc=$('menuProduto').dataset.id,n=decodeURIComponent(nEnc);
+  fecharMenuProduto();
+  if(acao==='copiar')copiarCobranca(nEnc);
+  else if(acao==='desconto')abrirDescontoFiado(nEnc);
+  else if(acao==='parcelar')abrirPlano(nEnc);
+  else if(acao==='diapaga')editarDiaPaga(n);
+  else if(acao==='historico'){const c=dados.clientes.find(x=>x.nome===n);if(c)detalheCliente(c.id);}
+}
+
+/* ---- o que entra na cobrança ----
+   Sem as caixinhas na lista (V13), a cobrança já vem com o que importa: o que
+   venceu e o que vence até o aviso de cobrança (Configurações → Geral). Nada
+   vencendo: a próxima parcela. Com filtro ligado na tela, vale o filtro. */
+function selCobrancaPadrao(nome){
+  const modo=(ui.f&&ui.f.filtro)||'todos',lim=isoAddDias(hoje(),Math.max(0,+cfgAvisos().diasAntes||0));
+  const abertas=[];
+  fiadosPendentes().filter(v=>v.clienteNome===nome).forEach(v=>recParcelas(v).forEach(p=>{if(!parcPago(p))abertas.push({v,p});}));
+  let es=modo!=='todos'?abertas.filter(x=>parcNoFiltro(x.p,modo)):abertas.filter(x=>!x.p.venc||x.p.venc<=lim);
+  if(!es.length&&abertas.length){
+    const d0=abertas.map(x=>x.p.venc||'9999').sort()[0];
+    es=abertas.filter(x=>(x.p.venc||'9999')===d0);
+  }
+  return es.map(x=>({vid:x.v.id,pid:x.p.id}));
+}
+/* janela "Cobrar": escolhe as parcelas, mostra a mensagem e abre o WhatsApp da cliente */
+var COB={nome:''};
+function abrirCobrar(nEnc){
+  const n=decodeURIComponent(nEnc),abertas=parcelasAbertasDoCliente(n);
+  if(!abertas.length){toast('Nada em aberto para '+esc(n)+'.');return;}
+  COB.nome=n;
+  const marc=new Set(selCobrancaPadrao(n).map(s=>s.vid+':'+s.pid));
+  const c=dados.clientes.find(x=>x.nome===n),tel=c?foneWa(c.tel):'';
+  $('cobTitulo').textContent='Cobrar '+n;
+  $('cobSub').innerHTML='Marque o que entra nesta cobrança.'+(tel?'':' <b>Sem telefone no cadastro</b>: o WhatsApp vai pedir para escolher a conversa.');
+  $('cobParcelas').innerHTML=abertas.map(x=>{
+    const pids=x.itens.map(y=>y.v.id+':'+y.p.id).join(','),on=x.itens.some(y=>marc.has(y.v.id+':'+y.p.id));
+    const venc=x.venc?fmtData(x.venc):'sem data',atr=x.venc&&x.venc<hoje()?' <span class="bd fiadoV">vencida</span>':'';
+    return `<label class="cob-parc"><input type="checkbox" class="chkCob" data-pids="${pids}"${on?' checked':''} onchange="cobrarAtualizar()">
+      <b>${venc}</b> <span class="mut2">${x.rot}</span>${atr}<span class="esp"></span><b>${fmt(x.valor)}</b></label>`;
+  }).join('');
+  cobrarAtualizar();
+  dlgCobrar.showModal();
+}
+function selCobrarMarcadas(){
+  let s=[];document.querySelectorAll('#cobParcelas .chkCob').forEach(ch=>{if(ch.checked)s=s.concat(parsePids(ch.dataset.pids));});
+  return s;
+}
+function cobrarAtualizar(){
+  const s=selCobrarMarcadas();
+  const tot=r2(s.reduce((t,x)=>{const v=vendaPorId(x.vid),p=v&&recParcelas(v).find(y=>y.id===x.pid);return t+(p?parcAberto(p):0);},0));
+  $('cobMsg').textContent=s.length?montarCobrancaCompleta(COB.nome,s):'Marque ao menos uma parcela.';
+  $('cobTotal').innerHTML=s.length?'Esta cobrança: <b>'+fmt(tot)+'</b>':'';
+  $('cobBtWhats').disabled=!s.length;
+}
+function cobrarCopiar(){
+  const s=selCobrarMarcadas();if(!s.length){toast('Marque ao menos uma parcela.');return;}
+  copiarTexto(montarCobrancaCompleta(COB.nome,s));
+}
+function cobrarWhats(){
+  const s=selCobrarMarcadas();if(!s.length){toast('Marque ao menos uma parcela.');return;}
+  const c=dados.clientes.find(x=>x.nome===COB.nome),tel=c?foneWa(c.tel):'';
+  window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(montarCobrancaCompleta(COB.nome,s)),'_blank');
+}
+
+/* ============================================================
+   DIA QUE A CLIENTE PAGA (V13 — pedido do Luan)
+   "Recebe no 5º dia útil", "no último dia útil do mês", "todo dia 15": fica no
+   cadastro (c.diaPaga={tipo:'dia'|'util'|'ultimoUtil',n}), aparece no Fiado e
+   vira a SUGESTÃO de vencimento da venda fiado e do parcelamento (a pessoa
+   ainda pode mudar a data). Dia útil pula sábado, domingo e feriado nacional.
+   ============================================================ */
+function diaPagaDe(c){const d=c&&c.diaPaga;return d&&d.tipo&&(d.tipo==='ultimoUtil'||+d.n>=1)?d:null;}
+function diaPagaTexto(c){
+  const d=diaPagaDe(c);if(!d)return '';
+  if(d.tipo==='dia')return 'paga todo dia '+d.n;
+  if(d.tipo==='util')return 'paga no '+d.n+'º dia útil';
+  return 'paga no último dia útil';
+}
+/* a data de pagamento dela num mês (ano, mês 0-11) */
+function dataPagaNoMes(d,ano,mes){
+  const p2=x=>String(x).padStart(2,'0'),ult=new Date(ano,mes+1,0).getDate(),pre=ano+'-'+p2(mes+1)+'-';
+  if(d.tipo==='dia')return pre+p2(Math.min(+d.n||1,ult));
+  if(d.tipo==='ultimoUtil'){let x=pre+p2(ult),g=0;while(diaNaoUtil(x)&&g++<10)x=isoAddDias(x,-1);return x;}
+  let x=pre+'01',k=0;
+  for(let i=0;i<ult;i++){if(!diaNaoUtil(x)){k++;if(k>=(+d.n||1))return x;}x=isoAddDias(x,1);}
+  return pre+p2(ult);
+}
+/* a 1ª data de pagamento DEPOIS de aPartirDe */
+function proximaDataPaga(c,aPartirDe){
+  const d=diaPagaDe(c);if(!d)return null;
+  const dt=new Date((aPartirDe||hoje())+'T12:00:00');let ano=dt.getFullYear(),mes=dt.getMonth();
+  for(let i=0;i<14;i++){const x=dataPagaNoMes(d,ano,mes);if(x>(aPartirDe||hoje()))return x;mes++;if(mes>11){mes=0;ano++;}}
+  return null;
+}
+/* n datas seguidas (uma por mês), começando na 1ª depois de aPartirDe */
+function datasPaga(c,aPartirDe,n){
+  const out=[];let a=aPartirDe;
+  for(let i=0;i<n;i++){const x=proximaDataPaga(c,a);if(!x)break;out.push(x);a=x;}
+  return out;
+}
+function clientePeloNome(nome){const k=String(nome||'').trim().toLowerCase();return k?dados.clientes.find(c=>c.nome.toLowerCase()===k)||null:null;}
+const OPC_DIA_PAGA=[['','Não sei'],['dia','Todo mês no dia…'],['util','No dia útil nº… do mês'],['ultimoUtil','No último dia útil do mês']];
+function editarDiaPaga(nome){
+  if(!podeEscrever('clientes')&&!podeEscrever('fiado')){toast('Seu acesso não permite alterar o cadastro.');return;}
+  const c=clientePeloNome(nome),d=diaPagaDe(c)||{tipo:'',n:''};
+  pedir({titulo:'Dia que '+nome+' paga',ok:'Salvar',
+    texto:'Fica no cadastro dela e vira a sugestão de vencimento nas próximas vendas fiado.',
+    campos:[{id:'tipo',rotulo:'Ela costuma pagar',tipo:'lista',opcoes:OPC_DIA_PAGA,valor:d.tipo,pergunta:'Quando ela paga?'},
+      {id:'n',rotulo:'Qual dia',tipo:'numero',valor:d.n||'',exemplo:'ex.: 5',mostrarSe:v=>v.tipo==='dia'||v.tipo==='util',pergunta:'Qual dia?'}],
+    validar:v=>(v.tipo==='dia'&&!(+v.n>=1&&+v.n<=31))?'Digite um dia de 1 a 31.':(v.tipo==='util'&&!(+v.n>=1&&+v.n<=22))?'Digite de 1 a 22 (dias úteis do mês).':''
+  },v=>{
+    const cli=c||acharOuCriarCliente(nome);if(!cli)return;
+    cli.diaPaga=v.tipo?{tipo:v.tipo,n:v.tipo==='ultimoUtil'?0:Math.floor(+v.n)}:null;
+    salvar();renderTudo();
+    toast(v.tipo?'Anotado: '+esc(diaPagaTexto(cli))+' ✓':'Dia de pagamento apagado');
+  });
+}
 
 /* ---- recebimento (total ou parcial) ---- */
 let receberCtx={cliente:'',sel:[]};
@@ -7418,9 +7961,9 @@ function sugestaoJuntar(nome){
 function sugestaoJuntarHTML(nome){
   if(!podeEscrever('fiado'))return '';
   const s=sugestaoJuntar(nome);if(!s)return '';
-  return `<tr class="sug-juntar-linha"><td colspan="5"><div class="sug-juntar">
+  return `<div class="sug-juntar">
     <span>💡 <b>${s.vendas.length} compras</b> vencem em <b>${fmtData(s.venc)}</b>. Juntar numa parcela só de <b>${fmt(s.total)}</b>?</span>
-    <button class="bt mini" onclick="juntarMesmoDia('${attr(nome)}','${s.venc}')">Juntar</button></div></td></tr>`;
+    <button class="bt mini" onclick="juntarMesmoDia('${attr(nome)}','${s.venc}')">Juntar</button></div>`;
 }
 function juntarMesmoDia(cliEnc,venc){
   if(!podeEscrever('fiado')){toast('Seu acesso não permite alterar o fiado.');return;}
@@ -7514,9 +8057,10 @@ function plDescMudou(){
 function plGerar(){
   // a data da 1ª parcela é editada na própria linha (campo separado era redundante):
   // mexer nela re-espaça as seguintes de mês em mês, via parcPlano()
-  const base=(parcelasPlano[0]&&parcelasPlano[0].venc)||isoAddDias(hoje(),30);
+  const cPl=clientePeloNome($('plCliente').value);
+  const base=(parcelasPlano[0]&&parcelasPlano[0].venc)||(cPl&&proximaDataPaga(cPl,hoje()))||isoAddDias(hoje(),30);
   const n=Math.max(1,parseInt($('plN').value)||1);
-  parcelasPlano=dividirParcelas(plTotalAParcelar(),n,base).map(p=>({valor:p.valor,venc:p.venc}));
+  parcelasPlano=aplicarDatas(dividirParcelas(plTotalAParcelar(),n,base),base,cPl).map(p=>({valor:p.valor,venc:p.venc}));
   renderParcelasPlano();
 }
 function renderParcelasPlano(){
@@ -7528,7 +8072,8 @@ function renderParcelasPlano(){
 function parcPlano(i,campo,val){
   parcelasPlano[i][campo]=campo==='valor'?(+val||0):val;
   if(i===0&&campo==='venc'&&val&&parcelasPlano.length>1){
-    for(let k=1;k<parcelasPlano.length;k++)parcelasPlano[k].venc=addMeses(val,k);
+    const ds=datasDasParcelas(val,parcelasPlano.length,clientePeloNome($('plCliente').value));
+    for(let k=1;k<parcelasPlano.length;k++)parcelasPlano[k].venc=ds[k];
     renderParcelasPlano();return;
   }
   if(campo==='venc'){renderParcelasPlano();return;}
@@ -7612,7 +8157,7 @@ function feGerar(){
   // mantém as parcelas já quitadas (por pagamento ou desconto) e recria o restante
   const mantidas=comReceb.map(p=>Object.assign({},p,{valor:parcQuitado(p)}));
   mantidas.forEach(sincParc);
-  parcelasFE=mantidas.concat(dividirParcelas(restante,n,base));
+  parcelasFE=mantidas.concat(aplicarDatas(dividirParcelas(restante,n,base),base,clientePeloNome(v.clienteNome)));
   renderParcelasFE();
 }
 function renderParcelasFE(){
@@ -7632,7 +8177,8 @@ function parcFE(i,campo,val){
        mês em mês, como nos outros diálogos. Parcela já paga nunca é remarcada. */
     const abertas=parcelasFE.filter(p=>!parcTocada(p));
     if(val&&abertas.length>1&&abertas[0]===parcelasFE[i]){
-      abertas.forEach((p,k)=>{if(k>0)p.venc=addMeses(val,k);});
+      const vFE=vendaPorId($('feVendaId').value),ds=datasDasParcelas(val,abertas.length,vFE&&clientePeloNome(vFE.clienteNome));
+      abertas.forEach((p,k)=>{if(k>0)p.venc=ds[k];});
     }
     renderParcelasFE();return;
   }
@@ -7733,6 +8279,10 @@ function reciboFiado(nome,sel){
     // agrupa as parcelas SELECIONADAS por posição no plano (1ª, 2ª...);
     // "de quantas" = o plano inteiro, contando as já pagas (V12)
     const nTotal=nParcelasDoPlano(nome,pid);
+    /* V13 (caso da Magda): as parcelas do plano que ela já pagou aparecem antes,
+       senão o recibo dizia "2/3" sem contar qual tinha sido a 1ª */
+    if(nTotal>1)gruposDoPlanoTodos(nome,pid).filter(g=>g.pago).forEach(g=>
+      L.push(pR('  Parcela '+(g.idx+1)+'/'+nTotal+' (paga)',wN+4)+' '+pL(moedaSimples(g.valor),wV)));
     const porIdx={};
     itens.forEach(x=>{const k=x.p.planoIdx==null?0:x.p.planoIdx;
       if(!porIdx[k])porIdx[k]={idx:k,venc:x.p.venc,valor:0};
@@ -7806,7 +8356,8 @@ function copiarCobranca(cliEnc){
   const nome=decodeURIComponent(cliEnc);
   let sel=[];
   document.querySelectorAll('.chkParc').forEach(c=>{if(c.checked&&decodeURIComponent(c.dataset.cli)===nome)sel=sel.concat(parsePids(c.dataset.pids));});
-  if(!sel.length)sel=selParcelasAbertas(nome);
+  // V13: a lista não tem mais caixinhas — vai o que está vencendo (ou o filtro da tela)
+  if(!sel.length)sel=selCobrancaPadrao(nome);
   copiarTexto(montarCobrancaCompleta(nome,sel));
 }
 function copiarTexto(txt){
@@ -7940,7 +8491,7 @@ function painelRecebiveis(){
     <td class="num"><b class="pos">${fmt(r.liquido)}</b></td>
     <td class="acoes"><button class="bt mini verde" onclick="cliqueBaixarRecebivel('${r.id}')">✓ Caiu</button></td></tr>`).join('');
   return `<div class="painel"><div class="barra" style="margin-bottom:.4rem">
-      <h3 style="margin:0">💳 A receber da maquininha</h3>
+      <h3 style="margin:0;display:flex;align-items:center">💳 A receber da maquininha ${ajuda('Esse dinheiro ainda não está no caixa. Quando cair, ele entra na conta configurada — depois use <b>🔄 Transferência</b> para passar para a conta do banco.')}</h3>
       <span class="bd rdb">${fmt(totalNaMaquininha())}</span>
       ${atrasados?`<span class="bd fiadoV">${atrasados} atrasado(s)</span>`:''}${hojeN?`<span class="bd inv">${hojeN} p/ hoje</span>`:''}
       <span class="esp"></span>
@@ -7948,8 +8499,7 @@ function painelRecebiveis(){
       ${(atrasados||hojeN)?`<button class="bt mini verde" onclick="baixarVencidos()">✓ Confirmar os de hoje/atrasados</button>`:''}
     </div>
     <div class="rolagem"><table><tr><th>Venda</th><th>Descrição</th><th>Previsto</th><th class="num">Bruto</th><th class="num">Taxa</th><th class="num">Líquido</th><th></th></tr>${linhas}</table></div>
-    ${semTaxa?`<p style="font-size:.78rem;color:var(--laranja);margin-top:.3rem">⚠️ Há recebimentos sem taxa configurada. Defina as taxas por canal em <b>Configurações → Canais</b>.</p>`:''}
-    <p class="mut" style="font-size:.76rem;margin-top:.3rem">Esse dinheiro ainda não está no caixa. Quando cair, ele entra na conta configurada — depois use <b>🔄 Transferência</b> para mandar pro Nubank.</p></div>`;
+    ${semTaxa?`<p style="font-size:.78rem;color:var(--laranja);margin-top:.3rem">⚠️ Há recebimentos sem taxa configurada. Defina as taxas por canal em <b>Configurações → Canais</b>.</p>`:''}</div>`;
 }
 function setAutoBaixa(v){C().autoBaixaCartao=!!v;salvar();if(v){const r=autoBaixarRecebiveis();if(r)toast(r.n+' recebimento(s) confirmado(s) ✓');}renderTudo();}
 /* lista compacta das contas (em vez de um card pra cada, que enchia a tela) */
@@ -8261,6 +8811,90 @@ function painelCaixa(cx){
     <tr class="total"><td class="sinal">=</td><td>Saldo no fim do período</td><td class="num ${cx.saldoFim>=0?'pos':'neg'}">${fmt(cx.saldoFim)}</td></tr>
   </table></div>`;
 }
+/* ============================================================
+   RESUMO SEM "CONTABILÊS" (V13 — rascunho V12 aprovado pelo Luan)
+   Quem vende joia bate o olho e entende: uma frase conta o mês, e os dois
+   quadros seguem o MESMO desenho (pedido do Luan: o do dinheiro era só texto
+   claro) — uma barra "de cada R$ 100" e a conta linha a linha, de cima para
+   baixo. A DRE e o fluxo completos continuam a um toque (<details>), com as
+   linhas 🔍 que mostram de onde veio cada número.
+   ============================================================ */
+function emReais(v){return 'R$ '+Math.round(+v||0).toLocaleString('pt-BR');}
+/* partes:[{rot,val,cor}]; base = o que vale R$ 100 */
+function barraCem(partes,base){
+  const ps=partes.filter(p=>p.val>0.005);
+  if(!(base>0.005)||!ps.length)return '';
+  const den=Math.max(base,ps.reduce((s,p)=>s+p.val,0));
+  return `<div class="r-barra">${ps.map(p=>`<i style="width:${(p.val/den*100).toFixed(2)}%;background:${p.cor}"></i>`).join('')}</div>
+    <div class="r-leg">${ps.map(p=>`<span><i style="background:${p.cor}"></i>${emReais(p.val/base*100)} ${esc(p.rot)}</span>`).join('')}</div>`;
+}
+function linhaConta(sinal,rot,val,cls,tipo){
+  return `<div class="ln${tipo?' '+tipo:''}"><span class="sinal">${sinal}</span><span>${rot}</span><span class="vl ${cls||''}">${fmt(val)}</span></div>`;
+}
+function despesasDRE(d){return r2(d.fixa+d.mkt+d.pro+d.outra);}
+function sobraDaOperacao(d){return r2(d.resultOper+d.outrasRec-d.descFiado);}
+function painelLucroSimples(d,custom){
+  const desp=despesasDRE(d),sobra=sobraDaOperacao(d);
+  const L=[linhaConta('','Vendeu',d.receita)];
+  if(d.cmv>0.005)L.push(linhaConta('−','Custo das peças vendidas',d.cmv,'neg'));
+  if(d.taxas>0.005)L.push(linhaConta('−','Taxas da maquininha',d.taxas,'neg'));
+  L.push(linhaConta('−','Despesas <span class="mut2">(aluguel, marketing, retirada…)</span>',desp,desp>0.005?'neg':''));
+  if(d.outrasRec>0.005)L.push(linhaConta('+','Outras entradas <span class="mut2">(ex.: cliente pagou a mais)</span>',d.outrasRec,'pos'));
+  if(d.descFiado>0.005)L.push(linhaConta('−','Descontos dados no fiado',d.descFiado,'neg'));
+  L.push(linhaConta('=','Sobrou da operação',sobra,sobra>=0?'pos':'neg','sub'));
+  if(d.invest>0.005)L.push(linhaConta('−','Investimentos',d.invest,'neg'));
+  L.push(linhaConta('=',custom?'Lucro do período':'Lucro do mês',d.resultLiq,d.resultLiq>=0?'pos':'neg','tot'));
+  const barra=d.resultLiq>=0?barraCem([{rot:'peças',val:d.cmv,cor:'var(--laranja)'},{rot:'taxas',val:d.taxas,cor:'var(--vermelho)'},
+    {rot:'despesas',val:r2(desp+d.descFiado),cor:'var(--roxo)'},{rot:'investimentos',val:d.invest,cor:'var(--azul)'},
+    {rot:'sobrou',val:d.resultLiq,cor:'var(--verde)'}],r2(d.receita+d.outrasRec)):'';
+  return `<h2 class="r-tit">Deu lucro? ${ajuda('A conta de cima para baixo: o que você vendeu, menos o custo das peças, as taxas e as despesas. O que sobra é o lucro. Venda no fiado conta no mês em que foi feita, mesmo antes de receber.')}</h2>
+    ${barra?'<div class="mut2">De cada R$ 100 vendidos:</div>'+barra
+      :(d.resultLiq<0&&d.receita>0?'<p class="r-alerta">⚠️ Neste período os gastos passaram do que entrou de venda.</p>':'')}
+    <div class="r-conta">${L.join('')}</div>
+    <details class="r-mais"><summary>ver a DRE completa</summary>${painelDRE(d)}</details>`;
+}
+function painelCaixaSimples(cx,atual){
+  const L=[linhaConta('','Começou com',cx.saldoIni)];
+  const add=(s,rot,v,cls)=>{if(Math.abs(+v||0)>0.005)L.push(linhaConta(s,rot,v,cls));};
+  add('+','Vendas à vista',cx.vendaAvista,'pos');
+  add('+','Maquininha <span class="mut2">(o que caiu na conta)</span>',cx.recCartao,'pos');
+  add('+','Fiado recebido',cx.recFiado,'pos');
+  add('+','Outras entradas',cx.outrasEnt,'pos');
+  add('−','Compra de mercadoria',cx.compras,'neg');
+  add('−','Taxas',cx.taxas,'neg');
+  add('−','Despesas',cx.despesas,'neg');
+  add('−','Investimentos',cx.invest,'neg');
+  add('+','Tirou da reserva (RDB) <span class="mut2">— não é venda</span>',cx.resgate,'rdb');
+  add('−','Guardou na reserva (RDB)',cx.aplic,'rdb');
+  add('+','Ajuste de saldo',cx.ajusteEnt,'');
+  add('−','Ajuste de saldo',cx.ajusteSai,'');
+  L.push(linhaConta('=',atual?'No caixa hoje':'No caixa no fim do período',cx.saldoFim,cx.saldoFim>=0?'pos':'neg','tot'));
+  const entrou=r2(cx.vendaAvista+cx.recCartao+cx.recFiado+cx.outrasEnt);
+  const saiu=r2(cx.compras+cx.taxas+cx.despesas+cx.invest);
+  const barra=barraCem([{rot:'mercadoria',val:cx.compras,cor:'var(--laranja)'},{rot:'taxas',val:cx.taxas,cor:'var(--vermelho)'},
+    {rot:'despesas',val:cx.despesas,cor:'var(--roxo)'},{rot:'investimentos',val:cx.invest,cor:'var(--azul)'}],saiu);
+  return `<h2 class="r-tit">Dinheiro: entrou e saiu ${ajuda('O dinheiro que de fato passou pelo caixa e pela conta. Venda no fiado só entra aqui quando a cliente paga. Mexer na reserva (RDB) não é lucro nem gasto: é só trocar o dinheiro de bolso. O que sobra no fim bate com a soma das suas contas.')}</h2>
+    <div class="mut2">Entrou ${fmt(entrou)} de vendas e fiado · saiu ${fmt(saiu)}${barra?' — de cada R$ 100 que saíram:':''}</div>
+    ${barra}
+    <div class="r-conta">${L.join('')}</div>
+    <details class="r-mais"><summary>ver o fluxo de caixa completo</summary>${painelCaixa(cx)}</details>`;
+}
+/* a frase do mês, em palavras (só o que aconteceu: custo zerado não entra) */
+function fraseDoMes(d,atual,custom,ini){
+  if(!(d.receita>0.005)&&!d.nV)return '';
+  const quando=custom?'Neste período':(atual?'Neste mês':'Em '+mesDaLoja(ini,0).rotulo);
+  const custos=[];
+  if(d.cmv>0.005)custos.push('as peças vendidas custaram <b>'+emReais(d.cmv)+'</b>');
+  if(d.taxas>0.005)custos.push('a maquininha ficou com <b>'+emReais(d.taxas)+'</b>');
+  const desp=despesasDRE(d);if(desp>0.005)custos.push('as despesas foram <b>'+emReais(desp)+'</b>');
+  let f=quando+' você <b>vendeu '+emReais(d.receita)+'</b>.';
+  if(custos.length){const t=custos.length>1?custos.slice(0,-1).join(', ')+' e '+custos[custos.length-1]:custos[0];f+=' '+t.charAt(0).toUpperCase()+t.slice(1)+'.';}
+  const sobra=sobraDaOperacao(d);
+  if(d.invest>0.005)f+=' Sobraram <b>'+emReais(sobra)+'</b> — e você colocou <b>'+emReais(d.invest)+'</b> em investimentos.';
+  f+=d.resultLiq>=0?' <b class="pos">Lucro: '+emReais(d.resultLiq)+'</b>.':' <b class="neg">Prejuízo: '+emReais(-d.resultLiq)+'</b>.';
+  if(d.cmv<=0.005&&d.receita>0.005)f+=' <span class="mut2">Cadastre o custo das peças para o lucro ficar certo.</span>';
+  return `<div class="r-frase">💬 ${f}</div>`;
+}
 /* ---- fechamento de mês fiscal ---- */
 function vendasCategoriasTipos(ini,fim){
   const porCat={},porTipo={},porLoc={},porForn={},porCol={};
@@ -8404,13 +9038,18 @@ function renderResumo(){
   // vendas por categoria, tipo (anel, brinco, colar...) e local
   const agr=vendasCategoriasTipos(ini,fim),cats=agr.cats,tipos=agr.tipos,locs=agr.locs,forns=agr.forns,cols=agr.cols;
 
-  const cab=`<div class="barra">
-    <button class="bt" onclick="resumoDesloca(-1)">◀</button>
-    <b style="min-width:170px;text-align:center">${fmtData(ini)} — ${fmtData(fim)}</b>
-    <button class="bt" onclick="resumoDesloca(1)">▶</button>
-    <button class="bt mini" onclick="resumoHoje()">${nomeMesAtual()}</button><span class="esp"></span>
-    <label class="linha">De <input type="date" id="rIni" value="${ini}" onchange="resumoCustom()"></label>
-    <label class="linha">até <input type="date" id="rFim" value="${fim}" onchange="resumoCustom()"></label></div>`;
+  // V13: o período numa linha só; datas personalizadas num botão
+  const atual=!ui.r.ini&&!ui.r.fim&&!ui.r.desloca,custom=!!(ui.r.ini&&ui.r.fim);
+  const nomePer=custom?'Período escolhido':(ui.r.desloca?(usaMesFiscal()?'Mês fiscal ':'Mês ')+mesDaLoja(hoje(),ui.r.desloca).rotulo:nomeMesAtual());
+  const cab=`<div class="r-per">
+    <button class="bt" onclick="resumoDesloca(-1)" aria-label="mês anterior">◀</button>
+    <div class="meio"><span class="nome">${esc(nomePer)}</span><span class="datas">${fmtData(ini)} a ${fmtData(fim)}</span></div>
+    <button class="bt" onclick="resumoDesloca(1)" aria-label="próximo mês">▶</button>
+    ${atual?'':`<button class="bt mini" onclick="resumoHoje()">voltar para o mês atual</button>`}
+    <span class="esp"></span>
+    <button class="bt mini" onclick="ui.r.verDatas=!ui.r.verDatas;renderResumo()">📅 outro período</button></div>
+    ${ui.r.verDatas||custom?`<div class="barra r-datas"><label class="linha">De <input type="date" id="rIni" value="${ini}" onchange="resumoCustom()"></label>
+      <label class="linha">até <input type="date" id="rFim" value="${fim}" onchange="resumoCustom()"></label></div>`:''}`;
   if(semDados){
     $('tab-resumo').innerHTML=cab+`<div class="painel vazio-inicio"><div class="big">📊</div><p>Seu resumo aparece aqui.</p>
       <p class="mut">Comece cadastrando <b>produtos</b> (com preço e custo), registrando <b>vendas</b> e lançando <b>despesas</b> no Financeiro. Os relatórios de lucro (DRE) e de caixa se montam sozinhos.</p>
@@ -8418,26 +9057,19 @@ function renderResumo(){
     return;
   }
   $('tab-resumo').innerHTML=cab+`
-  <div class="cards">
-    <div class="card"><div class="rotulo">Faturamento (vendas)</div><div class="valor">${fmt(d.receita)}</div><div class="extra">${d.nV} venda(s) · ticket ${fmt(d.ticket)}</div></div>
-    <div class="card"><div class="rotulo">Lucro do período (DRE)</div><div class="valor ${d.resultLiq>=0?'pos':'neg'}">${fmt(d.resultLiq)}</div><div class="extra">margem ${pct(d.margemLiq)}</div></div>
+  <div class="cards r-cards">
+    <div class="card"><div class="rotulo">Vendas</div><div class="valor">${fmt(d.receita)}</div><div class="extra">${d.nV} venda(s)${d.nV?' · ticket '+fmt(d.ticket):''}</div></div>
+    <div class="card"><div class="rotulo">Sobrou (lucro)</div><div class="valor ${d.resultLiq>=0?'pos':'neg'}">${fmt(d.resultLiq)}</div><div class="extra">${d.receita>0?pct(d.margemLiq)+' do que vendeu':'sem venda no período'}</div></div>
     <div class="card clicavel" onclick="trocarTab('fiado')"><div class="rotulo">Fiado a receber ${fm.atual?'neste mês':'no período'}</div><div class="valor ${fm.noMes>0?'neg':'pos'}">${fmt(fm.noMes)}</div>
       <div class="extra">${fm.atrasado>0.005?`<b class="neg">${fmt(fm.atrasado)} atrasado</b> · `:''}total a receber: ${fmt(fm.total)}</div></div>
-    <div class="card"><div class="rotulo">Caixa no fim do período</div><div class="valor ${cx.saldoFim>=0?'pos':'neg'}">${fmt(cx.saldoFim)}</div><div class="extra">era ${fmt(cx.saldoIni)} no início</div></div>
+    <div class="card"><div class="rotulo">Dinheiro em caixa</div><div class="valor ${cx.saldoFim>=0?'pos':'neg'}">${fmt(cx.saldoFim)}</div><div class="extra">${atual?'banco + dinheiro, hoje':'no fim do período'}</div></div>
     ${totalNaMaquininha()>0?`<div class="card clicavel" onclick="trocarTab('fin')"><div class="rotulo">Na maquininha (a cair)</div><div class="valor rdb">${fmt(totalNaMaquininha())}</div><div class="extra">${recebiveisPendentes().length} recebimento(s)</div></div>`:''}
     ${alertas?`<div class="card clicavel" onclick="verEstoqueBaixo()" title="ver quais produtos"><div class="rotulo">Estoque baixo</div><div class="valor neg">${alertas}</div><div class="extra">toque para ver quais →</div></div>`:''}
   </div>
+  ${fraseDoMes(d,atual,custom,ini)}
   <div class="grade2">
-    <div class="painel">
-      <h2>DRE — dá lucro? <span class="mut" style="font-size:.75rem;font-weight:400">(regime de competência)</span></h2>
-      ${painelDRE(d)}
-      ${d.cmv===0&&d.receita>0?'<p class="mut" style="font-size:.78rem;margin-top:.4rem">💡 Cadastre o <b>custo</b> dos produtos para o CMV e o lucro real aparecerem.</p>':''}
-    </div>
-    <div class="painel">
-      <h2>Fluxo de caixa — quanto entrou e saiu <span class="mut" style="font-size:.75rem;font-weight:400">(regime de caixa)</span></h2>
-      ${painelCaixa(cx)}
-      <p class="mut" style="font-size:.78rem;margin-top:.4rem">O saldo final bate com a soma das suas contas (dinheiro + banco). Guardar/resgatar no RDB não é lucro nem despesa — é só trocar de bolso.</p>
-    </div>
+    <div class="painel">${painelLucroSimples(d,custom)}</div>
+    <div class="painel">${painelCaixaSimples(cx,atual)}</div>
   </div>
   <div class="grade2">
     <div class="painel"><h2>Entradas × Saídas de caixa (6 meses)</h2>${grafDuplo(meses)}<div class="legenda"><span><i style="background:var(--verde)"></i>Entradas</span><span><i style="background:var(--vermelho)"></i>Saídas</span></div></div>
@@ -10670,16 +11302,14 @@ function painelPersonalizarCatalogo(){
     <h3>🎨 Personalizar o catálogo</h3>
     <p class="mut" style="font-size:.85rem;margin-bottom:.9rem">Tudo que muda a <b>cara da loja</b> para quem entra. Nada aqui mexe no painel — é só vitrine.</p>
 
-    <h4>Cores da loja</h4>
-    <p class="mut" style="font-size:.82rem;margin-bottom:.5rem">Paleta do catálogo que o cliente vê. Não muda o painel — a aparência do painel (claro/escuro) é escolhida em Configurações → Geral.</p>
+    <h4>Cores da loja ${ajuda(`Paleta do catálogo que o cliente vê. Não muda o painel — a aparência do painel (claro/escuro) é escolhida em Configurações → Geral.`)}</h4>
     <div class="temas" style="margin-bottom:1.1rem">${TEMAS.map(([id,rot])=>`
       <button class="tema-op ${temaAtual()===id?'ativo':''}" onclick="trocarTema('${id}')">
         <span class="tema-amostra tema-${id}"><i></i><i></i><i></i></span>
         <span>${rot}</span>${temaAtual()===id?'<span class="bd ok">em uso</span>':''}
       </button>`).join('')}</div>
 
-    <h4>Marca no topo da loja</h4>
-    <p class="mut" style="font-size:.82rem;margin-bottom:.5rem">Como o nome da loja aparece no alto do catálogo. As duas formas ficam guardadas — dá para trocar quando quiser.</p>
+    <h4>Marca no topo da loja ${ajuda(`Como o nome da loja aparece no alto do catálogo. As duas formas ficam guardadas — dá para trocar quando quiser.`)}</h4>
     <div class="temas" style="margin-bottom:.5rem">
       <button class="tema-op ${larga?'':'ativo'}" onclick="trocarMarcaModo('redonda')">
         ${l.logo?`<img class="marca-redonda" src="${l.logo}" alt="">`:''}<span>Logo redonda + nome</span>${larga?'':'<span class="bd ok">em uso</span>'}
@@ -10698,8 +11328,7 @@ function painelPersonalizarCatalogo(){
     <p class="mut" style="font-size:.74rem;margin:.3rem 0 1.1rem">💡 Use a logo deitada que já tem o nome da marca. PNG com fundo transparente fica melhor — o topo da loja é escuro.</p>`
     :`<p class="mut" style="font-size:.78rem;margin-bottom:1.1rem">A logo redonda é a mesma do painel (Configurações → Geral / Loja).</p>`}
 
-    <h4>Banners em carrossel</h4>
-    <p class="mut" style="font-size:.82rem;margin-bottom:.5rem">Imagens que passam sozinhas no topo da loja, antes dos produtos — adicione conforme precisar, até ${limiteBanners()}. Cada uma pode levar o cliente direto para uma coleção, um material ou um tipo de peça.</p>
+    <h4>Banners em carrossel ${ajuda(`Imagens que passam sozinhas no topo da loja, antes dos produtos — adicione conforme precisar, até ${limiteBanners()}. Cada uma pode levar o cliente direto para uma coleção, um material ou um tipo de peça.`)}</h4>
     <label class="linha"><input type="checkbox" id="bnAtivo" ${bn.ativo?'checked':''} onchange="bannersAtivar(this.checked)"> Mostrar banners no catálogo</label>
     <div id="bnBox"${bn.ativo?'':' hidden'}>
       ${bn.ativo&&!bn.itens.some(b=>b.imagem)?'<p class="mut" style="font-size:.78rem;color:var(--laranja);margin-top:.4rem">⚠️ Adicione pelo menos um banner — sem imagem nada aparece na loja.</p>':''}
@@ -10708,8 +11337,7 @@ function painelPersonalizarCatalogo(){
       ${dicaProporcaoHTML()}
     </div>
 
-    <h4 class="mt">Capa da loja</h4>
-    <p class="mut" style="font-size:.82rem;margin-bottom:.5rem">Primeira coisa que o cliente vê ao abrir o catálogo, antes dos produtos.</p>
+    <h4 class="mt">Capa da loja ${ajuda(`Primeira coisa que o cliente vê ao abrir o catálogo, antes dos produtos.`)}</h4>
     ${capa.banner?ajusteImagemHTML('capa',capa,capa.banner,'16/5')
       :'<div class="banner-prev">sem capa — a loja começa direto nos produtos</div>'}
     <input type="file" id="capaInput" accept="image/*" hidden onchange="addCapaLoja(this)">
@@ -10726,8 +11354,7 @@ function painelPersonalizarCatalogo(){
     ${capa.alvo&&!filtroDoBanner(C(),capa.alvo,cat.categorias,cat.tipos,cat.colecoes)?'<p class="mut" style="font-size:.74rem;color:var(--laranja);margin-top:.3rem">⚠️ Nenhuma peça disponível nesse destino agora — a capa aparece, mas não leva a lugar nenhum até ter peça lá.</p>':''}
     <div class="rodape"><button class="bt primario" onclick="salvarCapaLoja()">Salvar capa</button></div>
 
-    <h4 class="mt">Vitrine das coleções</h4>
-    <p class="mut" style="font-size:.82rem;margin-bottom:.5rem">Cada coleção pode ter uma frase e um banner próprios, que aparecem quando o cliente a escolhe no menu lateral. E cada uma tem o <b>seu link</b> (🔗 copiar link): ele abre a loja já mostrando só aquela coleção — bom para o Instagram e o WhatsApp.</p>
+    <h4 class="mt">Vitrine das coleções ${ajuda(`Cada coleção pode ter uma frase e um banner próprios, que aparecem quando o cliente a escolhe no menu lateral. E cada uma tem o <b>seu link</b> (🔗 copiar link): ele abre a loja já mostrando só aquela coleção — bom para o Instagram e o WhatsApp.`)}</h4>
     ${cs.length?`<ul class="cfg-lista">${cs.map(c=>`<li>
       <span class="nm">${c.banner?`<img class="col-mini" src="${c.banner}" alt=""> `:''}<b>${esc(c.nome)}</b>
         <span class="mut" style="font-size:.76rem">— ${usadas[c.nome]||0} peça(s) na loja</span>
@@ -10737,8 +11364,7 @@ function painelPersonalizarCatalogo(){
       :'<p class="mut">Nenhuma coleção criada ainda. Crie em <b>Configurações → Coleções</b> e volte aqui para dar cara a cada uma.</p>'}
     <p class="mut" style="font-size:.78rem;margin-top:.6rem">Criar, renomear ou apagar coleção continua em <b>Configurações → Coleções</b> — lá é a estrutura, aqui é a aparência.</p>
 
-    <h4 class="mt">Explicação dos materiais e tipos</h4>
-    <p class="mut" style="font-size:.82rem;margin-bottom:.5rem">Um texto curto que aparece na loja quando a cliente toca no filtro — por exemplo, explicar o que é o banho <b>Rosé</b>.</p>
+    <h4 class="mt">Explicação dos materiais e tipos ${ajuda(`Um texto curto que aparece na loja quando a cliente toca no filtro — por exemplo, explicar o que é o banho <b>Rosé</b>.`)}</h4>
     ${listaDescricoesFiltros('categorias','Material',cat.categorias)}
     ${listaDescricoesFiltros('tipos','Tipo de peça',cat.tipos)}
   </div>`;
@@ -11003,8 +11629,7 @@ function painelLojaSite(){
   // retrato que precisa ser reenviado a cada mudança
   const dinamico=typeof nuvemLigada==='function'&&nuvemLigada();
   return `<div class="painel">
-    <h3>🛍️ Site da loja (catálogo + pedido no WhatsApp)</h3>
-    <p class="mut" style="font-size:.85rem;margin-bottom:.8rem">Os clientes veem seus produtos com foto e preço, montam o pedido e mandam pelo WhatsApp — sem pagamento online, você fecha a venda direto na conversa.${dinamico?' Tudo o que você muda aqui aparece na loja sozinho.':''}</p>
+    <h3>🛍️ Site da loja (catálogo + pedido no WhatsApp) ${ajuda(`Os clientes veem seus produtos com foto e preço, montam o pedido e mandam pelo WhatsApp — sem pagamento online, você fecha a venda direto na conversa.${dinamico?' Tudo o que você muda aqui aparece na loja sozinho.':''}`)}</h3>
     ${semWpp?'<div class="painel" style="border-color:var(--vermelho);margin-bottom:.8rem"><b style="color:var(--vermelho)">⚠️ Falta configurar o WhatsApp da loja</b><div class="mut" style="font-size:.82rem;margin-top:.3rem">Vá em <b>Geral / Loja</b> e preencha "WhatsApp (pedidos da loja)" — é para lá que os pedidos chegam.</div></div>':''}
     <div class="fgrid" style="margin-bottom:.9rem">
       <div class="card"><div class="rotulo">Produtos visíveis</div><div class="valor">${visiveis.length}</div><div class="extra">só com estoque disponível</div></div>
@@ -11105,7 +11730,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-10-29 00:02';
+const VERSAO_APP='2026-10-29 11:19';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -13762,8 +14387,7 @@ function painelApp(){
     corpo=`<p class="mut" style="font-size:.84rem;margin-bottom:.7rem">O painel ganha um <b>ícone na tela inicial</b>, abre em tela cheia, sem a barra do navegador, e <b>abre mesmo sem internet</b> — o que você mexer sem conexão sobe quando ela voltar.</p>
       <div class="barra"><button class="bt primario" onclick="appInstalar()">📲 Instalar o painel neste aparelho</button></div>`;
   }
-  return `<div class="painel"><h3>📲 App no celular</h3>${corpo}
-    <p class="mut" style="font-size:.76rem;margin-top:.5rem">Vale para cada aparelho: cada pessoa da equipe instala no seu. Melhorias novas chegam sozinhas no app.</p>
+  return `<div class="painel"><h3 style="display:flex;align-items:center">📲 App no celular ${ajuda('Vale para cada aparelho: cada pessoa da equipe instala no seu. Melhorias novas chegam sozinhas no app.')}</h3>${corpo}
   </div>`;
 }
 
