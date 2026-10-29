@@ -221,7 +221,7 @@ input,select,textarea{background:var(--painel2);border:1px solid var(--borda);co
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acento);
   box-shadow:0 0 0 3px var(--brilho)}
 textarea{resize:vertical;min-height:2.2rem}
-label.campo{display:flex;flex-direction:column;gap:.25rem;font-size:.8rem;color:var(--texto2)}
+label.campo,div.caixa-campo{display:flex;flex-direction:column;gap:.25rem;font-size:.8rem;color:var(--texto2)}
 label.linha{display:flex;align-items:center;gap:.45rem;font-size:.85rem;color:var(--texto2)}
 
 .bt{background:var(--painel2);color:var(--texto);border:1px solid var(--borda);border-radius:9px;padding:.5rem .9rem;font-size:.9rem;
@@ -11105,7 +11105,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-10-28 23:53';
+const VERSAO_APP='2026-10-29 00:02';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
