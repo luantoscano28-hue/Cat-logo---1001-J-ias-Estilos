@@ -300,6 +300,7 @@ button.bd-clica:hover{filter:brightness(.95);text-decoration:underline}
 .f-cobrar h3{font-size:.95rem;margin:0 0 .45rem;color:var(--cob-tx);font-family:"Figtree","Segoe UI",sans-serif;font-weight:700;display:flex;align-items:center;gap:.35rem}
 .f-cobrar .cob-linha{border-bottom-color:var(--cob-ln)}
 .f-cobrar .cob-mais{margin-top:.4rem}
+.f-cobrar .cob-grupo{margin:.7rem 0 .15rem;font-weight:700;font-size:.84rem;color:var(--cob-tx)}
 .f-filtros{gap:.5rem}
 .f-lista{display:flex;flex-direction:column;gap:.5rem}
 .f-cli{background:var(--painel);border-radius:12px;margin-bottom:0}
@@ -319,7 +320,9 @@ button.bd-clica:hover{filter:brightness(.95);text-decoration:underline}
 .f-bloco{border-top:1px dashed var(--borda);padding:.55rem 0 .2rem}
 .f-bloco:first-child{border-top:none}
 .f-bloco-cab{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;font-size:.86rem;margin-bottom:.3rem}
-.f-parc{display:grid;grid-template-columns:16px 78px minmax(0,1fr) auto auto;gap:.55rem;align-items:center;padding:.28rem 0;font-size:.86rem}
+/* V14: linha de caderno entre as parcelas, como nas tabelas de Produtos */
+.f-parc{display:grid;grid-template-columns:16px 78px minmax(0,1fr) auto auto;gap:.55rem;align-items:center;padding:.42rem 0;font-size:.86rem;border-bottom:1px solid var(--borda)}
+.f-parc:last-of-type{border-bottom:none}
 .f-parc .bola{width:12px;height:12px;border-radius:50%;border:2px solid var(--texto2)}
 .f-parc.prox .bola{background:var(--laranja);border-color:var(--laranja)}
 .f-parc.paga{color:var(--texto2)}
@@ -624,7 +627,8 @@ main.larga{max-width:1480px}
 .combo-bt:focus-visible{outline:none;border-color:var(--acento);box-shadow:0 0 0 1px var(--acento)}
 .combo-pop{padding:.35rem}
 .combo-busca{width:100%;margin-bottom:.35rem}
-.combo-itens{max-height:210px;overflow-y:auto}
+/* contain: chegar ao fim da lista não rola a janela de trás (rolar a janela fechava a lista) */
+.combo-itens{max-height:210px;overflow-y:auto;overscroll-behavior:contain}
 @media(max-width:700px){
   .combo-bt{font-size:16px;padding:.55rem .6rem}
   /* no celular a lista sobe de baixo, como o menu de tres pontos: teclado e
@@ -1013,6 +1017,11 @@ main.larga{max-width:1480px}
   .f-parc-ac{grid-column:2/-1;justify-content:flex-start}
   .f-filtros .filtro-chips{flex-wrap:nowrap;overflow-x:auto;width:100%;padding-bottom:2px}
   .f-filtros .filtro-chips button{flex:none}
+  /* V14: local e ordem lado a lado, meio a meio (antes cada um caía numa linha, torto) */
+  .f-filtros .esp{display:none}
+  .f-filtros>label.linha,.f-filtros>.ordem-sel{flex:1 1 0;min-width:0;gap:.3rem}
+  .f-filtros>label.linha>select,.f-filtros>.ordem-sel>select{flex:1;min-width:0;width:100%;max-width:none;font-size:.86rem;padding:.5rem .4rem}
+  .f-filtros>label.linha>.combo{flex:1;min-width:0}
   /* cada pessoa numa linha só: nome e atraso empilhados à esquerda, valor e botão à direita */
   .f-cobrar .cob-linha{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"nm vl bt" "qd vl bt";column-gap:.55rem;row-gap:.1rem}
   .f-cobrar .cob-linha .nm{grid-area:nm;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1053,6 +1062,24 @@ main.larga{max-width:1480px}
   .lista-prod tr.aberto td[data-rot="Custo"],.lista-prod tr.aberto td[data-rot="Margem"],.lista-prod tr.aberto td[data-rot="Cadastro"],.lista-prod tr.aberto td[data-rot="Status"]{display:flex;grid-column:2/-1;border-top:1px dashed var(--borda);padding-top:.25rem}
   .lista-prod tr.aberto td::before{content:attr(data-rot)}
   .lista-prod tr.aberto td.titulo::before,.lista-prod tr.aberto td.capa::before,.lista-prod tr.aberto td.acoes::before,.lista-prod tr.aberto td[data-rot="Material"]::before,.lista-prod tr.aberto td[data-rot="Preço"]::before,.lista-prod tr.aberto td[data-rot="Estoque"]::before{content:none}
+  /* Vendas (V14): período numa linha; busca + Filtros na de baixo */
+  .barra.v-busca{flex-wrap:wrap}
+  .barra.v-busca>.v-per{flex:1 1 100%}
+  .barra.v-busca>.busca-larga{flex:1 1 0!important;min-width:0}
+  .barra.v-busca>.bt{flex:none;white-space:nowrap}
+  /* Vendas (V14): cartão baixo, como o de Produtos — sem os rótulos DATA/ITENS/VALOR
+     em cada linha. Cliente e valor em cima; data e forma; as peças embaixo, com ✎ ✕ */
+  .lista-vendas tr:not(.grupo){display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.12rem .7rem;align-items:center;padding:.6rem .75rem}
+  .lista-vendas td{padding:0;text-align:left}
+  .lista-vendas td::before{content:none}
+  .lista-vendas td.titulo{grid-area:1/1/2/2;border:none;padding:0;margin:0;min-height:0;font-size:.95rem}
+  .lista-vendas td.titulo .mut{display:inline;margin-left:.3rem}
+  .lista-vendas td[data-rot="Valor"]{grid-area:1/2/2/3;justify-content:flex-end;font-size:.95rem}
+  .lista-vendas td[data-rot="Data"]{grid-area:2/1/3/2;font-size:.78rem;color:var(--texto2);justify-content:flex-start}
+  .lista-vendas td[data-rot="Situação"]{grid-area:2/2/3/3;justify-content:flex-end}
+  .lista-vendas td[data-rot="Itens"]{grid-area:3/1/4/2;display:block;font-size:.8rem;color:var(--texto2);
+    overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3}
+  .lista-vendas td.acoes{grid-area:3/2/4/3;padding:0;gap:.3rem;align-self:end}
 }
 @media print{.lateral,.topo-cel,.nav-cel,.barra,.acoes,.aviso,.rodape{display:none!important}.app{display:block}body{background:#fff;color:#000}}
 </style>
@@ -1177,7 +1204,6 @@ try{
 <div id="avisoCobranca" class="aviso cobranca" hidden>
   <span>🔔 <b id="avisoCobrancaTitulo"></b> <span id="avisoCobrancaTexto"></span></span>
   <button class="bt mini" onclick="trocarTab('fiado')">Ver cobranças</button>
-  <button class="bt mini" onclick="mandarResumoCobranca()">📱 mandar no meu WhatsApp</button>
   <button type="button" class="aviso-x" onclick="dispensarAvisoCobranca()" aria-label="Fechar o aviso" title="Fechar (volta amanhã)">✕</button>
 </div>
 <!-- app no celular (part9): versão nova publicada / sugestão de instalar.
@@ -1324,7 +1350,7 @@ try{
     <label class="campo">Tipo <span class="sel-add"><select id="pTipo"></select><button type="button" class="bt mini" title="novo tipo" onclick="novoCadInline('tipos','pTipo')">+</button></span></label>
     <label class="campo">Fornecedor <span class="sel-add"><select id="pForn"></select><button type="button" class="bt mini" title="novo fornecedor" onclick="novoCadInline('fornecedores','pForn')">+</button></span></label>
     <label class="campo">Status <select id="pStatus"><option value="ativo">À venda</option><option value="esgotado">Esgotado</option><option value="oculto">Oculto na loja</option></select></label>
-    <div class="campo span2">
+    <div class="campo span2" id="pCorBox">
       <span>Cor <span class="mut" style="font-size:.76rem">— escolha na lista ou crie a sua</span></span>
       <div id="pCor"></div>
     </div>
@@ -1529,7 +1555,7 @@ try{
     <label class="campo" id="qpEstoqueBox">Estoque atual <input type="number" id="qpEstoque" step="any" placeholder="opcional"></label>
     <label class="campo">Fornecedor <span class="sel-add"><select id="qpForn"></select><button type="button" class="bt mini" title="novo fornecedor" onclick="novoCadInline('fornecedores','qpForn')">+</button></span></label>
     <label class="campo">Status <select id="qpStatus"><option value="ativo">À venda</option><option value="esgotado">Esgotado</option><option value="oculto">Oculto na loja</option></select></label>
-    <div class="campo span2">
+    <div class="campo span2" id="qpCorBox">
       <span>Cor <span class="mut" style="font-size:.76rem">— escolha na lista ou crie a sua</span></span>
       <div id="qpCor"></div>
     </div>
@@ -2912,7 +2938,17 @@ function abrirCombo(sel,bt){
   // no celular não damos foco: o teclado subiria tapando a lista toda.
   // quem quiser filtrar toca na caixa de busca da folha.
   if(!comboFolha){
-    campo.onblur=()=>setTimeout(()=>{if(comboAberto===sel)fecharCombo();},180);
+    // V14: puxar a barrinha de rolagem da lista também tira o foco da busca — e isso
+    // fechava a lista no meio da rolagem ("se eu rolo pra baixo ele some sozinho")
+    pop.addEventListener('mousedown',()=>{pop._segura=Date.now();},true);
+    campo.onblur=()=>setTimeout(()=>{
+      if(comboAberto!==sel)return;
+      if(Date.now()-(pop._segura||0)<600){
+        document.addEventListener('mouseup',()=>{if(comboAberto===sel)campo.focus({preventScroll:true});},{once:true});
+        return;
+      }
+      fecharCombo();
+    },180);
     campo.focus();
   }
 }
@@ -2974,13 +3010,12 @@ function renderConfig(){
     </div>
     ${painelMesDaLoja()}
     <div class="painel"><h3>🔔 Aviso de cobrança</h3>
-      <p class="mut" style="font-size:.82rem;margin-bottom:.7rem">Ao abrir o painel, ele avisa o que venceu e o que vence nos próximos dias — uma vez por dia, pra não virar ruído. O botão <b>📱 mandar no meu WhatsApp</b> abre a conversa <b>com você mesmo</b> já com a lista pronta.</p>
+      <p class="mut" style="font-size:.82rem;margin-bottom:.7rem">Ao abrir o painel, ele avisa o que venceu e o que vence nos próximos dias — uma vez por dia, pra não virar ruído.</p>
       <div class="barra">
         <label class="linha">Avisar com <input type="number" id="cfgDiasAviso" min="0" max="30" value="${+cfgAvisos().diasAntes||0}" style="width:64px" onchange="salvarDiasAviso(this.value)"> dia(s) de antecedência</label>
         ${cfgAvisos().notificar
           ?'<span class="bd ok">notificações ligadas</span><button class="bt mini" onclick="desligarNotificacoes()">desligar</button>'
           :'<button class="bt" onclick="pedirNotificacoes()">🔔 Ligar notificação do celular/navegador</button>'}
-        <button class="bt mini" onclick="mandarResumoCobranca()">📱 mandar resumo agora</button>
       </div>
       <p class="mut" style="font-size:.78rem;margin-top:.5rem">⚠️ A notificação só chega com o painel <b>aberto</b> no aparelho (mesmo em segundo plano).</p>
     </div>
@@ -3969,6 +4004,9 @@ function eixosDoForm(pref){
 function gradeMudou(pref){
   const on=eixosDoForm(pref).length>0;
   $(pref+'GradeBox').hidden=!on;
+  // V14: estoque separado por cor = a cor mora em cada linha da grade; a "Cor" de cima
+  // ficava repetida (e ao salvar ela é apagada — a peça tem várias cores)
+  const cb=$(pref+'CorBox');if(cb)cb.hidden=eixosDoForm(pref).indexOf('cor')>=0;
   $(pref+'EstoqueBox').style.display=on?'none':'';
   if(on&&!linhasGrade(pref).length)linhasGrade(pref).push({id:novoId(),tamanho:'',cor:null,estoque:0});
   if(on)renderLinhasGrade(pref);
@@ -3992,8 +4030,8 @@ function renderLinhasGrade(pref){
       ${porCor?`<span class="cor-bolha${cor?'':' sem'}"${cor?` style="background:${esc(cor.hex)}"`:''}></span>
       <select class="gr-cor" data-busca="1" data-rotulo="Cor desta linha" onchange="gradeLinhaSet('${pref}',${i},'cor',this.value)">
         <option value=""${cor?'':' selected'}>escolha a cor</option>
+        <option value="${COR_OUTRA}"${outra?' selected':''}>🎨 cor personalizada…</option>
         ${opcoesCor(cor&&!outra?cor.nome:'')}
-        <option value="${COR_OUTRA}"${outra?' selected':''}>outra cor…</option>
       </select>`:''}
       <input class="gr-qt" type="number" step="any" placeholder="qtd" value="${g.estoque}" oninput="gradeLinhaSet('${pref}',${i},'estoque',this.value)">
       <button type="button" class="bt mini perigo" onclick="removerLinhaGrade('${pref}',${i})">✕</button>
@@ -4126,8 +4164,8 @@ function renderPaletaCor(pref){
       <span class="cor-bolha${atual?'':' sem'}" id="${pref}CorBolha"${atual?` style="background:${esc(atual.hex)}"`:''}></span>
       <select id="${pref}CorSel" data-busca="1" data-rotulo="Cor da peça" onchange="corSelMudou('${pref}')">
         <option value=""${escolhida?'':' selected'}>sem cor</option>
+        <option value="${COR_OUTRA}"${outra?' selected':''}>🎨 cor personalizada…</option>
         ${opcoesCor(escolhida)}
-        <option value="${COR_OUTRA}"${outra?' selected':''}>outra cor…</option>
       </select>
     </div>    <div class="cor-outra" id="${pref}CorOutra"${outra?'':' hidden'}>
       <input type="color" id="${pref}CorHex" value="${outra?esc(atual.hex):'#c9a227'}" oninput="corOutraMudou('${pref}')" title="tom da cor">
@@ -5038,7 +5076,7 @@ function salvarProduto(){
     insumosProprios:$('pInsProprios').checked,
     insumos:$('pInsProprios').checked?insRows.filter(x=>String(x.nome||'').trim()!==''||(+x.valor||0)>0)
       .map(x=>({id:x.id||novoId(),nome:String(x.nome||'').trim()||'insumo',valor:r2(x.valor)||0})):[],
-    cor:lerCor('p'),fotos:prodFotos.slice(),video:prodVideo,variacoes,eixos:usaGrade?eixos:[]};
+    cor:eixos.indexOf('cor')>=0&&usaGrade?null:lerCor('p'),fotos:prodFotos.slice(),video:prodVideo,variacoes,eixos:usaGrade?eixos:[]};
   if(!o.nome){toast('Informe o nome.');return;}
   confirmarNomeRepetido(o.nome,id||null,()=>gravarProduto(id,o));
 }
@@ -5352,7 +5390,7 @@ function gravarQuickProd(nome){
   const p={id:novoId(),criadoEm:hoje(),nome,catId:$('qpCat').value,tipoId:$('qpTipo').value||null,fornId:$('qpForn').value||null,
     status:$('qpStatus').value||'ativo',preco:r2($('qpPreco').value)||0,custo:$('qpCusto').value===''?null:r2($('qpCusto').value),
     estoque:estoqueFinal,minimo:0,descricao:'',avisarEstoque:$('qpAvisarEstoque').checked,colecaoIds:lerColecoesChecks('qp'),
-    cor:lerCor('qp'),fotos:qpFotos.slice(),video:'',variacoes,eixos:eixos.length?eixos:[]};
+    cor:eixos.indexOf('cor')>=0?null:lerCor('qp'),fotos:qpFotos.slice(),video:'',variacoes,eixos:eixos.length?eixos:[]};
   const idx=+$('qpIdx').value,it=itensVenda[idx];
   if(it){
     it.novoProd=p;it.produtoId=null;it.nome=nome;
@@ -5479,6 +5517,13 @@ const ICONES_MENU_CLI={
 };
 /* número para o wa.me: sem o 55, o WhatsApp lê o DDD como código de outro país */
 function foneWa(tel){const d=String(tel||'').replace(/\D/g,'');return (d.length===10||d.length===11)?'55'+d:d;}
+/* conversa do WhatsApp já com a mensagem. Nunca wa.me com texto: o redirecionamento do
+   wa.me troca todo emoji por "�" (caso real V14: a cobrança chegava "Oi, Neide! �";
+   conferido no servidor em 29/10/2026 — %F0%9F%98%8A volta como %EF%BF%BD) */
+function linkWhats(fone,texto){
+  const n=String(fone||'').replace(/\D/g,'');
+  return 'https://api.whatsapp.com/send?'+(n?'phone='+n+'&':'')+'text='+encodeURIComponent(texto||'');
+}
 function abrirMenuCliente(id,btn){
   const m=$('menuProduto');
   if(!m.hidden&&m.dataset.id===id&&m.dataset.tipo==='cli'){fecharMenuProduto();return;}
@@ -7031,8 +7076,11 @@ function renderVendas(){
       <div class="mt"><button class="bt primario" onclick="abrirNovaVenda()">+ Registrar primeira venda</button></div></div>`;
     return;
   }
-  $('tab-vendas').innerHTML=cabVendas()+cardsVendasPeriodo()+`<div class="barra">
-    <select onchange="ui.v.per=this.value;renderVendasTab()">
+  /* V14: igual a Produtos — o período e a busca à vista; os filtros pelas peças vendidas
+     moram atrás do botão "Filtros" (no celular eram duas fileiras antes da 1ª venda) */
+  const nf=nFiltrosVendas(),aberto=!!u.verFiltros;
+  $('tab-vendas').innerHTML=cabVendas()+cardsVendasPeriodo()+`<div class="barra v-busca">
+    <select class="v-per" aria-label="Período" onchange="ui.v.per=this.value;renderVendas()">
       <option value="fiscal"${u.per==='fiscal'?' selected':''}>${nomeMesAtual(true)}</option>
       <option value="fiscalAnt"${u.per==='fiscalAnt'?' selected':''}>${nomeMesAnterior(true)}</option>
       <option value="30d"${u.per==='30d'?' selected':''}>Últimos 30 dias</option>
@@ -7041,16 +7089,25 @@ function renderVendas(){
       <option value="custom"${u.per==='custom'?' selected':''}>Período…</option></select>
     <span ${u.per==='custom'?'':'hidden'}><input type="date" value="${u.ini}" onchange="ui.v.ini=this.value;renderVendasTab()"><input type="date" value="${u.fim}" onchange="ui.v.fim=this.value;renderVendasTab()"></span>
     <input class="busca-larga" placeholder="🔎 cliente ou produto..." value="${esc(u.busca)}" oninput="ui.v.busca=this.value;renderVendasTab()" style="flex:1;min-width:140px">
+    <button type="button" id="vBtFiltros" class="bt${nf?' com-filtro':''}" onclick="abrirFiltrosVendas()" aria-expanded="${aberto}">⚙ Filtros${nf?' ('+nf+')':''}</button>
+    ${nf?`<button class="bt mini" onclick="limparFiltrosVendas()">limpar filtros</button>`:''}
   </div>
-  <div class="barra">
+  <div class="p-filtros v-filtros"${aberto?'':' hidden'}><div class="barra">
     <span class="mut" style="font-size:.8rem">Filtrar pelas peças vendidas:</span>
-    <select onchange="ui.v.forn=this.value;renderVendasTab()"><option value="">Fornecedor: todos</option>${opcoes(C().fornecedores,u.forn)}</select>
-    <select onchange="ui.v.cat=this.value;renderVendasTab()"><option value="">Material: todos</option>${opcoes(C().categorias,u.cat)}</select>
-    <select onchange="ui.v.tipo=this.value;renderVendasTab()"><option value="">Tipo: todos</option>${opcoes(C().tipos,u.tipo)}</select>
-    ${colecoes().length?`<select onchange="ui.v.col=this.value;renderVendasTab()"><option value="">Coleção: todas</option>${opcoes(colecoes(),u.col)}</select>`:''}
-    ${filtrosAtivosVendas()?`<button class="bt mini" onclick="limparFiltrosVendas()">limpar filtros</button>`:''}
-  </div><div id="vendasTabela"></div>`;
+    <select onchange="ui.v.forn=this.value;renderVendas()"><option value="">Fornecedor: todos</option>${opcoes(C().fornecedores,u.forn)}</select>
+    <select onchange="ui.v.cat=this.value;renderVendas()"><option value="">Material: todos</option>${opcoes(C().categorias,u.cat)}</select>
+    <select onchange="ui.v.tipo=this.value;renderVendas()"><option value="">Tipo: todos</option>${opcoes(C().tipos,u.tipo)}</select>
+    ${colecoes().length?`<select onchange="ui.v.col=this.value;renderVendas()"><option value="">Coleção: todas</option>${opcoes(colecoes(),u.col)}</select>`:''}
+  </div></div><div id="vendasTabela"></div>`;
   renderVendasTab();
+  ativarBuscaSelects($('tab-vendas'));   // redesenho sem passar pelo renderTudo (filtro, dia, semana)
+}
+function nFiltrosVendas(){const u=ui.v;return [u.forn,u.tipo,u.cat,u.col].filter(Boolean).length;}
+/* abre/fecha sem redesenhar (os campos com busca continuam como estão) */
+function abrirFiltrosVendas(){
+  ui.v.verFiltros=!ui.v.verFiltros;
+  const f=document.querySelector('#tab-vendas .v-filtros'),b=$('vBtFiltros');
+  if(f)f.hidden=!ui.v.verFiltros;if(b)b.setAttribute('aria-expanded',String(!!ui.v.verFiltros));
 }
 function cabVendas(){return `<div class="barra"><h2 style="margin:0">Vendas</h2><span class="esp"></span><button class="bt primario" onclick="abrirNovaVenda()">+ Nova venda</button></div>`;}
 function totalVendasEntre(ini,fim){
@@ -7136,7 +7193,7 @@ function renderVendasTab(){
   const totFiltro=totalItensFiltrados(vs);
   $('vendasTabela').innerHTML=`<div class="painel cartoes"><div class="barra" style="margin-bottom:.4rem"><b>${vs.length}</b>&nbsp;venda(s) — total&nbsp;<b class="pos">${fmt(tot)}</b>${totFiltro!=null?`<span class="mut" style="font-size:.82rem">· só as peças do filtro:&nbsp;<b class="pos">${fmt(totFiltro)}</b></span>`:''}
       <span class="esp"></span>${ordemSelHTML(ui.v.ordem||'recentes',[['recentes','Mais recentes'],['antigas','Mais antigas'],['valor','Maior valor'],['cliente','Cliente (A–Z)']],"ui.v.ordem=this.value;renderVendasTab()")}</div>
-    <div class="rolagem"><table><thead><tr><th>Cliente</th><th>Data</th><th>Itens</th><th class="num">Valor</th><th>Situação</th><th></th></tr></thead>
+    <div class="rolagem"><table class="lista-vendas"><thead><tr><th>Cliente</th><th>Data</th><th>Itens</th><th class="num">Valor</th><th>Situação</th><th></th></tr></thead>
     ${linhas||'<tr><td colspan="6" class="centro">Nenhuma venda.</td></tr>'}</table></div>
     ${vs.length>ui.v.lim?`<div class="centro"><button class="bt" onclick="ui.v.lim+=300;renderVendasTab()">Mostrar mais</button></div>`:''}</div>`;
 }
@@ -7262,18 +7319,7 @@ function textoResumoCobranca(){
   l.push('Total: '+fmt(r.total));
   return l.join('\n');
 }
-function mandarResumoCobranca(){
-  const txt=textoResumoCobranca();
-  if(!txt){toast('Nada a cobrar por enquanto 🎉');return;}
-  const meu=(C().loja.whatsapp||'').replace(/\D/g,'');
-  if(!meu){
-    avisar('Cadastre o seu WhatsApp em Configurações → Geral / Loja para receber o resumo.');
-    return;
-  }
-  window.open('https://wa.me/'+meu+'?text='+encodeURIComponent(txt),'_blank');
-  dispensarAvisoCobranca();
-}
-/* bloco no topo da aba Fiado: o que cobrar hoje, com o botão de cada cliente */
+/* (o botão "mandar resumo no meu WhatsApp" saiu na V14 — o Luan achou inútil) */
 /* ============================================================
    FIADO MAIS SIMPLES (V13 — rascunho V12 aprovado pelo Luan)
    Em cima, 4 números na ordem que ele pediu: Atrasado · Vence essa semana ·
@@ -7298,21 +7344,26 @@ function painelCobrancas(){
   });
   const linha=x=>{
     const quando=x.atraso>0?`<span class="bd fiadoV">${x.atraso} dia(s) de atraso</span>`
-      :(x.venc===hoje()?'<span class="bd fiadoP">vence hoje</span>':`<span class="mut qdo">${fmtData(x.venc)}</span>`);
+      :(x.venc===hoje()?'<span class="bd fiadoP">vence hoje</span>':`<span class="mut qdo">vence ${fmtData(x.venc).slice(0,5)}</span>`);
     return `<div class="cob-linha"><span class="nm">${esc(x.cliente)}</span>${quando}
       <b class="neg">${fmt(x.valor)}</b>
       <button class="bt mini primario" onclick="abrirCobrar('${attr(x.cliente)}')">📲 Cobrar</button></div>`;
   };
+  // V14: quem vence amanhã não é "cobrar hoje" — cada grupo diz quando (caso real: dia 29,
+  // com o aviso de 1 dia, a lista inteira era do dia 30 e o título dizia "Cobrar hoje")
+  porCli.forEach(x=>{x.daqui=Math.max(0,diasEntre(hoje(),x.venc));});
+  porCli.sort((a,b)=>a.daqui-b.daqui||(a.venc<b.venc?-1:a.venc>b.venc?1:0));
+  const titulo=d=>d===0?'Cobrar hoje':d===1?'Cobrar amanhã':'Cobrar daqui '+d+' dias';
   const dias=cfgAvisos().diasAntes;
   // 5 de cara: com muita gente atrasada o bloco empurrava a lista de clientes para longe
-  const LIM=5,todos=!!ui.f.cobTodos||porCli.length<=LIM+1;
+  const LIM=5,todos=!!ui.f.cobTodos||porCli.length<=LIM+1,vis=todos?porCli:porCli.slice(0,LIM);
+  const linhas=vis.map((x,i)=>(i>0&&x.daqui!==vis[i-1].daqui?`<div class="cob-grupo">${titulo(x.daqui)}</div>`:'')+linha(x)).join('');
   return `<div class="f-cobrar">
-    <h3>🔔 Cobrar hoje ${r.vencidas.length?'<span class="bd fiadoV">'+r.vencidas.length+' vencida(s)</span>':''}
-      ${ajuda('Aparece o que já venceu e o que vence até '+(dias>0?'daqui a '+dias+' dia(s)':'hoje')+'. Dá para mudar em Configurações → Geral.')}</h3>
-    <div class="cob-lista">${(todos?porCli:porCli.slice(0,LIM)).map(linha).join('')}</div>
+    <h3>🔔 ${titulo(porCli[0].daqui)} ${r.vencidas.length?'<span class="bd fiadoV">'+r.vencidas.length+' vencida(s)</span>':''}
+      ${ajuda('Aparece o que já venceu e o que vence até '+(dias>0?'daqui a '+dias+' dia(s)':'hoje')+'. Dá para mudar em Configurações → Geral → Aviso de cobrança.')}</h3>
+    <div class="cob-lista">${linhas}</div>
     ${porCli.length>LIM+1?`<button class="bt mini cob-mais" onclick="ui.f.cobTodos=!ui.f.cobTodos;renderFiadoCorpo()">${todos?'mostrar menos':'ver todos os '+porCli.length+' clientes'}</button>`:''}
-    <div class="barra" style="margin:.6rem 0 0"><b>Total a cobrar: <span class="neg">${fmt(r.total)}</span></b><span class="esp"></span>
-      <button class="bt mini" onclick="mandarResumoCobranca()">📱 mandar resumo no meu WhatsApp</button></div>
+    <div class="barra" style="margin:.6rem 0 0"><b>Total a cobrar: <span class="neg">${fmt(r.total)}</span></b></div>
   </div>`;
 }
 
@@ -7385,7 +7436,7 @@ function linhaParcelaFiado(n,o){
     :(o.venc&&o.venc<h?'<span class="bd fiadoV">vencida</span>':'');
   return `<div class="f-parc${o.pago?' paga':(o.proxima?' prox':'')}"><span class="bola"></span><b>${venc}</b><span class="mut2">${o.rot}</span>
     <span class="vl">${fmt(o.pago?o.valor:o.aberto)}${o.jaPago>0.005?`<small class="parc-parcial">já pagou ${fmt(o.jaPago)}</small>`:''}</span>
-    <span class="f-parc-ac">${st}${o.pago?'':` <button class="bt mini verde" onclick="abrirReceber('${attr(n)}','${o.pids}')">✓ Receber</button>`}</span></div>`;
+    <span class="f-parc-ac">${st}${o.pago?'':` <button class="bt mini verde" onclick="abrirReceber('${attr(n)}','${o.pids}')" title="a cliente pagou esta parcela">✓ Receber parcela</button>`}</span></div>`;
 }
 /* o que aparece ao tocar no cliente */
 function detalheFiadoHTML(n,modo){
@@ -7467,7 +7518,7 @@ function renderFiadoCorpo(){
         <span class="f-total">${fmt(s)}${modo!=='todos'&&Math.abs(s-somaTotalCli)>0.005?`<small>de ${fmt(somaTotalCli)} no total</small>`:''}</span>
         <span class="f-prox">${proximaHTML(px)}${dp?` <span class="f-paga">💰 ${esc(dp)}</span>`:''}</span>
         <span class="f-acoes">
-          <button class="bt mini verde" onclick="event.stopPropagation();abrirReceberValor('${attr(n)}')">✓ Receber</button>
+          <button class="bt mini verde" onclick="event.stopPropagation();abrirReceberValor('${attr(n)}')" title="a cliente pagou um valor qualquer: o painel abate das parcelas, da mais antiga para a mais nova">💵 Receber valor</button>
           <button class="bt mini" onclick="event.stopPropagation();abrirCobrar('${attr(n)}')">📲 Cobrar</button>
           <button class="bt mini bt-tres" title="mais ações" aria-label="Mais ações de ${esc(n)}" aria-haspopup="menu" onclick="event.stopPropagation();abrirMenuFiado('${attr(n)}',this)">${IC_TRES_PONTOS}</button>
         </span></header>
@@ -7607,7 +7658,7 @@ function cobrarCopiar(){
 function cobrarWhats(){
   const s=selCobrarMarcadas();if(!s.length){toast('Marque ao menos uma parcela.');return;}
   const c=dados.clientes.find(x=>x.nome===COB.nome),tel=c?foneWa(c.tel):'';
-  window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(montarCobrancaCompleta(COB.nome,s)),'_blank');
+  window.open(linkWhats(tel,montarCobrancaCompleta(COB.nome,s)),'_blank');
 }
 
 /* ============================================================
@@ -8857,7 +8908,9 @@ function painelCaixaSimples(cx,atual){
   const L=[linhaConta('','Começou com',cx.saldoIni)];
   const add=(s,rot,v,cls)=>{if(Math.abs(+v||0)>0.005)L.push(linhaConta(s,rot,v,cls));};
   add('+','Vendas à vista',cx.vendaAvista,'pos');
-  add('+','Maquininha <span class="mut2">(o que caiu na conta)</span>',cx.recCartao,'pos');
+  // valor das vendas no cartão; a taxa da maquininha sai na linha "Taxas" (V14 — antes
+  // dizia "o que caiu na conta", o que contava a taxa duas vezes na cabeça de quem lia)
+  add('+','Maquininha <span class="mut2">(valor das vendas — a taxa sai embaixo)</span>',cx.recCartao,'pos');
   add('+','Fiado recebido',cx.recFiado,'pos');
   add('+','Outras entradas',cx.outrasEnt,'pos');
   add('−','Compra de mercadoria',cx.compras,'neg');
@@ -11015,7 +11068,8 @@ var LOJA_APP = __LOJA_APP__;
     // sem caixa preta do navegador: o próprio botão avisa
     if(!wpp){this.textContent="A loja ainda não informou o WhatsApp";this.disabled=true;return;}
     var linhas=mensagemDoPedido(contaDoPedido());
-    var url="https://wa.me/"+wpp+"?text="+encodeURIComponent(linhas.join("\\n"));
+    // api.whatsapp.com, não wa.me: o redirecionamento do wa.me troca os emojis (📷) por "�"
+    var url="https://api.whatsapp.com/send?phone="+wpp+"&text="+encodeURIComponent(linhas.join("\\n"));
     window.open(url,"_blank");
   });
 
@@ -11730,7 +11784,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-10-29 11:19';
+const VERSAO_APP='2026-10-29 21:59';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -13054,7 +13108,7 @@ function verErroSync(){
 function falarSobreAssinatura(){
   const wpp=(C().loja&&C().loja.suporteWpp)||'5511989455153';
   const msg='Olá! Quero regularizar a assinatura do sistema de gestão.';
-  window.open('https://wa.me/'+wpp+'?text='+encodeURIComponent(msg),'_blank');
+  window.open(linkWhats(wpp,msg),'_blank');
 }
 
 /* ============================================================
