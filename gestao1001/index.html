@@ -798,6 +798,42 @@ main.larga{max-width:1480px}
 .r-grupo .abre{font-size:.72rem;color:var(--acento2);font-weight:600;margin-left:.25rem}
 .r-grupo .abre::before{content:"▸ "}
 .r-grupo[open] .abre::before{content:"▾ "}
+/* V15: visitas da loja (Resumo) — uma série só, na cor da marca; o valor de cada
+   barra aparece embaixo ao passar o mouse ou tocar */
+.vis-graf{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:.4rem;margin:.2rem 0 .4rem}
+.vis-y{display:flex;flex-direction:column;justify-content:space-between;font-size:.64rem;color:var(--texto2);text-align:right;font-variant-numeric:tabular-nums;line-height:1}
+.vis-barras{display:flex;align-items:stretch;gap:2px;height:130px;border-bottom:1px solid var(--borda);
+  background:linear-gradient(var(--borda),var(--borda)) 0 0/100% 1px no-repeat}
+.vis-b{flex:1 1 0;min-width:0;display:flex;align-items:flex-end;justify-content:center;background:none;border:0;padding:0;margin:0;cursor:pointer;border-radius:0}
+.vis-b i{display:block;width:100%;max-width:28px;height:var(--h);background:var(--acento);border-radius:4px 4px 0 0;transition:background .12s}
+.vis-b.zero i{height:0}
+.vis-b.hoje i{background:color-mix(in srgb,var(--acento) 55%,var(--painel))}
+.vis-b:hover i,.vis-b.on i,.vis-b:focus-visible i{background:var(--acento2)}
+.vis-b:focus-visible{outline:2px solid var(--acento);outline-offset:1px}
+.vis-x{display:flex;justify-content:space-between;font-size:.64rem;color:var(--texto2);margin-top:.2rem;font-variant-numeric:tabular-nums}
+.vis-x.cada{gap:2px}.vis-x.cada span{flex:1 1 0;min-width:0;text-align:center;overflow:hidden}
+.vis-dica{grid-column:1/-1;font-size:.8rem;color:var(--texto);margin-top:.35rem;min-height:1.2em}
+.vis-orig{display:grid;gap:.3rem;font-size:.84rem}
+.vis-orig>div{display:grid;grid-template-columns:minmax(0,12rem) minmax(0,1fr) auto 2.6rem;gap:.5rem;align-items:center}
+.vis-orig .tr{height:8px;background:var(--painel3);border-radius:4px;overflow:hidden}
+.vis-orig .tr i{display:block;height:100%;background:var(--acento);border-radius:4px}
+.vis-orig b{font-variant-numeric:tabular-nums}
+.vis-orig .mut2{text-align:right;font-variant-numeric:tabular-nums}
+/* V15: pedidos da loja (Vendas) e configuração do pagamento online */
+.ped-box h3{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
+.ped{border:1px solid var(--borda);border-radius:12px;padding:.65rem .8rem;margin-top:.55rem;background:var(--painel)}
+.ped.pago{border-color:color-mix(in srgb,var(--verde) 40%,var(--borda));background:color-mix(in srgb,var(--verde) 5%,var(--painel))}
+.ped.cancelado{opacity:.7}
+.ped header{display:flex;flex-wrap:wrap;align-items:center;gap:.25rem .6rem}
+.ped header .num{color:var(--acento2)}
+.ped header .tot{margin-left:auto;font-weight:800;font-variant-numeric:tabular-nums}
+.ped .info{font-size:.82rem;color:var(--texto2);margin-top:.25rem;line-height:1.45}
+.ped .pecas{font-size:.84rem;margin:.35rem 0 0 1.1rem;padding:0}
+.ped .pecas li{margin:.1rem 0}
+.ped .acoes{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.55rem}
+.ped-grupo>summary{cursor:pointer;font-size:.85rem;color:var(--texto2);margin-top:.8rem}
+.ck-campos{border:0;padding:0;margin:0;min-width:0}
+.ck-campos[disabled]{opacity:.75}
 .r-dica{font-size:.74rem;color:var(--texto2);margin:.5rem 0 0}
 .r-bars{margin:.1rem 0 .7rem}
 .r-bar{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:.6rem;align-items:center;font-size:.84rem;margin-top:.35rem}
@@ -1078,6 +1114,11 @@ main.larga{max-width:1480px}
   .r-rosca{gap:.7rem}.r-rosca svg{width:118px;height:118px}
   .r-rosca-leg{font-size:.76rem}
   .r-bars .r-leg{margin-left:0}
+  /* V15: visitas e pedidos da loja */
+  .vis-barras{height:96px}
+  .vis-orig>div{grid-template-columns:minmax(0,7.5rem) minmax(0,1fr) auto auto}
+  .ped .tot{flex-basis:auto}
+  .ped .acoes .bt{flex:1 1 auto;justify-content:center}
   /* Produtos (V13): topo numa linha, avisos deslizando e a peça num cartão baixo */
   .so-pc{display:none}
   .so-cel{display:inline}
@@ -1217,7 +1258,7 @@ try{
   <div class="marca"><div class="logo" id="marcaLogo">1001</div><div><h1 id="marcaNome">1001 Joias e Estilos</h1><small>Caderneta</small></div></div>
   <nav id="nav" aria-label="Seções">
     <button data-tab="resumo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Resumo</span></button>
-    <button data-tab="vendas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2"/></svg><span>Vendas</span></button>
+    <button data-tab="vendas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2"/></svg><span>Vendas</span><span class="cont" id="navVendas" style="display:none"></span></button>
     <button data-tab="fiado"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h11a3 3 0 0 1 3 3v11H7a3 3 0 0 1-3-3zM8 9h6M8 13h6M18 8h2v11a2 2 0 0 1-2 2"/></svg><span>Fiado</span><span class="cont" id="navFiado"></span></button>
     <button data-tab="produtos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10"/></svg><span>Produtos</span></button>
     <button data-tab="fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H3zM3 7V6a2 2 0 0 1 2-2h11M16 13h2"/></svg><span>Financeiro</span></button>
@@ -1285,7 +1326,7 @@ try{
 <!-- barra de baixo (celular): seções mais usadas + venda no botão do meio -->
 <nav id="navCel" class="nav-cel" aria-label="Seções">
   <button data-tab="resumo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Resumo</span></button>
-  <button data-tab="vendas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2"/></svg><span>Vendas</span></button>
+  <button data-tab="vendas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2"/></svg><span>Vendas</span><i class="cont" id="navVendasCel" style="display:none"></i></button>
   <button type="button" class="fab" id="fabVenda" aria-label="Nova venda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
   <button data-tab="fiado"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h11a3 3 0 0 1 3 3v11H7a3 3 0 0 1-3-3zM8 9h6M8 13h6M18 8h2v11a2 2 0 0 1-2 2"/></svg><span>Fiado</span><i class="cont" id="navFiadoCel"></i></button>
   <button data-tab="produtos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10"/></svg><span>Produtos</span></button>
@@ -2758,6 +2799,7 @@ function renderNav(){
   const rotFiado=n?n+' venda(s) no fiado ainda em aberto':'';
   $('navFiado').textContent=n||'';$('navFiado').title=rotFiado;$('navFiado').style.display=n?'':'none';
   const nc=$('navFiadoCel');if(nc){nc.textContent=n||'';nc.title=rotFiado;nc.style.display=n?'':'none';}
+  if(typeof pintarBadgePedidos==='function')pintarBadgePedidos();   // V15: pedidos pagos da loja esperando
 }
 /* menu "Mais" do celular: o que não coube na barra de baixo, a aparência e a
    conta. Monta na hora de abrir, porque depende da permissão de quem está usando. */
@@ -6276,6 +6318,7 @@ function vCanalMudou(){
   vTaxaPadraoMudou();
 }
 function abrirNovaVenda(){
+  window.VENDA_DO_PEDIDO=null;   // V15: só a venda aberta por "Registrar venda" do pedido online leva o vínculo
   $('formVenda').reset();preencherSelectsVenda();
   $('dlgVendaTitulo').textContent='Nova venda';$('vId').value='';$('vData').value=hoje();$('vDesconto').value=0;$('vDescontoTipo').value='valor';marcarCupomVenda('');
   $('vAjuste').value=0;$('vAjusteTipo').value='valor';
@@ -6288,6 +6331,7 @@ function abrirNovaVenda(){
   setTimeout(()=>$('vCliente').focus(),50);
 }
 function editarVenda(id){
+  window.VENDA_DO_PEDIDO=null;
   const v=vendaPorId(id);if(!v)return;
   if(v.receber&&recParcelas(v).some(parcTocada)){avisar('Este fiado já tem valor recebido ou desconto aplicado. Ajuste em "✎ parcelas" na aba Fiado, ou desfaça o recebimento primeiro.');return;}
   $('formVenda').reset();preencherSelectsVenda();
@@ -7133,6 +7177,8 @@ function salvarVenda(){
   }else{
     const v=Object.assign({id:novoId(),seq:novaSeq(),origem:'app',lancId:null},dv);
     if(receber)v.receber=receber;
+    // V15: venda aberta pelo "Registrar venda" de um pedido online fica ligada a ele
+    if(window.VENDA_DO_PEDIDO){v.pedidoOnline=window.VENDA_DO_PEDIDO;if(typeof vendaDoPedidoSalva==='function')vendaDoPedidoSalva(v);window.VENDA_DO_PEDIDO=null;}
     dados.vendas.push(v);
     if(!forma.ehFiado)lancarVendaAvista(v,forma);
     aplicarEstoque(v,1);
@@ -7175,7 +7221,7 @@ function renderVendas(){
   /* V14: igual a Produtos — o período e a busca à vista; os filtros pelas peças vendidas
      moram atrás do botão "Filtros" (no celular eram duas fileiras antes da 1ª venda) */
   const nf=nFiltrosVendas(),aberto=!!u.verFiltros;
-  $('tab-vendas').innerHTML=cabVendas()+cardsVendasPeriodo()+`<div class="barra v-busca">
+  $('tab-vendas').innerHTML=cabVendas()+(typeof painelPedidosHTML==='function'?painelPedidosHTML():'')+cardsVendasPeriodo()+`<div class="barra v-busca">
     <select class="v-per" aria-label="Período" onchange="ui.v.per=this.value;renderVendas()">
       <option value="fiscal"${u.per==='fiscal'?' selected':''}>${nomeMesAtual(true)}</option>
       <option value="fiscalAnt"${u.per==='fiscalAnt'?' selected':''}>${nomeMesAnterior(true)}</option>
@@ -9653,6 +9699,7 @@ function renderResumo(){
     <div class="painel">${painelLucroSimples(d,custom)}</div>
     <div class="painel">${painelCaixaSimples(cx,atual)}</div>
   </div>
+  ${typeof painelVisitasHTML==='function'?painelVisitasHTML(ini,fim,atual):''}
   <div class="grade2">
     <div class="painel"><h2>Entradas × Saídas de caixa (6 meses)</h2>${grafDuplo(meses)}<div class="legenda"><span><i style="background:var(--verde)"></i>Entradas</span><span><i style="background:var(--vermelho)"></i>Saídas</span></div></div>
     <div class="painel"><h2>Vendas por material</h2>${cats.length?grafBarrasH(cats,'var(--acento)'):'<p class="centro">Sem vendas no período.</p>'}
@@ -9995,6 +10042,10 @@ function catalogoLoja(embutir){
     cat.temCupom=cat.cupons.length>0;cat.cupons=[];
     cat.cuponsNoServidor=true;cat.slug=typeof slugDaLoja==='function'?slugDaLoja():'';
   }
+  /* V15: com a nuvem, a loja sempre leva o apelido (é por ele que ela conta as visitas e
+     cria os pedidos no banco) e, com o pagamento online ligado, o jeito de pagar e entregar */
+  if(typeof nuvemLigada==='function'&&nuvemLigada()&&typeof slugDaLoja==='function')cat.slug=slugDaLoja();
+  if(typeof checkoutParaLoja==='function'){const ck=checkoutParaLoja();if(ck)cat.checkout=ck;}
   return cat;
 }
 function cuponsNoServidor(){return typeof CUPOM_NO_SERVIDOR!=='undefined'&&!!CUPOM_NO_SERVIDOR;}
@@ -10285,6 +10336,35 @@ a{color:inherit}
 .btgrande{width:100%;background:var(--acento);color:var(--btTx);border:none;border-radius:10px;padding:.8rem;font-size:.95rem;font-weight:700;cursor:pointer}
 .btgrande:disabled{opacity:.4;cursor:not-allowed}
 .btgrande.wpp{background:#25D366;color:#fff}
+/* finalizar pedido e pagar (V15) */
+.btgrande[hidden]{display:none}
+.btgrande.wpp.secundario{background:transparent;color:#25D366;border:1px solid #25D366;margin-top:.55rem;font-weight:600}
+.ck-sub{font-size:.82rem;color:var(--texto2);margin:0 0 .4rem}
+.ck-sec{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--texto2);margin:1rem 0 .45rem}
+.ck-campo{display:block;font-size:.8rem;color:var(--texto2);margin-bottom:.55rem}
+.ck-campo input{display:block;width:100%;margin-top:.25rem;background:var(--painel2);border:1px solid var(--borda);color:var(--texto);border-radius:9px;padding:.65rem .75rem;font-size:16px;font-family:inherit}
+.ck-campo input:focus{outline:none;border-color:var(--acento)}
+.ck-dupla{display:grid;grid-template-columns:1fr 1fr;gap:.55rem}
+.ck-opcoes{display:grid;gap:.45rem}
+.ck-op{display:flex;gap:.6rem;align-items:flex-start;text-align:left;width:100%;background:var(--painel2);border:1px solid var(--borda);color:var(--texto);border-radius:11px;padding:.7rem .8rem;cursor:pointer;font:inherit}
+.ck-op .bola{flex:none;width:18px;height:18px;border-radius:50%;border:2px solid var(--texto3);margin-top:.1rem}
+.ck-op.on{border-color:var(--acento)}
+.ck-op.on .bola{border-color:var(--acento);background:radial-gradient(var(--acento) 45%,transparent 50%)}
+.ck-op b{display:block;font-size:.92rem}
+.ck-op small{display:block;color:var(--texto2);font-size:.76rem;margin-top:.1rem}
+.ck-op .vl{margin-left:auto;font-weight:700;white-space:nowrap}
+.ck-conta{margin:1rem 0 .7rem;border-top:1px solid var(--borda);padding-top:.5rem}
+.ck-conta .tot{display:flex;justify-content:space-between;font-weight:800;font-size:1.05rem;padding-top:.4rem}
+.ck-erro{background:rgba(232,103,107,.12);border:1px solid var(--vermelho);color:var(--texto);border-radius:9px;padding:.55rem .7rem;font-size:.84rem;margin-bottom:.7rem}
+.ck-erro[hidden]{display:none}
+.ck-seguro{font-size:.74rem;color:var(--texto2);text-align:center;margin:.6rem 0 0}
+.ped-ok{text-align:center;padding:.6rem 0 .2rem}
+.ped-ok .ic{font-size:2.6rem;line-height:1}
+.ped-ok h3{margin:.4rem 0 .2rem;font-size:1.2rem}
+.ped-ok p{font-size:.88rem;color:var(--texto2);margin:.3rem 0 .9rem}
+.ped-ok .num{font-weight:800;color:var(--texto)}
+.ped-ok .btgrande{margin-top:.5rem}
+.ped-ok a.btgrande{display:block;text-decoration:none;text-align:center}
 /* compartilhar a peça (V9): ícone no topo, ao lado esquerdo do ✕ — como nos
    apps de loja grandes. Os dois flutuam à direita; o ✕ vem primeiro no HTML. */
 .modal .fechar.compart{margin-right:.45rem;display:flex;align-items:center;justify-content:center;padding:0}
@@ -10432,9 +10512,45 @@ html.lg-esperando body::after{content:"";position:fixed;top:50%;left:50%;width:3
       </div>
       <div class="carr-total"><span>Total estimado</span><span id="lgCarrTotal">R$ 0,00</span></div>
       <div id="lgCarrFormas"></div>
-      <p style="font-size:.78rem;color:var(--texto2);margin-bottom:.8rem">Valores e disponibilidade são confirmados pelo WhatsApp antes de fechar.</p>
+      <p style="font-size:.78rem;color:var(--texto2);margin-bottom:.8rem" id="lgCarrNota">Valores e disponibilidade são confirmados pelo WhatsApp antes de fechar.</p>
+      <button class="btgrande" id="lgBtFinalizar" hidden>Finalizar pedido e pagar</button>
       <button class="btgrande wpp" id="lgBtEnviar">📱 Enviar pedido no WhatsApp</button>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="lgCheckoutOverlay">
+  <div class="modal">
+    <button class="fechar" id="lgFecharCk" aria-label="fechar">✕</button>
+    <div class="corpo">
+      <div class="nome" style="margin:.6rem 0 .2rem">Finalizar pedido</div>
+      <p class="ck-sub" id="lgCkResumo"></p>
+      <form id="lgCkForm" novalidate>
+        <div class="ck-sec">Seus dados</div>
+        <label class="ck-campo">Nome<input id="lgCkNome" autocomplete="name"></label>
+        <label class="ck-campo">WhatsApp (com DDD)<input id="lgCkFone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 99999-9999"></label>
+        <div class="ck-sec">Como você quer receber?</div>
+        <div class="ck-opcoes" id="lgCkEntrega"></div>
+        <div id="lgCkEndereco" hidden>
+          <label class="ck-campo">CEP<input id="lgCkCep" inputmode="numeric" autocomplete="postal-code" placeholder="opcional"></label>
+          <label class="ck-campo">Rua<input id="lgCkRua" autocomplete="address-line1"></label>
+          <div class="ck-dupla"><label class="ck-campo">Número<input id="lgCkNum"></label><label class="ck-campo">Complemento<input id="lgCkComp" placeholder="opcional"></label></div>
+          <div class="ck-dupla"><label class="ck-campo">Bairro<input id="lgCkBairro"></label><label class="ck-campo">Cidade<input id="lgCkCidade" autocomplete="address-level2"></label></div>
+        </div>
+        <div id="lgCkPagWrap" hidden><div class="ck-sec">Como vai pagar?</div><div class="ck-opcoes" id="lgCkPag"></div></div>
+        <div class="ck-conta" id="lgCkConta"></div>
+        <div class="ck-erro" id="lgCkErro" hidden></div>
+        <button type="submit" class="btgrande" id="lgCkIr">Ir para o pagamento</button>
+        <p class="ck-seguro">🔒 O pagamento é feito na InfinitePay: Pix ou cartão em até 12x.</p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="lgPedidoOkOverlay">
+  <div class="modal">
+    <button class="fechar" id="lgFecharOk" aria-label="fechar">✕</button>
+    <div class="corpo" id="lgPedidoOk"></div>
   </div>
 </div>
 
@@ -10449,6 +10565,21 @@ var CATALOGO = __CATALOGO_JSON__;
 var LOJA_APP = __LOJA_APP__;
 (function(){
   function $(i){ return document.getElementById(i); }
+  /* V15: lidos ANTES de a loja reescrever o endereço (os filtros reescrevem a barra):
+     a volta do pagamento (?pedido=…&transaction_nsu=…) e de onde a visita veio */
+  var RETORNO_PAG=null,ORIGEM_VISITA="direto",PAGINA_VISITA="loja";
+  try{
+    var q0=new URLSearchParams(location.search);
+    if(q0.get("pedido"))RETORNO_PAG={pedido:q0.get("pedido"),transaction_nsu:q0.get("transaction_nsu")||"",slug:q0.get("slug")||"",
+      capture_method:q0.get("capture_method")||"",receipt_url:q0.get("receipt_url")||"",order_nsu:q0.get("order_nsu")||""};
+    var u0=(q0.get("utm_source")||(q0.get("igshid")?"instagram":"")||(q0.get("fbclid")?"facebook":"")).toLowerCase();
+    var r0=(document.referrer||"").toLowerCase(),t0=u0+" "+r0;
+    ORIGEM_VISITA=t0.indexOf("instagram")>=0||u0==="ig"?"instagram":t0.indexOf("facebook")>=0||u0==="fb"?"facebook":
+      t0.indexOf("whatsapp")>=0||t0.indexOf("wa.me")>=0?"whatsapp":t0.indexOf("google")>=0?"google":t0.indexOf("tiktok")>=0?"tiktok":
+      (!r0||r0.indexOf(location.host)>=0)?"direto":"outro";
+    PAGINA_VISITA=q0.get("pedido")?"pedido":q0.get("p")?"peca":q0.get("colecao")?"colecao":q0.get("material")?"material":
+      q0.get("tipo")?"tipo":q0.get("busca")?"busca":"loja";
+  }catch(e){}
   function esc(s){
     return String(s==null?"":s).replace(/[&<>"']/g, function(c){
       return {"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;","'":"&#39;"}[c];
@@ -10977,6 +11108,7 @@ var LOJA_APP = __LOJA_APP__;
     var c=camada;camada="";
     if(c==="peca")fecharModal("voltar");
     else if(c==="carrinho")fecharCarrinho("voltar");
+    else if(c==="checkout")fecharCheckout("voltar");
     else if(c==="lateral")fecharLateral("voltar");
     else{
       // nada aberto: o voltar desfaz o último passo de filtro/busca (V11)
@@ -11354,6 +11486,7 @@ var LOJA_APP = __LOJA_APP__;
   }
 
   function renderCarrinho(){
+    atualizarBotoesCarrinho();
     if(!carrinho.length){
       $("lgCarrItens").innerHTML="<p style=\\"color:#b3a88f;font-size:.85rem\\">Seu pedido está vazio. Escolha alguma peça no catálogo.</p>";
       $("lgCupomBox").hidden=true;
@@ -11602,7 +11735,209 @@ var LOJA_APP = __LOJA_APP__;
     window.open(url,"_blank");
   });
 
+  /* ============================================================
+     FINALIZAR PEDIDO E PAGAR (V15 — pedido do Luan: "funcionar igual aos
+     concorrentes, a cliente finaliza sozinha e a gente recebe os dados")
+     1) a cliente diz nome, WhatsApp e como quer receber;
+     2) o pedido vai para o banco (criar_pedido) e ganha número;
+     3) a loja abre o pagamento na InfinitePay (Pix ou cartão) com o número do
+        pedido; 4) na volta, anota os números da transação (anexar_pagamento).
+     Quem dá o pedido como PAGO é o painel, perguntando à própria InfinitePay.
+     Sem pagamento online ligado no painel, nada disso aparece (só o WhatsApp).
+     ============================================================ */
+  var INFINITEPAY_API="https://api.checkout.infinitepay.io";
+  var CHAVE_PEND="loja_pedido_pend_v1",CHAVE_CKD="loja_checkout_dados_v1";
+  var ckEntrega="",ckPag="";
+  function ck(){
+    var c=CATALOGO.checkout,N=CATALOGO.nuvem;
+    return (c&&c.ativo&&c.handle&&CATALOGO.slug&&N&&N.url&&N.chave&&noSite())?c:null;
+  }
+  function postarJson(url,corpo,cab){
+    var h={"Content-Type":"application/json"};for(var k in (cab||{}))h[k]=cab[k];
+    return fetch(url,{method:"POST",cache:"no-store",headers:h,body:JSON.stringify(corpo)})
+      .then(function(r){return r.text().then(function(t){var j=null;try{j=t?JSON.parse(t):null;}catch(e){}
+        if(!r.ok)throw new Error("http "+r.status);return j;});});
+  }
+  function atualizarBotoesCarrinho(){
+    var c=ck();
+    $("lgBtFinalizar").hidden=!c||!carrinho.length;
+    $("lgBtEnviar").className="btgrande wpp"+(c?" secundario":"");
+    $("lgBtEnviar").textContent=c?"ou combinar pelo WhatsApp":"📱 Enviar pedido no WhatsApp";
+    $("lgCarrNota").textContent=c?"Pague com Pix ou cartão aqui mesmo — ou, se preferir, combine pelo WhatsApp.":"Valores e disponibilidade são confirmados pelo WhatsApp antes de fechar.";
+  }
+  function opcoesEntrega(){
+    var c=ck(),o=[];if(!c)return o;
+    if(!c.retirada||c.retirada.ativo!==false)o.push({id:"retirada",rot:"Retirar com a loja",sub:(c.retirada&&c.retirada.texto)||"",taxa:0});
+    if(c.entrega&&c.entrega.ativo)o.push({id:"entrega",rot:"Receber em casa",sub:c.entrega.texto||"",taxa:Math.max(0,+c.entrega.taxa||0)});
+    return o;
+  }
+  function contaCheckout(){
+    var cp=contaDoPedido(),pixF=null,i;
+    for(i=0;i<cp.formas.length;i++)if(/pix/i.test(cp.formas[i].nome))pixF=cp.formas[i];
+    var base=(pixF&&ckPag==="pix")?contaDoPedido(pixF.nome):cp,ent=null,ops=opcoesEntrega();
+    for(i=0;i<ops.length;i++)if(ops[i].id===ckEntrega)ent=ops[i];
+    var frete=ent?ent.taxa:0;
+    return {c:base,normal:cp,pix:pixF,frete:frete,entrega:ent,total:Math.round((base.total+frete)*100)/100};
+  }
+  function opcaoHTML(id,on,rot,sub,vl){
+    return "<button type='button' class='ck-op"+(on?" on":"")+"' data-op='"+id+"'><span class='bola'></span><span><b>"+esc(rot)+"</b>"+
+      (sub?"<small>"+esc(sub)+"</small>":"")+"</span>"+(vl?"<span class='vl'>"+esc(vl)+"</span>":"")+"</button>";
+  }
+  function renderCheckout(){
+    var ops=opcoesEntrega(),i,h="";
+    if(ops.length===1)ckEntrega=ops[0].id;
+    for(i=0;i<ops.length;i++)h+=opcaoHTML("ent:"+ops[i].id,ckEntrega===ops[i].id,ops[i].rot,ops[i].sub,ops[i].taxa>0?"+ "+fmtR(ops[i].taxa):(ops[i].id==="entrega"?"grátis":""));
+    $("lgCkEntrega").innerHTML=h;
+    $("lgCkEndereco").hidden=ckEntrega!=="entrega";
+    var k=contaCheckout();
+    // promoção só no Pix: a cliente escolhe aqui (o preço do Pix vale pagando no Pix)
+    $("lgCkPagWrap").hidden=!k.pix;
+    if(k.pix){
+      var cp=contaDoPedido(k.pix.nome);
+      $("lgCkPag").innerHTML=opcaoHTML("pag:pix",ckPag==="pix","Pix","com o desconto do Pix",fmtR(cp.total))+
+        opcaoHTML("pag:cartao",ckPag==="cartao","Cartão de crédito","em até 12x",fmtR(k.normal.total));
+    }else ckPag="";
+    var L="";
+    if(k.c.cupom||k.frete>0)L+="<div class='carr-linha'><span>Peças ("+k.c.pecas+")</span><span>"+fmtR(k.c.subtotal)+"</span></div>";
+    if(k.c.cupom)L+="<div class='carr-linha'><span>Cupom "+esc(k.c.cupom.codigo)+"</span><span>−"+fmtR(k.c.desconto)+"</span></div>";
+    if(k.frete>0)L+="<div class='carr-linha'><span>Entrega</span><span>"+fmtR(k.frete)+"</span></div>";
+    L+="<div class='tot'><span>Total</span><span>"+fmtR(k.total)+"</span></div>";
+    $("lgCkConta").innerHTML=L;
+    $("lgCkResumo").textContent=k.c.pecas+(k.c.pecas===1?" peça":" peças")+" · "+fmtR(k.total);
+  }
+  function erroCk(t){var e=$("lgCkErro");e.textContent=t||"";e.hidden=!t;if(t)try{e.scrollIntoView({block:"nearest"});}catch(x){}}
+  function abrirCheckout(){
+    if(!ck()||!carrinho.length)return;
+    try{var g=JSON.parse(localStorage.getItem(CHAVE_CKD)||"null");
+      if(g){$("lgCkNome").value=$("lgCkNome").value||g.nome||"";$("lgCkFone").value=$("lgCkFone").value||g.fone||"";
+        var e=g.end||{};$("lgCkCep").value=e.cep||"";$("lgCkRua").value=e.rua||"";$("lgCkNum").value=e.numero||"";
+        $("lgCkComp").value=e.complemento||"";$("lgCkBairro").value=e.bairro||"";$("lgCkCidade").value=e.cidade||"";}}catch(x){}
+    erroCk("");$("lgCkIr").disabled=false;$("lgCkIr").textContent="Ir para o pagamento";
+    renderCheckout();
+    fecharCarrinho("troca");
+    $("lgCheckoutOverlay").classList.add("show");abrirCamada("checkout");
+  }
+  function fecharCheckout(modo){
+    $("lgCheckoutOverlay").classList.remove("show");
+    if(modo!=="voltar"&&modo!=="troca")soltarCamada();
+  }
+  $("lgBtFinalizar").addEventListener("click",abrirCheckout);
+  $("lgFecharCk").addEventListener("click",fecharCheckout);
+  $("lgCheckoutOverlay").addEventListener("click",function(e){if(e.target===this)fecharCheckout();});
+  $("lgCkEntrega").addEventListener("click",function(e){var b=e.target.closest(".ck-op");if(!b)return;ckEntrega=b.getAttribute("data-op").slice(4);erroCk("");renderCheckout();});
+  $("lgCkPag").addEventListener("click",function(e){var b=e.target.closest(".ck-op");if(!b)return;ckPag=b.getAttribute("data-op").slice(4);erroCk("");renderCheckout();});
+  function centavos(v){return Math.round((+v||0)*100);}
+  /* o que vai para a InfinitePay: as peças uma a uma (+ a entrega). Com cupom, o
+     desconto não cabe nas linhas — vai uma linha só com o total do pedido. */
+  function itensPagamento(k,numero){
+    var its=[],soma=0,i;
+    if(!k.c.cupom){
+      for(i=0;i<k.c.itens.length;i++){var it=k.c.itens[i],pc=centavos(it.preco);
+        its.push({quantity:it.qtd,price:pc,description:(it.nome+(it.tamanho?" — "+it.tamanho:"")).slice(0,80)});soma+=pc*it.qtd;}
+      if(k.frete>0){its.push({quantity:1,price:centavos(k.frete),description:"Entrega"});soma+=centavos(k.frete);}
+    }
+    if(k.c.cupom||soma!==centavos(k.total))
+      its=[{quantity:1,price:centavos(k.total),description:("Pedido nº "+numero+" — "+k.c.pecas+(k.c.pecas===1?" peça":" peças")+(k.frete>0?" + entrega":"")).slice(0,80)}];
+    return its;
+  }
+  function irPara(url){location.href=url;}
+  function irParaPagamento(){
+    var nome=$("lgCkNome").value.trim(),fone=$("lgCkFone").value.replace(/[^0-9]/g,""),k=contaCheckout(),end=null;
+    var erro=!nome?"Escreva o seu nome.":fone.length<10?"Escreva o seu WhatsApp com o DDD.":!ckEntrega?"Escolha como quer receber.":"";
+    if(!erro&&ckEntrega==="entrega"){
+      end={cep:$("lgCkCep").value.trim(),rua:$("lgCkRua").value.trim(),numero:$("lgCkNum").value.trim(),
+        complemento:$("lgCkComp").value.trim(),bairro:$("lgCkBairro").value.trim(),cidade:$("lgCkCidade").value.trim()};
+      if(!end.rua||!end.numero||!end.bairro)erro="Para a entrega, preencha rua, número e bairro.";
+    }
+    if(!erro&&k.pix&&!ckPag)erro="Escolha se vai pagar no Pix ou no cartão.";
+    if(!erro&&!(k.total>=1))erro="O pedido precisa ser de pelo menos R$ 1,00.";
+    if(erro){erroCk(erro);return;}
+    erroCk("");
+    try{localStorage.setItem(CHAVE_CKD,JSON.stringify({nome:nome,fone:$("lgCkFone").value.trim(),end:end||undefined}));}catch(x){}
+    var bt=$("lgCkIr");bt.disabled=true;bt.textContent="Abrindo o pagamento…";
+    var itens=[],i;
+    for(i=0;i<k.c.itens.length;i++){var it=k.c.itens[i];itens.push({id:it.id,nome:it.nome,tamanho:it.tamanho||"",qtd:it.qtd,preco:it.preco});}
+    var dados={cliente:{nome:nome,telefone:fone},entrega:{tipo:ckEntrega,taxa:k.frete,endereco:end},itens:itens,
+      subtotal:k.c.subtotal,cupom:k.c.cupom?{codigo:k.c.cupom.codigo,desconto:k.c.desconto}:null,
+      frete:k.frete,total:k.total,pagamento:ckPag||"",pecas:k.c.pecas};
+    var N=CATALOGO.nuvem,c=ck();
+    postarJson(N.url+"/rest/v1/rpc/criar_pedido",{p_loja:CATALOGO.slug,p_dados:dados},{apikey:N.chave})
+    .then(function(p){
+      if(!p||!p.id)throw new Error(p&&p.erro==="muitos"?"muitos":"pedido");
+      var corpo={handle:c.handle,order_nsu:p.id,redirect_url:location.origin+location.pathname+"?pedido="+p.id,
+        webhook_url:N.url+"/rest/v1/rpc/webhook_infinitepay?apikey="+encodeURIComponent(N.chave),items:itensPagamento(k,p.numero)};
+      return postarJson(INFINITEPAY_API+"/links",corpo,{}).then(function(r){
+        var url=r&&(r.url||r.link||r.checkout_url);if(!url)throw new Error("link");
+        try{localStorage.setItem(CHAVE_PEND,JSON.stringify({id:p.id,numero:p.numero,token:p.token,total:k.total,url:url,em:Date.now(),
+          nome:nome,entrega:ckEntrega,pag:ckPag,pecas:k.c.pecas}));}catch(x){}
+        irPara(url);
+      });
+    })
+    .catch(function(err){
+      bt.disabled=false;bt.textContent="Ir para o pagamento";
+      erroCk(err&&err.message==="muitos"?"Muitos pedidos seguidos deste aparelho. Espere alguns minutos e tente de novo.":
+        "Não consegui abrir o pagamento agora. Tente de novo em instantes — ou combine pelo WhatsApp.");
+    });
+  }
+  $("lgCkForm").addEventListener("submit",function(e){e.preventDefault();irParaPagamento();});
+  /* a cliente voltou da InfinitePay (?pedido=ID&transaction_nsu=…) */
+  function mensagemPedidoOk(pend,pagou,forma){
+    var NL=String.fromCharCode(10);
+    return "Olá! Acabei de fazer o pedido nº "+pend.numero+" pelo site"+(pagou?" e já paguei"+(forma?" ("+forma+")":"")+".":".")+NL+
+      "Nome: "+pend.nome+NL+(pend.entrega==="entrega"?"Quero receber em casa.":"Vou retirar com a loja.");
+  }
+  function mostrarPedidoOk(pend,r,pagou){
+    var forma=r.capture_method==="pix"?"Pix":r.capture_method==="credit_card"?"cartão":"";
+    var wpp=(loja.whatsapp||"").replace(/[^0-9]/g,""),h="";
+    if(pagou){
+      h="<div class='ped-ok'><div class='ic'>✅</div><h3>Pedido recebido!</h3>"+
+        "<p>"+(pend?"Pedido <span class='num'>nº "+pend.numero+"</span> · ":"")+"pago"+(forma?" no "+forma:"")+".<br>A loja já recebeu e vai combinar a "+
+        (pend&&pend.entrega==="entrega"?"entrega":"retirada")+" com você.</p>"+
+        (r.receipt_url?"<a class='btgrande' href='"+esc(r.receipt_url)+"' target='_blank' rel='noopener'>Ver o comprovante</a>":"")+
+        (wpp&&pend?"<a class='btgrande wpp' target='_blank' rel='noopener' href='https://api.whatsapp.com/send?phone="+wpp+"&text="+encodeURIComponent(mensagemPedidoOk(pend,true,forma))+"'>📱 Avisar a loja no WhatsApp</a>":"")+
+        "</div>";
+    }else{
+      h="<div class='ped-ok'><div class='ic'>⏳</div><h3>Pedido aguardando pagamento</h3>"+
+        "<p>"+(pend?"Pedido <span class='num'>nº "+pend.numero+"</span>. ":"")+"O pagamento ainda não foi concluído.</p>"+
+        (pend&&pend.url?"<a class='btgrande' href='"+esc(pend.url)+"'>Pagar agora</a>":"")+
+        (wpp?"<a class='btgrande wpp secundario' target='_blank' rel='noopener' href='https://api.whatsapp.com/send?phone="+wpp+"'>Falar com a loja no WhatsApp</a>":"")+
+        "</div>";
+    }
+    $("lgPedidoOk").innerHTML=h;
+    $("lgPedidoOkOverlay").classList.add("show");
+  }
+  $("lgFecharOk").addEventListener("click",function(){$("lgPedidoOkOverlay").classList.remove("show");});
+  function tratarRetornoPagamento(){
+    var r=RETORNO_PAG;if(!r)return;RETORNO_PAG=null;
+    var pend=null;try{pend=JSON.parse(localStorage.getItem(CHAVE_PEND)||"null");}catch(e){}
+    if(pend&&pend.id!==r.pedido)pend=null;
+    var pagou=!!r.transaction_nsu,N=CATALOGO.nuvem;
+    if(pagou&&pend){
+      if(N&&N.url&&N.chave)postarJson(N.url+"/rest/v1/rpc/anexar_pagamento",{p_id:pend.id,p_token:pend.token,
+        p_pag:{transaction_nsu:r.transaction_nsu,slug:r.slug,capture_method:r.capture_method,receipt_url:r.receipt_url}},{apikey:N.chave}).catch(function(){});
+      carrinho=[];salvarCarrinho();atualizarFab();
+      cupomAplicado="";try{localStorage.removeItem(CHAVE_PEND);localStorage.removeItem(CHAVE_CUPOM);localStorage.removeItem(CHAVE_CUPOM_REGRA);}catch(e){}
+    }
+    mostrarPedidoOk(pend,r,pagou);
+    enderecoDaLoja();   // tira o ?pedido=… da barra
+  }
+  /* ---- visitas (V15): uma por aparelho a cada 30 min (o banco confere) ----
+     O painel mora no mesmo site: aparelho com o painel aberto (a dona, a equipe) não conta. */
+  var visitaContada=false;
+  function contarVisita(){
+    if(visitaContada||!noSite())return;
+    var N=CATALOGO.nuvem;if(!N||!N.url||!N.chave||!CATALOGO.slug)return;
+    visitaContada=true;
+    var vis="";
+    try{if(localStorage.getItem("g1001_v2"))return;
+      vis=localStorage.getItem("loja_visitante_v1")||"";
+      if(!vis){var a="abcdefghijklmnopqrstuvwxyz0123456789";for(var i=0;i<24;i++)vis+=a.charAt(Math.floor(Math.random()*a.length));
+        localStorage.setItem("loja_visitante_v1",vis);}}catch(e){if(!vis)return;}
+    postarJson(N.url+"/rest/v1/rpc/registrar_acesso",{p_loja:CATALOGO.slug,p_visitante:vis,p_origem:ORIGEM_VISITA,p_pagina:PAGINA_VISITA},{apikey:N.chave}).catch(function(){});
+  }
+
   render();atualizarFab();
+  tratarRetornoPagamento();
   $("lgBtLink").hidden=!noSite();   // na prévia do painel não há endereço de verdade
 
   /* ---- app da loja no celular (V9) ----
@@ -11665,7 +12000,7 @@ var LOJA_APP = __LOJA_APP__;
     if(esperando){document.documentElement.classList.add("lg-esperando");setTimeout(liberar,2500);}
     // a vitrine do banco chegou (ou não vai chegar): agora dá para dizer se a
     // peça do link existe — e abrir mesmo que ela seja nova demais para a guardada
-    function fimDaBusca(){liberar();aplicarFiltrosPedidos(true);abrirPecaPedida(true);}
+    function fimDaBusca(){liberar();aplicarFiltrosPedidos(true);abrirPecaPedida(true);contarVisita();atualizarBotoesCarrinho();}
     var buscando=false,ultimaBusca=0;
     function buscarVitrine(){
       if(buscando)return;
@@ -12230,6 +12565,7 @@ function painelLojaSite(){
     </div>
     <p class="mut" style="font-size:.78rem;margin-top:.6rem">Produtos com status <b>Oculto</b> não aparecem na loja. <b>Esgotado</b> aparece, mas marcado como indisponível.</p>
   </div>
+  ${typeof painelCheckout==='function'?painelCheckout():''}
   ${painelPersonalizarCatalogo()}`;
 }
 /* O endereço da loja, para abrir e mandar para as clientes. (V8: a caixa que
@@ -12313,7 +12649,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-10-29 23:07';
+const VERSAO_APP='2026-10-30 23:37';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -15026,6 +15362,508 @@ function appIniciar(){
   setTimeout(()=>appConferirVersao(true),40000);
 }
 appIniciar();
+
+/* ============================================================
+   LOJA ONLINE NO PAINEL (V15, 30/10/2026) — pedido do Luan: "quero que esse
+   catálogo funcione igual o dos concorrentes, onde o cliente mesmo pode
+   finalizar a compra sozinho, e a gente recebe os dados e faz a entrega" e
+   "quero saber quantas pessoas entraram no site em determinado mês, dia".
+   - Pagamento online: configuração (Site da loja → Pagamento online), pedidos
+     que chegam da loja (aba Vendas) e a conferência do pagamento na PRÓPRIA
+     InfinitePay — nada que vem do navegador da cliente vale como "pago".
+   - Visitas da loja (Resumo): pessoas e visitas por dia, por mês e de onde vieram.
+   Precisa do supabase-loja-online.sql no banco; sem ele as telas somem ou
+   explicam, e nada quebra.
+   Este arquivo roda DEPOIS do iniciar() (part5): nada de const/let no topo —
+   o estado mora em lojaOn(), criado na primeira vez que alguém pede.
+   ============================================================ */
+function lojaOn(){
+  return window.LOJA_ON||(window.LOJA_ON={pedidos:null,carregando:false,erro:'',semSql:false,ultimaBusca:0,
+    conferidoEm:{},acessos:{},carregandoAcessos:{},semSqlVisitas:false,visUlt:null,verFeitos:false,verAguardando:false});
+}
+// o teste troca este endereço por um falso (window.INFINITEPAY_PAINEL)
+function urlInfinitePay(){return window.INFINITEPAY_PAINEL||'https://api.checkout.infinitepay.io';}
+function nuvemOn(){return typeof nuvemLigada==='function'&&nuvemLigada();}
+
+/* ---------- configuração ---------- */
+function cfgCheckout(){return (C().loja&&C().loja.checkout)||{};}
+// InfiniteTag sem o "$" (é assim que a InfinitePay pede)
+function handleInfinite(h){return String(h||'').trim().replace(/^[$@]+/,'').toLowerCase().replace(/[^a-z0-9_.-]/g,'');}
+/* o que vai na vitrine para a loja montar o "Finalizar pedido" (part6, catalogoLoja) */
+function checkoutParaLoja(){
+  const c=cfgCheckout(),h=handleInfinite(c.handle);
+  if(!c.ativo||!h)return null;
+  return {ativo:true,handle:h,
+    retirada:{ativo:c.retirada!==false,texto:String(c.retiradaTexto||'').slice(0,120)},
+    entrega:{ativo:!!c.entrega,taxa:Math.max(0,r2(+c.taxaEntrega||0)),texto:String(c.entregaTexto||'').slice(0,120)}};
+}
+/* forma de pagamento em que o pedido do site entra quando vira venda */
+function formaDoSite(tipo){
+  const c=cfgCheckout(),fs=(C().formas||[]).filter(f=>!f.ehFiado);
+  const id=tipo==='pix'?c.formaPix:c.formaCartao;
+  if(id&&fs.some(f=>f.id===id))return id;
+  const f=tipo==='pix'?fs.find(f=>/pix/i.test(f.nome))
+    :(fs.find(f=>f.tipoCartao==='credito')||fs.find(f=>/cr[eé]dito/i.test(f.nome)));
+  return f?f.id:((fs[0]||{}).id||'');
+}
+function canalDoSite(){const c=canais().find(c=>/link|online|site/i.test(c.nome));return c?c.id:'';}
+function painelCheckout(){
+  const c=cfgCheckout(),pode=podeEscrever('loja'),ligado=!!checkoutParaLoja();
+  const fs=(C().formas||[]).filter(f=>!f.ehFiado);
+  const opF=sel=>fs.map(f=>`<option value="${f.id}"${f.id===sel?' selected':''}>${esc(f.nome)}</option>`).join('');
+  return `<div class="painel ck-painel">
+    <h3>💳 Pagamento online na loja ${ajuda('A cliente escolhe as peças, diz como quer receber e paga no próprio site — Pix ou cartão, pela InfinitePay. O pedido chega aqui na aba Vendas e o dinheiro cai na sua conta da InfinitePay. O botão de mandar o pedido pelo WhatsApp continua lá para quem preferir.')}
+      ${ligado?'<span class="bd ok">ligado</span>':''}</h3>
+    ${!nuvemOn()?'<p class="mut" style="font-size:.85rem">Disponível com a conta na nuvem — é lá que os pedidos ficam guardados.</p>':`
+    <fieldset class="ck-campos"${pode?'':' disabled'}>
+    <label class="linha" style="margin-bottom:.6rem"><input type="checkbox" id="ckAtivo" ${c.ativo?'checked':''}> <b>Deixar a cliente pagar no site</b></label>
+    <div class="fgrid">
+      <label class="campo">Sua InfiniteTag ${ajuda('É o seu nome de usuário na InfinitePay, o que começa com $ (por exemplo $minhaloja). Aparece no app da InfinitePay, no seu perfil. Não é senha: serve só para o pagamento cair na sua conta.')}
+        <input id="ckHandle" value="${esc(c.handle?'$'+handleInfinite(c.handle):'')}" placeholder="$minhaloja" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+    </div>
+    <h4 style="margin-top:1rem">Como a cliente recebe</h4>
+    <div class="fgrid">
+      <label class="linha"><input type="checkbox" id="ckRet" ${c.retirada!==false?'checked':''}> Retirar com a loja</label>
+      <label class="campo">Recado da retirada <input id="ckRetTxt" value="${esc(c.retiradaTexto||'')}" placeholder="ex.: combinamos o local pelo WhatsApp" maxlength="120"></label>
+      <label class="linha"><input type="checkbox" id="ckEnt" ${c.entrega?'checked':''}> Entrega em casa</label>
+      <label class="campo">Taxa de entrega (R$) <input id="ckTaxa" inputmode="decimal" value="${+c.taxaEntrega>0?fmtNum(c.taxaEntrega):''}" placeholder="vazio = grátis"></label>
+      <label class="campo span2">Recado da entrega <input id="ckEntTxt" value="${esc(c.entregaTexto||'')}" placeholder="ex.: só em Limeira, em até 2 dias úteis" maxlength="120"></label>
+    </div>
+    <h4 style="margin-top:1rem">Quando o pedido vira venda ${ajuda('O pedido pago entra nesta forma de pagamento ao registrar a venda aqui no painel. O dinheiro do site cai na InfinitePay: se quiser separar no Financeiro, crie uma forma "Pix do site" ligada à conta da InfinitePay e escolha aqui.')}</h4>
+    <div class="fgrid">
+      <label class="campo">Pix do site <select id="ckFormaPix">${opF(formaDoSite('pix'))}</select></label>
+      <label class="campo">Cartão do site <select id="ckFormaCartao">${opF(formaDoSite('cartao'))}</select></label>
+    </div>
+    </fieldset>
+    ${pode?'<div class="rodape"><button class="bt primario" onclick="salvarCheckout()">Salvar</button></div>'
+      :'<p class="mut" style="font-size:.8rem;margin-top:.6rem">Só quem pode alterar o Site da loja muda isto.</p>'}
+    <p class="mut" style="font-size:.76rem;margin-top:.6rem">Taxas: as da sua conta InfinitePay. O pedido precisa ser de pelo menos R$ 1,00.</p>`}
+  </div>`;
+}
+/* o banco já tem a parte da loja online? (supabase-loja-online.sql) */
+async function conferirLojaOnline(){
+  if(!nuvemOn())return 'nuvem';
+  try{
+    try{await garantirToken();}catch(e){}
+    await chamarApi('/rest/v1/pedidos_online?select=id&limit=1');
+    lojaOn().semSql=false;return true;
+  }catch(e){
+    if(e&&e.status===404){lojaOn().semSql=true;return 'sem';}
+    return erroDeRede(e)?'rede':'erro';
+  }
+}
+async function salvarCheckout(){
+  if(!podeEscrever('loja'))return;
+  const l=C().loja,ant=l.checkout||{};
+  const novo={ativo:$('ckAtivo').checked,handle:handleInfinite($('ckHandle').value),
+    retirada:$('ckRet').checked,retiradaTexto:$('ckRetTxt').value.trim().slice(0,120),
+    entrega:$('ckEnt').checked,taxaEntrega:Math.max(0,r2(numDigitado($('ckTaxa').value)||0)),
+    entregaTexto:$('ckEntTxt').value.trim().slice(0,120),
+    formaPix:$('ckFormaPix').value||'',formaCartao:$('ckFormaCartao').value||''};
+  if(novo.ativo&&!novo.handle){avisar('Escreva a sua InfiniteTag — o nome que começa com $ no app da InfinitePay.',{titulo:'Falta a InfiniteTag'});return;}
+  if(novo.ativo&&!novo.retirada&&!novo.entrega){avisar('Marque pelo menos um jeito de a cliente receber: retirar com a loja ou entrega em casa.',{titulo:'Como a cliente recebe?'});return;}
+  if(novo.ativo&&!ant.ativo){
+    const ok=await conferirLojaOnline();
+    if(ok!==true){
+      avisar(ok==='rede'?'Sem internet agora — tente de novo em instantes.'
+        :'O pagamento online ainda não está liberado nesta conta. Fale com o suporte do Caderneta.',{titulo:'Não deu para ligar'});
+      return;
+    }
+  }
+  l.checkout=novo;salvar();renderConfig();
+  toast(novo.ativo?(ant.ativo?'Pagamento online salvo ✓':'Pagamento online ligado ✓ — o botão de pagar aparece na loja em instantes')
+    :(ant.ativo?'Pagamento online desligado — a loja volta a só mandar o pedido pelo WhatsApp':'Salvo ✓'));
+  if(novo.ativo)lojaOn().ultimaBusca=0;
+}
+
+/* ---------- pedidos que chegam da loja ---------- */
+function pedidosLigados(){
+  if(!nuvemOn())return false;
+  const c=cfgCheckout();
+  return !!(c.ativo||c.handle)&&podeLer('vendas');
+}
+function pedidoPorId(id){return (lojaOn().pedidos||[]).find(p=>p.id===id);}
+function vendaDoPedido(p){
+  return dados.vendas.find(v=>v.pedidoOnline===p.id)||((p.painel||{}).vendaId&&vendaPorId(p.painel.vendaId))||null;
+}
+function pedidosParaEntregar(){return (lojaOn().pedidos||[]).filter(p=>p.status==='pago');}
+async function carregarPedidos(forcar){
+  const L=lojaOn();
+  if(!pedidosLigados()||L.carregando)return;
+  if(!forcar&&Date.now()-L.ultimaBusca<60000)return;
+  L.carregando=true;
+  try{
+    try{await garantirToken();}catch(e){}
+    // os últimos 60 dias + os pagos que ainda não foram entregues (de qualquer data)
+    const desde=isoAddDias(hoje(),-60);
+    const r=await chamarApi('/rest/v1/pedidos_online?select=id,numero,status,dados,pagamento,painel,criado,alterado'+
+      '&loja=eq.'+encodeURIComponent(lojaId())+'&or=(criado.gte.'+desde+',status.eq.pago)&order=criado.desc&limit=300');
+    L.pedidos=Array.isArray(r)?r:[];L.erro='';L.semSql=false;
+  }catch(e){
+    if(e&&e.status===404){L.semSql=true;L.pedidos=[];L.erro='';}
+    else L.erro=erroDeRede(e)?'Sem internet — os pedidos aparecem quando a conexão voltar.':'Não consegui buscar os pedidos agora.';
+  }finally{L.carregando=false;L.ultimaBusca=Date.now();}
+  if(L.pedidos&&L.pedidos.length)await conferirPagamentos();
+  avisarPedidosNovos();
+  pintarBadgePedidos();pintarPedidos();
+}
+/* A InfinitePay responde em centavos; se o número for muito maior que o pedido, é centavo */
+function pagoEmReais(v,total){
+  if(v==null||v==='')return null;
+  const n=+v;if(!isFinite(n))return null;
+  return ((total>0&&n>total*5)||(!(total>0)&&Number.isInteger(n)&&n>=100))?r2(n/100):r2(n);
+}
+/* Pergunta à InfinitePay se o pedido foi pago. Só com os números da transação
+   (a loja anota quando a cliente volta do pagamento; o aviso automático da
+   InfinitePay também). Pago e conferido → grava "pago" no banco. */
+async function conferirPagamentos(){
+  const L=lojaOn(),h=handleInfinite(cfgCheckout().handle);if(!h)return;
+  for(const p of (L.pedidos||[])){
+    const pg=p.pagamento||{};
+    if(p.status!=='aguardando'||!pg.transaction_nsu||!pg.slug)continue;
+    if(Date.now()-(L.conferidoEm[p.id]||0)<120000)continue;   // no máximo 1× a cada 2 min
+    L.conferidoEm[p.id]=Date.now();
+    await conferirUmPagamento(p,h);
+  }
+}
+async function conferirUmPagamento(p,h){
+  const pg=p.pagamento||{};let r=null;
+  try{
+    const resp=await fetch(urlInfinitePay()+'/payment_check',{method:'POST',cache:'no-store',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({handle:h,order_nsu:p.id,transaction_nsu:pg.transaction_nsu,slug:pg.slug})});
+    r=await resp.json();
+  }catch(e){return false;}
+  if(!r||r.success===false||!r.paid)return false;
+  const total=+((p.dados||{}).total)||0;
+  const pago=pagoEmReais(r.paid_amount!=null?r.paid_amount:r.amount,total);
+  const conf={em:new Date().toISOString(),pago:pago,parcelas:+r.installments||1,
+    forma:r.capture_method||pg.capture_method||'',faltou:(pago!=null&&pago<total-0.009)?r2(total-pago):0};
+  const novoPg=Object.assign({},pg,{conferido:conf});
+  p.status='pago';p.pagamento=novoPg;
+  try{
+    await chamarApi('/rest/v1/pedidos_online?id=eq.'+encodeURIComponent(p.id),{metodo:'PATCH',
+      corpo:{status:'pago',pagamento:novoPg,alterado:new Date().toISOString()},headers:{Prefer:'return=minimal'}});
+  }catch(e){p._soAqui=true;}   // quem só vê Vendas: aparece pago aqui; quem pode alterar grava depois
+  return true;
+}
+async function gravarPedido(p,campos){
+  if(!podeEscrever('vendas')){avisar('Para mudar o pedido é preciso poder alterar Vendas.',{titulo:'Sem permissão'});return false;}
+  try{
+    await chamarApi('/rest/v1/pedidos_online?id=eq.'+encodeURIComponent(p.id),{metodo:'PATCH',
+      corpo:Object.assign({alterado:new Date().toISOString()},campos),headers:{Prefer:'return=minimal'}});
+  }catch(e){
+    avisar(erroDeRede(e)?'Sem internet agora — tente de novo em instantes.':'Não consegui gravar o pedido agora. Tente de novo.',{titulo:'Não deu'});
+    return false;
+  }
+  Object.assign(p,campos);delete p._soAqui;
+  pintarBadgePedidos();pintarPedidos();
+  return true;
+}
+/* aviso de pedido novo pago (toast; e notificação se o painel estiver em segundo plano) */
+function avisarPedidosNovos(){
+  const pagos=pedidosParaEntregar(),CH='g1001_pedidos_vistos';
+  let vistos=null;try{vistos=JSON.parse(localStorage.getItem(CH)||'null');}catch(e){}
+  const guardar=l=>{try{localStorage.setItem(CH,JSON.stringify(l.slice(-300)));}catch(e){}};
+  // 1ª vez neste aparelho: o que já existia não é novidade
+  if(!Array.isArray(vistos)){guardar(pagos.map(p=>p.id));return;}
+  const novos=pagos.filter(p=>vistos.indexOf(p.id)<0);
+  if(!novos.length)return;
+  guardar(vistos.concat(novos.map(p=>p.id)));
+  const t=novos.length===1?'🛒 Pedido nº '+novos[0].numero+' pago na loja — '+fmt(+(novos[0].dados||{}).total||0)
+    :'🛒 '+novos.length+' pedidos novos pagos na loja';
+  toast(t);
+  try{
+    if(typeof Notification!=='undefined'&&Notification.permission==='granted'&&document.visibilityState!=='visible')
+      avisarNoCelular(t,{body:'Abra Vendas para ver e registrar a venda.',tag:'pedido-loja'});
+  }catch(e){}
+}
+function pintarBadgePedidos(){
+  const L=lojaOn(),on=pedidosLigados(),n=on?pedidosParaEntregar().length:0;
+  ['navVendas','navVendasCel'].forEach(id=>{const e=$(id);if(!e)return;
+    e.textContent=n||'';e.title=n?n+(n===1?' pedido da loja para entregar':' pedidos da loja para entregar'):'';e.style.display=n?'':'none';});
+  // primeira vez depois de entrar (e a cada 3 min pelo relógio abaixo)
+  if(on&&!L.carregando&&Date.now()-L.ultimaBusca>180000)setTimeout(()=>carregarPedidos(false),0);
+}
+function pintarPedidos(){
+  const b=$('pedidosBox');if(!b)return;
+  const h=painelPedidosHTML();
+  if(!h){b.remove();return;}
+  b.outerHTML=h;
+}
+/* hora do pedido em texto curto: "hoje 14:32", "ontem 09:10", "28/10 18:05" */
+function quandoPedido(iso){
+  if(!iso)return '';
+  const d=new Date(iso);if(isNaN(d))return '';
+  const dia=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  const hm=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  return (dia===hoje()?'hoje':dia===isoAddDias(hoje(),-1)?'ontem':fmtData(dia).slice(0,5))+' '+hm;
+}
+function formaPagaTexto(p){
+  const pg=p.pagamento||{},conf=pg.conferido||{},m=conf.forma||pg.capture_method||'';
+  if(conf.manual)return 'marcado como pago';
+  if(/pix/i.test(m))return 'pago no Pix';
+  if(/credit|card/i.test(m))return 'pago no cartão'+(conf.parcelas>1?' em '+conf.parcelas+'x':'');
+  return 'pago';
+}
+function enderecoTexto(e){
+  if(!e)return '';
+  return [[e.rua,e.numero].filter(Boolean).join(', '),e.complemento,e.bairro,e.cidade,e.cep?'CEP '+e.cep:''].filter(Boolean).join(' · ');
+}
+function mensagemPedidoCliente(p){
+  const d=p.dados||{},nome=String((d.cliente||{}).nome||'').trim().split(/\s+/)[0]||'';
+  const ent=(d.entrega||{}).tipo==='entrega';
+  return 'Olá'+(nome?', '+nome:'')+'! Aqui é da '+nomeDaLoja()+'. Recebemos o seu pedido nº '+p.numero+
+    (p.status==='pago'?' e o pagamento já entrou ✅':'')+'. '+
+    (ent?'Vamos combinar a entrega?':'Vamos combinar a retirada?');
+}
+// a loja manda só os números: "19998765432" vira "(19) 99876-5432"
+function foneBonito(t){
+  const d=String(t||'').replace(/\D/g,'').replace(/^55(?=\d{10,11}$)/,'');
+  return d.length===11?'('+d.slice(0,2)+') '+d.slice(2,7)+'-'+d.slice(7):d.length===10?'('+d.slice(0,2)+') '+d.slice(2,6)+'-'+d.slice(6):String(t||'');
+}
+function cartaoPedidoHTML(p){
+  const d=p.dados||{},cli=d.cliente||{},ent=d.entrega||{},pg=p.pagamento||{},conf=pg.conferido||{};
+  const v=vendaDoPedido(p),pode=podeEscrever('vendas'),fone=foneWa(cli.telefone);
+  const st=p.status==='pago'?`<span class="bd ok">✓ ${esc(formaPagaTexto(p))}</span>`
+    :p.status==='entregue'?'<span class="bd">entregue</span>'
+    :p.status==='cancelado'?'<span class="bd sai">cancelado</span>'
+    :pg.transaction_nsu?'<span class="bd inv">conferindo o pagamento…</span>':'<span class="bd inv">não pagou ainda</span>';
+  const pecas=(d.itens||[]).map(it=>`<li>${+it.qtd||1}× ${esc(it.nome||'')}${it.tamanho?' — '+esc(it.tamanho):''} <span class="mut2">${fmt((+it.preco||0)*(+it.qtd||1))}</span></li>`).join('');
+  const conta=[];
+  if(d.cupom&&+d.cupom.desconto>0)conta.push('cupom '+esc(d.cupom.codigo||'')+' −'+fmt(d.cupom.desconto));
+  if(+d.frete>0)conta.push('entrega '+fmt(d.frete));
+  const ac=[];
+  if(fone)ac.push(`<a class="bt mini" href="${esc(linkWhats(fone,mensagemPedidoCliente(p)))}" target="_blank" rel="noopener">📲 WhatsApp</a>`);
+  if(p.status==='pago'&&pode){
+    ac.push(v?`<button class="bt mini" onclick="editarVenda('${v.id}')">🧾 ver a venda</button>`
+      :`<button class="bt mini primario" onclick="registrarVendaDoPedido('${p.id}')">🧾 Registrar venda</button>`);
+    ac.push(`<button class="bt mini" onclick="marcarPedidoEntregue('${p.id}')">✓ Entregue</button>`);
+  }
+  if(p.status==='aguardando'&&pode)ac.push(`<button class="bt mini" onclick="marcarPedidoPago('${p.id}')">já recebi</button>`);
+  if((p.status==='aguardando'||p.status==='pago')&&pode)ac.push(`<button class="bt mini perigo" onclick="cancelarPedido('${p.id}')">✕ cancelar</button>`);
+  if(p.status==='entregue'&&pode&&!v)ac.push(`<button class="bt mini" onclick="registrarVendaDoPedido('${p.id}')">🧾 registrar venda</button>`);
+  return `<div class="ped ${esc(p.status)}">
+    <header><b class="num">nº ${p.numero}</b><b>${esc(cli.nome||'—')}</b><span class="mut2">${quandoPedido(p.criado)}</span>${st}
+      <span class="tot">${fmt(+d.total||0)}</span></header>
+    <div class="info">${ent.tipo==='entrega'?'🚚 Entrega: '+esc(enderecoTexto(ent.endereco)||'endereço não informado'):'🏬 Retirar com a loja'}
+      ${cli.telefone?' · 📱 '+esc(foneBonito(cli.telefone)):''}${conta.length?' · '+conta.join(' · '):''}</div>
+    ${conf.faltou>0?`<div class="info" style="color:var(--vermelho)">⚠️ A InfinitePay mostra ${fmt(conf.pago)} pagos — faltam ${fmt(conf.faltou)} do pedido.</div>`:''}
+    ${v?`<div class="info">✓ Venda registrada${v.data?' em '+fmtData(v.data):''}</div>`:''}
+    <ul class="pecas">${pecas}</ul>
+    ${pg.receipt_url&&/^https:\/\//i.test(pg.receipt_url)?`<div class="info"><a href="${esc(pg.receipt_url)}" target="_blank" rel="noopener">ver o comprovante da InfinitePay</a></div>`:''}
+    ${ac.length?`<div class="acoes">${ac.join('')}</div>`:''}
+  </div>`;
+}
+/* bloco da aba Vendas (entra logo abaixo do topo, part4 renderVendas) */
+function painelPedidosHTML(){
+  if(!pedidosLigados())return '';
+  const L=lojaOn(),c=cfgCheckout();
+  if(L.semSql)return '';
+  if(Date.now()-L.ultimaBusca>60000&&!L.carregando)setTimeout(()=>carregarPedidos(false),0);
+  const ps=L.pedidos||[];
+  const pagos=ps.filter(p=>p.status==='pago');
+  const espera=ps.filter(p=>p.status==='aguardando');
+  const feitos=ps.filter(p=>p.status==='entregue'||p.status==='cancelado');
+  if(!ps.length&&!c.ativo)return '';
+  const cab=`<h3>🛒 Pedidos da loja ${pagos.length?`<span class="bd ok">${pagos.length} para entregar</span>`:''}
+    ${ajuda('Pedidos que as clientes fizeram e pagaram no site. O painel confere cada pagamento na própria InfinitePay antes de mostrar como pago. Registrar a venda baixa o estoque e entra no Resumo; depois de entregar, toque em "Entregue".')}
+    <button class="bt mini" style="margin-left:auto" onclick="carregarPedidos(true)" title="buscar de novo">↻</button></h3>`;
+  let corpo='';
+  if(L.pedidos==null)corpo='<p class="mut" style="font-size:.85rem">Buscando os pedidos…</p>';
+  else if(!ps.length)corpo='<p class="mut" style="font-size:.85rem">Nenhum pedido pelo site ainda. Quando uma cliente pagar na loja, o pedido aparece aqui.</p>';
+  else{
+    corpo=pagos.length?pagos.map(cartaoPedidoHTML).join(''):'<p class="mut" style="font-size:.85rem">Nenhum pedido pago esperando entrega. 🎉</p>';
+    if(espera.length)corpo+=`<details class="ped-grupo"${L.verAguardando?' open':''} ontoggle="lojaOn().verAguardando=this.open">
+      <summary>⏳ Começaram e não pagaram (${espera.length}) — dá para chamar no WhatsApp</summary>${espera.map(cartaoPedidoHTML).join('')}</details>`;
+    if(feitos.length)corpo+=`<details class="ped-grupo"${L.verFeitos?' open':''} ontoggle="lojaOn().verFeitos=this.open">
+      <summary>Entregues e cancelados (${feitos.length})</summary>${feitos.map(cartaoPedidoHTML).join('')}</details>`;
+  }
+  return `<div class="painel ped-box" id="pedidosBox">${cab}${L.erro?`<p class="mut" style="font-size:.82rem;color:var(--laranja)">${esc(L.erro)}</p>`:''}${corpo}</div>`;
+}
+/* "Registrar venda": abre a venda já preenchida com o que a cliente pediu e pagou */
+function registrarVendaDoPedido(id){
+  const p=pedidoPorId(id);if(!p)return;
+  if(!podeEscrever('vendas')){avisar('Para registrar a venda é preciso poder alterar Vendas.',{titulo:'Sem permissão'});return;}
+  const d=p.dados||{},pg=p.pagamento||{},conf=pg.conferido||{},cli=d.cliente||{};
+  const metodo=conf.forma||pg.capture_method||(d.pagamento==='pix'?'pix':'');
+  const cartao=/credit|card|cart/i.test(metodo);
+  abrirNovaVenda();
+  window.VENDA_DO_PEDIDO=p.id;
+  // cliente: a já cadastrada com o mesmo telefone; senão, o nome que ela escreveu
+  const tel=String(cli.telefone||''),fim=tel.replace(/\D/g,'').slice(-9);
+  const ex=fim.length>=8?dados.clientes.find(c=>String(c.tel||'').replace(/\D/g,'').slice(-9)===fim):null;
+  $('vCliente').value=ex?ex.nome:(cli.nome||'');
+  vClienteMudou();
+  if(!ex&&$('vTelNovo'))$('vTelNovo').value=tel;
+  const loc=(C().locais||[]).find(l=>/online|site|internet|virtual/i.test(l.nome));
+  if(loc&&!$('vLocal').value)$('vLocal').value=loc.id;
+  const fId=formaDoSite(cartao?'cartao':'pix');
+  if(fId){$('vForma').value=fId;vFormaMudou();}
+  if(cartao&&formaUsaCanal(fId)){
+    const cn=canalDoSite();if(cn&&$('vCanal')){$('vCanal').value=cn;vCanalMudou();}
+    if(conf.parcelas>1&&$('vParcCartao'))$('vParcCartao').value=conf.parcelas;
+  }
+  // as peças com o preço que a cliente pagou (o do Pix, se foi no Pix)
+  itensVenda=(d.itens||[]).map(it=>{
+    const pr=prodPorId(it.id);
+    const item={nome:it.nome||(pr&&pr.nome)||'',produtoId:pr?pr.id:null,qtd:+it.qtd||1,preco:r2(+it.preco||0),
+      custo:pr&&pr.custo!=null?+pr.custo:0};
+    if(pr&&temGrade(pr)){
+      const vr=(pr.variacoes||[]).find(x=>chaveBusca(x.rotulo)===chaveBusca(it.tamanho||''));
+      item.variacaoId=vr?vr.id:(((pr.variacoes||[])[0]||{}).id||null);
+    }
+    return item;
+  });
+  if(!itensVenda.length)itensVenda=[{nome:'',produtoId:null,qtd:1,preco:0,custo:0}];
+  if(d.cupom&&+d.cupom.desconto>0){$('vDescontoTipo').value='valor';$('vDesconto').value=r2(+d.cupom.desconto);marcarCupomVenda(d.cupom.codigo||'');}
+  if(+d.frete>0){$('vAjusteTipo').value='valor';$('vAjuste').value=r2(+d.frete);}
+  $('vObs').value='Pedido online nº '+p.numero+((d.entrega||{}).tipo==='entrega'?' · entrega':' · retirada');
+  renderItensVenda();recalcVenda();
+  // cartão: falta só o "Vai cair na conta" (o app da InfinitePay mostra)
+  if(cartao)setTimeout(()=>{const x=$('vLiquido');if(x)x.focus();},120);
+}
+/* chamado pelo salvarVenda (part4) quando a venda nasceu de um pedido */
+function vendaDoPedidoSalva(v){
+  const p=pedidoPorId(v.pedidoOnline);if(!p)return;
+  p.painel=Object.assign({},p.painel||{},{vendaId:v.id,vendaEm:new Date().toISOString()});
+  chamarApi('/rest/v1/pedidos_online?id=eq.'+encodeURIComponent(p.id),{metodo:'PATCH',
+    corpo:{painel:p.painel,alterado:new Date().toISOString()},headers:{Prefer:'return=minimal'}}).catch(()=>{});
+  setTimeout(pintarPedidos,0);
+}
+function marcarPedidoEntregue(id){
+  const p=pedidoPorId(id);if(!p)return;
+  const fazer=()=>gravarPedido(p,{status:'entregue',painel:Object.assign({},p.painel||{},{entregueEm:new Date().toISOString()})})
+    .then(ok=>{if(ok)toast('Pedido nº '+p.numero+' entregue ✓');});
+  if(!vendaDoPedido(p)){
+    confirmar('O pedido nº '+p.numero+' ainda não virou venda aqui no painel — o estoque não baixou e ele não entra no Resumo. Marcar como entregue mesmo assim?',
+      {titulo:'Ainda sem venda registrada',ok:'Marcar entregue'},fazer);
+    return;
+  }
+  fazer();
+}
+function marcarPedidoPago(id){
+  const p=pedidoPorId(id);if(!p)return;
+  confirmar('Confira no app da InfinitePay se o pagamento de '+fmt(+(p.dados||{}).total||0)+' do pedido nº '+p.numero+' entrou. Só marque se o dinheiro já apareceu lá.',
+    {titulo:'Marcar como pago?',ok:'Já recebi'},()=>{
+      const pg=Object.assign({},p.pagamento||{},{conferido:{manual:true,em:new Date().toISOString(),por:emailDaConta()}});
+      gravarPedido(p,{status:'pago',pagamento:pg}).then(ok=>{if(ok)toast('Pedido nº '+p.numero+' marcado como pago ✓');});
+    });
+}
+function cancelarPedido(id){
+  const p=pedidoPorId(id);if(!p)return;
+  confirmar(p.status==='pago'
+      ?'O pedido nº '+p.numero+' já foi pago. Cancelar aqui NÃO devolve o dinheiro: o estorno se faz no app da InfinitePay. Cancelar mesmo assim?'
+      :'Cancelar o pedido nº '+p.numero+'? A cliente não pagou — ele só sai da lista.',
+    {titulo:'Cancelar o pedido',ok:'Cancelar o pedido',perigo:true},()=>{
+      gravarPedido(p,{status:'cancelado',painel:Object.assign({},p.painel||{},{canceladoEm:new Date().toISOString()})})
+        .then(ok=>{if(ok)toast('Pedido nº '+p.numero+' cancelado');});
+    });
+}
+
+/* ---------- visitas da loja (Resumo) ---------- */
+function nomeOrigem(o){
+  return ({instagram:'Instagram',facebook:'Facebook',whatsapp:'WhatsApp',google:'Google',tiktok:'TikTok',
+    direto:'Link direto',outro:'Outros sites'})[o]||'Outros sites';
+}
+function painelVisitasHTML(ini,fim,atual){
+  if(!nuvemOn()||typeof temCatalogo!=='function'||!temCatalogo())return '';
+  if(!(podeLer('resumo')||podeLer('loja')))return '';
+  if(!/^\d{4}-\d\d-\d\d$/.test(String(ini||''))||!/^\d{4}-\d\d-\d\d$/.test(String(fim||'')))return '';
+  const L=lojaOn();
+  if(L.semSqlVisitas)return '';    // banco ainda sem a parte das visitas: o Resumo fica como era
+  L.visUlt={ini,fim,atual};
+  const a=L.acessos[ini+'_'+fim];
+  if(!a||Date.now()-a.em>300000)setTimeout(()=>carregarAcessos(ini,fim),0);
+  return `<div class="painel vis-painel" id="visPainel">${a?corpoVisitas(a.r,ini,fim,atual)
+    :'<h3>👀 Visitas da loja</h3><p class="mut" style="font-size:.85rem">Buscando…</p>'}</div>`;
+}
+async function carregarAcessos(ini,fim){
+  const L=lojaOn(),k=ini+'_'+fim;
+  if(L.carregandoAcessos[k])return;
+  L.carregandoAcessos[k]=true;
+  try{
+    try{await garantirToken();}catch(e){}
+    const r=await chamarApi('/rest/v1/rpc/acessos_painel',{metodo:'POST',corpo:{p_loja:lojaId(),p_ini:ini,p_fim:fim>hoje()?hoje():fim}});
+    L.acessos[k]={em:Date.now(),r:r||{}};
+  }catch(e){
+    if(e&&e.status===404)L.semSqlVisitas=true;
+    else L.acessos[k]={em:Date.now()-240000,r:{erro:erroDeRede(e)?'rede':'erro'}};   // tenta de novo em 1 min
+  }finally{L.carregandoAcessos[k]=false;}
+  const el=$('visPainel'),u=L.visUlt;
+  if(!el||!u||u.ini!==ini||u.fim!==fim)return;
+  const h=painelVisitasHTML(u.ini,u.fim,u.atual);
+  if(h)el.outerHTML=h;else el.remove();
+}
+function numVis(n,dec){return (+n||0).toLocaleString('pt-BR',{maximumFractionDigits:dec||0});}
+function nVis(n,um,varios){return numVis(n)+' '+(+n===1?um:varios);}
+function diaSemanaVis(iso){return ['dom','seg','ter','qua','qui','sex','sáb'][new Date(iso+'T12:00:00').getDay()]||'';}
+function corpoVisitas(r,ini,fim,atual){
+  const tit=`<h3>👀 Visitas da loja ${ajuda('Quantas pessoas abriram o site da loja. Cada aparelho conta como uma pessoa; a mesma pessoa voltando depois de meia hora conta como outra visita. Quem está com o painel aberto no aparelho (você e a equipe) não entra na conta.')}</h3>`;
+  if(r.erro==='sem-permissao')return tit+'<p class="mut" style="font-size:.85rem">Só quem vê o Resumo ou o Site da loja vê as visitas.</p>';
+  if(r.erro)return tit+`<p class="mut" style="font-size:.85rem">${r.erro==='rede'?'Sem internet — os números aparecem quando a conexão voltar.':'Não consegui buscar as visitas agora.'}</p>`;
+  const h0=hoje(),ate=fim>h0?h0:fim;
+  const porDia={};(r.dias||[]).forEach(x=>{porDia[String(x.dia).slice(0,10)]={v:+x.visitas||0,p:+x.pessoas||0};});
+  const dias=[];
+  for(let d=ini;d<=ate&&dias.length<400;d=isoAddDias(d,1))dias.push({dia:d,v:(porDia[d]||{}).v||0,p:(porDia[d]||{}).p||0});
+  const tot=r.total||{},pessoas=+tot.pessoas||0,visitas=+tot.visitas||0;
+  const media=dias.length?dias.reduce((s,x)=>s+x.p,0)/dias.length:0;
+  const melhor=dias.reduce((m,x)=>x.p>(m?m.p:0)?x:m,null);
+  const kpi=(rot,v,s)=>`<div class="r-kpi"><div class="r">${rot}</div><div class="v">${v}</div><div class="s">${s}</div></div>`;
+  let h=tit+`<div class="r-kpis">${kpi('Pessoas',numVis(pessoas),'aparelhos diferentes')}${kpi('Visitas',numVis(visitas),'vezes que abriram a loja')}${kpi('Por dia',numVis(media,media<10?1:0),'pessoas, em média')}</div>`;
+  if(!visitas){
+    h+=`<p class="mut" style="font-size:.85rem">Nenhuma visita registrada ${atual?'neste mês':'neste período'}.${atual?' A contagem é nova: os números aparecem conforme as clientes entram no site.':''}</p>`;
+  }else{
+    if(dias.length>1&&dias.length<=62){
+      h+='<h4 style="margin-top:.7rem">Pessoas por dia</h4>'+graficoBarras(dias.map(x=>({val:x.p,hoje:x.dia===h0,rot:fmtData(x.dia).slice(0,5),
+        dica:diaSemanaVis(x.dia)+', '+fmtData(x.dia).slice(0,5)+' — '+nVis(x.p,'pessoa','pessoas')+' · '+nVis(x.v,'visita','visitas')})),
+        melhor?'Melhor dia: '+diaSemanaVis(melhor.dia)+', '+fmtData(melhor.dia).slice(0,5)+' — '+nVis(melhor.p,'pessoa','pessoas')+'. Toque numa barra para ver o dia.':'');
+    }
+    const ori=Object.keys(r.origens||{}).map(o=>({o,v:+r.origens[o]||0})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
+    const so=ori.reduce((s,x)=>s+x.v,0);
+    if(ori.length)h+=`<h4 style="margin-top:.9rem">De onde vieram ${ajuda('Pelo caminho que a pessoa usou para chegar: Instagram, WhatsApp, Google… "Link direto" é quem digitou o endereço ou abriu um link que não conta de onde veio (o WhatsApp às vezes não conta). Para saber de um post, use o link da peça ou da coleção.')}</h4>
+      <div class="vis-orig">${ori.map(x=>`<div><span>${esc(nomeOrigem(x.o))}</span><span class="tr"><i style="width:${Math.max(2,Math.round(x.v/ori[0].v*100))}%"></i></span><b>${numVis(x.v)}</b><span class="mut2">${Math.round(x.v/so*100)}%</span></div>`).join('')}</div>`;
+  }
+  // últimos 12 meses, até o mês de hoje (o mês fiscal 11→10 terminaria num mês que ainda não chegou)
+  const NM=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const porMes={};(r.meses||[]).forEach(x=>{porMes[x.mes]={v:+x.visitas||0,p:+x.pessoas||0};});
+  let y=+ate.slice(0,4),m=+ate.slice(5,7);const meses=[];
+  for(let i=0;i<12;i++){meses.unshift({mes:y+'-'+String(m).padStart(2,'0'),y,m});m--;if(m<1){m=12;y--;}}
+  if(meses.some(x=>porMes[x.mes])){
+    const atualM=h0.slice(0,7),mm=meses.map(x=>Object.assign(x,porMes[x.mes]||{v:0,p:0}));
+    const top=mm.reduce((a,x)=>x.p>(a?a.p:0)?x:a,null);
+    h+='<h4 style="margin-top:.9rem">Pessoas por mês</h4>'+graficoBarras(mm.map(x=>({val:x.p,hoje:x.mes===atualM,rot:NM[x.m-1].slice(0,3),
+      dica:NM[x.m-1]+' de '+x.y+' — '+nVis(x.p,'pessoa','pessoas')+' · '+nVis(x.v,'visita','visitas')+(x.mes===atualM?' (até hoje)':'')})),
+      top?'Melhor mês: '+NM[top.m-1]+' de '+top.y+' — '+nVis(top.p,'pessoa','pessoas')+'.':'');
+  }
+  return h;
+}
+/* barras de uma série só, na cor da marca; o número de cada barra aparece embaixo
+   ao passar o mouse ou tocar (com poucas barras, cada uma tem o nome embaixo) */
+function graficoBarras(itens,padrao){
+  const max=Math.max(1,...itens.map(i=>+i.val||0)),n=itens.length,cada=n<=12;
+  const bars=itens.map(i=>{
+    const pc=i.val>0?Math.max(3,Math.round(i.val/max*100)):0;
+    return `<button type="button" class="vis-b${i.val?'':' zero'}${i.hoje?' hoje':''}" style="--h:${pc}%" data-dica="${esc(i.dica)}" aria-label="${esc(i.dica)}"
+      onmouseenter="visDica(this)" onfocus="visDica(this)" onclick="visDica(this)" onmouseleave="visDica(null,this)"><i></i></button>`;
+  }).join('');
+  const xs=cada?itens.map(i=>`<span>${esc(i.rot)}</span>`).join('')
+    :[0,Math.floor((n-1)/2),n-1].map(k=>`<span>${esc(itens[k].rot)}</span>`).join('');
+  return `<div class="vis-graf"><div class="vis-y"><span>${numVis(max)}</span><span>0</span></div>
+    <div class="vis-barras">${bars}</div><div></div><div class="vis-x${cada?' cada':''}">${xs}</div>
+    <div class="vis-dica" data-padrao="${esc(padrao||'')}">${esc(padrao||'')}</div></div>`;
+}
+function visDica(el,saiu){
+  const g=(el||saiu).closest('.vis-graf');if(!g)return;
+  const d=g.querySelector('.vis-dica');
+  g.querySelectorAll('.vis-b.on').forEach(b=>b.classList.remove('on'));
+  if(!el){d.textContent=d.dataset.padrao||'';return;}
+  el.classList.add('on');d.textContent=el.dataset.dica||'';
+}
+
+/* relógio dos pedidos: a cada 3 min com o painel na tela, e quando ele volta para a tela */
+setInterval(()=>{if(document.visibilityState==='visible')carregarPedidos(false);},180000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')carregarPedidos(false);});
 
 </script>
 </body>
