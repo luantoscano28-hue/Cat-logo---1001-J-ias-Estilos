@@ -299,8 +299,8 @@ button.bd-clica:hover{filter:brightness(.95);text-decoration:underline}
 .f-filtros{gap:.5rem}
 .f-lista{display:flex;flex-direction:column;gap:.5rem}
 .f-cli{background:var(--painel);border-radius:12px;margin-bottom:0}
-.f-cli>header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"dot nome total" "dot prox acoes";
-  gap:.15rem .75rem;align-items:center;padding:.7rem .9rem;flex-wrap:nowrap}
+.f-cli>header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"dot nome nums" ". . acoes";
+  gap:.35rem .9rem;align-items:center;padding:.75rem .95rem;flex-wrap:nowrap;cursor:pointer}
 /* V14: aberto, a linha do nome ganha outro tom — o que vem embaixo (as parcelas) não se confunde com ela */
 .f-cli.aberto>header{background:var(--painel2);background:color-mix(in srgb,var(--acento) 13%,var(--painel));border-radius:12px 12px 0 0;border-bottom:1px solid var(--borda)}
 .aviso-solto{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem .7rem;background:var(--cob-bg);border:1px solid var(--cob-ln);color:var(--cob-tx);
@@ -309,12 +309,19 @@ button.bd-clica:hover{filter:brightness(.95);text-decoration:underline}
 .aviso-solto .bt{margin-left:auto}
 .f-dot{grid-area:dot;width:10px;height:10px;border-radius:50%;background:var(--cinza);align-self:start;margin-top:.4rem}
 .f-dot.atras{background:var(--vermelho)}.f-dot.sem{background:var(--laranja)}
-.f-nome{grid-area:nome;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.98rem}
-.f-nome small{font-weight:500;color:var(--texto2);font-size:.76rem;margin-left:.35rem}
-.f-total{grid-area:total;font-weight:800;font-size:1.05rem;text-align:right;color:var(--vermelho);font-variant-numeric:tabular-nums}
-.f-total small{display:block;font-size:.7rem;font-weight:400;color:var(--texto2)}
-.f-prox{grid-area:prox;font-size:.82rem;color:var(--texto2);min-width:0}
-.f-prox b{color:var(--texto);font-weight:600}.f-prox b.neg{color:var(--vermelho)}
+.f-nome{grid-area:nome;min-width:0;font-size:.98rem;align-self:start}
+.f-nome>b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.f-nome small{display:block;font-weight:500;color:var(--texto2);font-size:.76rem;margin-top:.1rem}
+.f-nome .bd{margin-top:.25rem}
+/* docx V15, item 10: "Próxima parcela" e "Total da conta" grandes, lado a lado */
+.f-nums{grid-area:nums;display:flex;gap:1rem;justify-content:flex-end}
+.f-num{display:flex;flex-direction:column;align-items:flex-end;min-width:112px;line-height:1.25}
+.f-num small{font-size:.62rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--texto2)}
+.f-num b{font-size:1.18rem;font-weight:800;font-variant-numeric:tabular-nums}
+.f-num span{font-size:.74rem;color:var(--texto2)}
+.f-num.f-total{border-left:1px solid var(--borda);padding-left:1rem}
+.f-num.f-prox.atras b,.f-num.f-prox.atras span{color:var(--vermelho)}
+.f-num.f-prox.atras span{font-weight:600}
 .f-paga{display:inline-block;font-size:.74rem;color:var(--verde);white-space:nowrap}
 .f-acoes{grid-area:acoes;display:flex;gap:.35rem;justify-content:flex-end}
 .f-cli .corpo{padding:.2rem .9rem .8rem}
@@ -322,8 +329,21 @@ button.bd-clica:hover{filter:brightness(.95);text-decoration:underline}
 .f-bloco:first-child{border-top:none}
 .f-bloco-cab{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;font-size:.86rem;margin-bottom:.3rem}
 /* V14: linha de caderno entre as parcelas, como nas tabelas de Produtos */
-.f-parc{display:grid;grid-template-columns:16px 78px minmax(0,1fr) auto auto;gap:.55rem;align-items:center;padding:.42rem 0;font-size:.86rem;border-bottom:1px solid var(--borda)}
-.f-parc:last-of-type{border-bottom:none}
+.f-parc{display:grid;grid-template-columns:16px 84px minmax(0,1fr) auto;gap:.6rem;align-items:center;padding:.48rem 0;font-size:.86rem;border-bottom:1px solid var(--borda)}
+/* a data da parcela é um botão: tocar muda o vencimento (docx V15, item 7) */
+.f-data{justify-self:start;background:none;border:0;border-bottom:1px dashed var(--texto2);padding:0;font:inherit;font-weight:700;color:var(--texto);cursor:pointer;border-radius:0}
+.f-data:hover{color:var(--acento2);border-bottom-color:var(--acento2)}
+.f-data.fixa{border-bottom:0;cursor:default;font-weight:600}
+.f-desc{min-width:0}
+.f-parc:has(+ .f-conta-tot){border-bottom:none}
+.f-conta-tot{display:flex;justify-content:space-between;font-weight:800;padding:.6rem 0 .1rem;font-size:.95rem;border-top:2px solid var(--texto)}
+.f-conta-rod{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .8rem;margin-top:.55rem}
+.f-conta-rod .f-pecas{margin-top:0}
+.r-atalhos{display:flex;flex-wrap:wrap;gap:.35rem;margin:.1rem 0 .6rem}
+.r-sobra{border:1px solid var(--acento);background:color-mix(in srgb,var(--acento) 10%,var(--painel));border-radius:10px;padding:.65rem .75rem;margin-top:.6rem;font-size:.86rem}
+.r-sobra[hidden]{display:none}
+.r-sobra label{display:flex;gap:.5rem;align-items:flex-start;margin-top:.45rem;line-height:1.4}
+.r-sobra small{color:var(--texto2);display:block}
 .f-parc .bola{width:12px;height:12px;border-radius:50%;border:2px solid var(--texto2)}
 .f-parc.prox .bola{background:var(--laranja);border-color:var(--laranja)}
 .f-parc.paga{color:var(--texto2)}
@@ -826,6 +846,9 @@ main.larga{max-width:1480px}
 .ped .acoes{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.55rem}
 .ped-grupo>summary{cursor:pointer;font-size:.85rem;color:var(--texto2);margin-top:.8rem}
 .ck-campos{border:0;padding:0;margin:0;min-width:0}
+.ck-provs{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.7rem}
+.ck-provs .linha{align-items:flex-start;line-height:1.4}
+.ck-mp-conta{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .6rem;background:var(--painel2);border:1px solid var(--borda);border-radius:10px;padding:.55rem .7rem;margin-bottom:.7rem;font-size:.84rem}
 .ck-campos[disabled]{opacity:.75}
 .r-dica{font-size:.74rem;color:var(--texto2);margin:.5rem 0 0}
 .r-bars{margin:.1rem 0 .7rem}
@@ -1076,12 +1099,15 @@ main.larga{max-width:1480px}
   /* Fiado (V13): cliente em cartão — nome e total em cima, próxima parcela, e os
      dois botões ocupando a largura (dedo acerta fácil) */
   .barra>.f-busca{max-width:none}
-  .f-cli>header{grid-template-areas:"dot nome total" "dot prox prox" "acoes acoes acoes";padding:.65rem .75rem}
+  .f-cli>header{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"dot nome" "nums nums" "acoes acoes";padding:.65rem .75rem}
+  .f-nums{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.3rem}
+  .f-num{align-items:flex-start;min-width:0}
+  .f-num.f-total{padding-left:.7rem}
   .f-acoes{margin-top:.45rem}
   .f-acoes .bt{flex:1;text-align:center}
   .f-acoes .bt-tres{flex:none}
   .f-cli .corpo{padding:.2rem .75rem .7rem}
-  .f-parc{grid-template-columns:14px 66px minmax(0,1fr) auto;font-size:.82rem}
+  .f-parc{grid-template-columns:14px 68px minmax(0,1fr) auto;font-size:.82rem}
   .f-parc-ac{grid-column:2/-1;justify-content:flex-start}
   .f-filtros .filtro-chips{flex-wrap:nowrap;overflow-x:auto;width:100%;padding-bottom:2px}
   .f-filtros .filtro-chips button{flex:none}
@@ -1525,6 +1551,7 @@ try{
   <h3>Receber fiado</h3>
   <p class="mut" id="rCliente" style="margin-bottom:.5rem"></p>
   <div id="rItens" class="painel" style="max-height:200px;overflow:auto;font-size:.85rem"></div>
+  <div class="r-atalhos" id="rAtalhos"></div>
   <div class="fgrid">
     <label class="campo">Data do recebimento <input type="date" id="rData" required onchange="rDataMudou()"><small class="aviso-dia" id="rDataAviso"></small></label>
     <label class="campo">Forma de pagamento <select id="rForma" onchange="rCanalMudou()"></select></label>
@@ -1536,9 +1563,16 @@ try{
     <label class="campo">Desconto concedido (R$) <input type="number" id="rDesc" min="0" step="0.01" placeholder="0,00" oninput="rPreview()"></label>
     <label class="campo">Em aberto (selecionado) <input id="rTotal" disabled></label>
   </div>
+  <!-- pagou a mais (docx V15, item 8): crédito para a próxima compra ou acréscimo -->
+  <div class="r-sobra" id="rSobraBox" hidden>
+    <b id="rSobraTit">Ela pagou a mais do que devia.</b>
+    <label><input type="radio" name="rSobra" value="credito" checked onchange="rPreview()"> <span>Guardar como <b>crédito</b> para a próxima compra
+      <small>aparece no cartão dela e desconta sozinho da próxima compra no fiado</small></span></label>
+    <label><input type="radio" name="rSobra" value="acrescimo" onchange="rPreview()"> <span>Ficar como <b>acréscimo</b>
+      <small>entra como valor a mais (juros, arredondamento) — não volta para ela</small></span></label>
+  </div>
   <p id="rPrev" class="mut" style="font-size:.82rem;margin-top:.4rem"></p>
-  <p class="mut" style="font-size:.78rem">💡 Pagou só uma parte? Digite o valor menor — o sistema abate das compras mais antigas primeiro.<br>
-  💡 Pagou <b>a mais</b> (arredondou pra cima)? Digite o valor cheio — a diferença entra no caixa como <b>acréscimo</b> e o fiado fica quitado. Não vira crédito do cliente.<br>
+  <p class="mut" style="font-size:.78rem">💡 Pagou só uma parte? Digite o valor menor — o painel abate das parcelas mais antigas primeiro.<br>
   💡 Deu um <b>desconto</b> (ela devia 198 e você aceitou 196)? Ponha os 2 em "desconto concedido" — a dívida quita inteira e o desconto entra no resultado como perda.</p>
   <div class="rodape">
     <button type="button" class="bt" onclick="dlgReceber.close()">Cancelar</button>
@@ -7181,7 +7215,9 @@ function salvarVenda(){
     dados.vendas.push(v);
     if(!forma.ehFiado)lancarVendaAvista(v,forma);
     aplicarEstoque(v,1);
-    toast('Venda registrada ✓'+(forma.ehFiado?' (fiado)':''));
+    // crédito da cliente (pagou a mais antes, docx V15 item 8) desconta sozinho da compra no fiado
+    const usouCred=forma.ehFiado?usarCreditoNaVenda(v):null;
+    toast('Venda registrada ✓'+(forma.ehFiado?' (fiado)':'')+(usouCred?' — usei '+fmt(usouCred.valor)+' de crédito dela':''));
   }
   if(criados.length)setTimeout(()=>toast('Cadastrei no estoque: '+criados.join(', ')+'. Ajuste a categoria depois em Produtos.'),1400);
   acFechar();salvar();dlgVenda.close();renderTudo();
@@ -7538,57 +7574,95 @@ function gruposDoPlanoTodos(nome,pid){
   }));
   return Object.keys(g).map(k=>g[k]).sort((a,b)=>a.idx-b.idx).map(x=>Object.assign(x,{pago:x.aberto<=0.005}));
 }
-function linhaParcelaFiado(n,o){
-  const h=hoje(),venc=o.venc?fmtData(o.venc):'sem data';
-  const st=o.pago?`<span class="mut2">paga${o.pagoEm?' em '+fmtData(o.pagoEm).slice(0,5):''} ✓</span>`
-    :(o.venc&&o.venc<h?'<span class="bd fiadoV">vencida</span>':'');
-  return `<div class="f-parc${o.pago?' paga':(o.proxima?' prox':'')}"><span class="bola"></span><b>${venc}</b><span class="mut2">${o.rot}</span>
-    <span class="vl">${fmt(o.pago?o.valor:o.aberto)}${o.jaPago>0.005?`<small class="parc-parcial">já pagou ${fmt(o.jaPago)}</small>`:''}</span>
-    <span class="f-parc-ac">${st}${o.pago?'':` <button class="bt mini verde" onclick="abrirReceber('${attr(n)}','${o.pids}')" title="a cliente pagou esta parcela">✓ Receber parcela</button>`}</span></div>`;
-}
-/* o que aparece ao tocar no cliente */
-function detalheFiadoHTML(n,modo){
-  let h=sugestaoJuntarHTML(n);
+/* ---- Fiado como UMA conta (docx V15, itens 7 e 10 — rascunho aprovado em 10/11/2026) ----
+   "o cliente vai fazendo compras e todas já estão no bolo do fiado": a cliente aberta mostra
+   todas as parcelas de todas as compras numa linha do tempo só, cada uma com a sua data (toque
+   na data para mudar). "Parcelar tudo" virou "Dividir em parcelas iguais" (no fim da conta e no
+   ⋮), e a observação / o ✎ parcelas moram no ⋮. */
+function linhasDaConta(n,modo){
+  const out=[];
   Object.keys(planosDoCliente(n)).forEach(pid=>{
-    const abertos=gruposDoPlano(n,pid,modo);if(!abertos.length)return;
-    const todasAbertas=gruposDoPlano(n,pid),nTot=nParcelasDoPlano(n,pid),vsPlano=vendasDoPlano(n,pid);
-    const totAberto=r2(todasAbertas.reduce((s,g)=>s+g.valor,0)),pagou=todasAbertas.length<nTot;
-    const infoP=infoPlano(pid,{clienteNome:n,total:totAberto,n:nTot}),obsP=infoP&&infoP.obs;
-    // sem filtro, a linha do tempo inteira (com as pagas); com filtro, só o que passa nele
-    const linhas=modo==='todos'?gruposDoPlanoTodos(n,pid)
-      :abertos.map(g=>({idx:g.idx,venc:g.venc,valor:g.valor,aberto:g.valor,recebido:0,itens:g.itens,pago:false}));
-    const prox=linhas.find(g=>!g.pago);
-    h+=`<div class="f-bloco">
-      <div class="f-bloco-cab">${nTot===1?'<span class="bd rdb">📆 Compras juntas</span> <b>numa parcela só</b>':`<span class="bd rdb">📆 Parcelamento do total</span> <b>${nTot}x</b>`}
-        <span class="mut2">— ${pagou?'falta ':''}${fmt(totAberto)} · ${vsPlano.length} compra(s)</span>${abertos.length<todasAbertas.length?` <span class="bd inv">${abertos.length} no filtro</span>`:''}
-        <span class="esp"></span>
-        <button class="bt mini" title="observação interna" onclick="editarObsPlano('${pid}')">📝 obs</button>
-        <button class="bt mini" title="voltar a cobrar cada compra separada" onclick="cliqueDesfazerPlano('${attr(n)}','${pid}')">↩ desfazer</button></div>
-      ${obsP?`<div class="obs-int">📝 ${esc(obsP)}</div>`:''}
-      ${linhas.map(g=>linhaParcelaFiado(n,{rot:nTot===1?'parcela única':(g.idx+1)+'ª de '+nTot,venc:g.venc,valor:g.valor,aberto:g.aberto,
-        pago:g.pago,pagoEm:g.pagoEm,proxima:g===prox,jaPago:g.pago?0:g.recebido,
-        pids:(g.itens||[]).filter(x=>!parcPago(x.p)).map(x=>x.v.id+':'+x.p.id).join(',')})).join('')}
-      <details class="f-pecas"><summary>ver as peças</summary>${vsPlano.map(v=>`<div>${fmtData(v.data)} — ${esc(resumoItens(v))}</div>`).join('')}</details>
-    </div>`;
+    const nTot=nParcelasDoPlano(n,pid),nv=vendasDoPlano(n,pid).length;
+    const desc=nTot===1?'Compras juntas ('+nv+')':'parcelamento de '+nv+(nv===1?' compra':' compras');
+    gruposDoPlanoTodos(n,pid).forEach(g=>{
+      const abertos=(g.itens||[]).filter(x=>!parcPago(x.p));
+      if(modo!=='todos'&&(g.pago||!abertos.some(x=>parcNoFiltro(x.p,modo))))return;
+      out.push({venc:g.venc,valor:g.valor,aberto:g.aberto,recebido:g.recebido,pago:g.pago,pagoEm:g.pagoEm,
+        rot:(nTot===1?'':(g.idx+1)+'ª de '+nTot+' · ')+desc,curto:nTot===1?'Compras juntas':(g.idx+1)+'ª de '+nTot,
+        pids:abertos.map(x=>x.v.id+':'+x.p.id).join(',')});
+    });
   });
   vendasSoltasDe(n).forEach(v=>{
     const parc=recParcelas(v).filter(p=>!p.planoId);
-    const visiveis=parc.filter(p=>!parcPago(p)&&(modo==='todos'||parcNoFiltro(p,modo)));
-    if(!visiveis.length)return;
-    const mostrar=modo==='todos'?parc:visiveis,prox=mostrar.find(p=>!parcPago(p)),obsV=v.receber&&v.receber.obs;
-    h+=`<div class="f-bloco">
-      <div class="f-bloco-cab"><span>Compra de <b>${fmtData(v.data)}</b> <span class="mut2">— ${esc(resumoItens(v))}${v.desconto>0?` (desc. ${fmt(v.desconto)})`:''}</span></span>
-        <span class="esp"></span>
-        <button class="bt mini" onclick="abrirFiadoEdit('${v.id}')">✎ parcelas</button>
-        <button class="bt mini" title="observação interna" onclick="editarObsFiado('${v.id}')">📝 obs</button></div>
-      ${obsV?`<div class="obs-int">📝 ${esc(obsV)}</div>`:''}
-      ${mostrar.map(p=>{const i=parc.indexOf(p),rec=+p.recebido||0;
-        return linhaParcelaFiado(n,{rot:parc.length>1?(i+1)+'ª de '+parc.length:'parcela única',venc:p.venc,valor:+p.valor||0,
-          aberto:parcAberto(p),pago:parcPago(p),pagoEm:p.pagoEm,proxima:p===prox,jaPago:rec>0&&!parcPago(p)?rec:0,pids:v.id+':'+p.id});}).join('')}
-    </div>`;
+    parc.forEach((p,i)=>{
+      if(modo!=='todos'&&(parcPago(p)||!parcNoFiltro(p,modo)))return;
+      out.push({venc:p.venc||'',valor:+p.valor||0,aberto:parcAberto(p),recebido:+p.recebido||0,pago:parcPago(p),pagoEm:p.pagoEm,
+        rot:'compra de '+fmtData(v.data).slice(0,5)+' · '+resumoItens(v)+(parc.length>1?' · '+(i+1)+'ª de '+parc.length:''),
+        curto:'compra de '+fmtData(v.data).slice(0,5)+(parc.length>1?' · '+(i+1)+'ª de '+parc.length:''),
+        pids:parcPago(p)?'':v.id+':'+p.id});
+    });
   });
-  return h||'<p class="mut2">Nada em aberto com esse filtro.</p>';
+  const d=x=>x.venc||'9999';
+  return out.sort((a,b)=>d(a)<d(b)?-1:d(a)>d(b)?1:0);
 }
+function linhaContaHTML(o,proxima,pode){
+  const h=hoje(),venc=o.venc?fmtData(o.venc).slice(0,5):'sem data';
+  const st=o.pago?`<small class="mut2">— paga${o.pagoEm?' em '+fmtData(o.pagoEm).slice(0,5):''} ✓</small>`
+    :(o.venc&&o.venc<h?'<span class="bd fiadoV">vencida</span>':(o.venc===h?'<span class="bd fiadoP">vence hoje</span>':''));
+  const data=(!o.pago&&pode&&o.pids)
+    ?`<button type="button" class="f-data" title="mudar a data desta parcela" onclick="mudarVencParcela('${o.pids}')">${venc} ✎</button>`
+    :`<span class="f-data fixa">${venc}</span>`;
+  return `<div class="f-parc${o.pago?' paga':(proxima?' prox':'')}"><span class="bola"></span>${data}
+    <span class="f-desc">${esc(o.rot)} ${st}</span>
+    <span class="vl">${fmt(o.pago?o.valor:o.aberto)}${!o.pago&&o.recebido>0.005?`<small class="parc-parcial">já pagou ${fmt(o.recebido)}</small>`:''}</span></div>`;
+}
+/* o que aparece ao tocar no cliente */
+function detalheFiadoHTML(n,modo){
+  const ls=linhasDaConta(n,modo);
+  if(!ls.some(o=>!o.pago))return '<p class="mut2">Nada em aberto com esse filtro.</p>';
+  const pode=podeEscrever('fiado'),prox=ls.find(o=>!o.pago);
+  const aberto=r2(ls.filter(o=>!o.pago).reduce((s,o)=>s+o.aberto,0));
+  const obs=[];
+  // infoPlano reconstrói o registro de um parcelamento órfão (e o nome da cliente) — testes15
+  Object.keys(planosDoCliente(n)).forEach(pid=>{const i=infoPlano(pid,{clienteNome:n});if(i&&i.obs)obs.push(i.obs);});
+  vendasSoltasDe(n).forEach(v=>{if(v.receber&&v.receber.obs)obs.push(v.receber.obs);});
+  const vs=vendasEmAbertoDe(n),cred=creditoDe(n);
+  return sugestaoJuntarHTML(n)+obs.map(o=>`<div class="obs-int">📝 ${esc(o)}</div>`).join('')
+    +`<div class="f-conta">${ls.map(o=>linhaContaHTML(o,o===prox,pode)).join('')}
+      <div class="f-conta-tot"><span>${modo==='todos'?'Total da conta':'Total no filtro'}</span><b>${fmt(aberto)}</b></div>
+      ${cred>0.005?`<p class="mut2" style="font-size:.8rem;margin:.2rem 0 0">💚 Crédito de ${fmt(cred)} — desconta sozinho da próxima compra no fiado.</p>`:''}
+      <div class="f-conta-rod">${pode&&modo==='todos'?`<button class="bt mini" onclick="abrirPlano('${attr(n)}')" title="junta as parcelas em aberto e divide em valores iguais, nos dias que você escolher">⚖ Dividir em parcelas iguais…</button>`:''}
+        <details class="f-pecas"><summary>ver as peças</summary>${vs.map(v=>`<div>${fmtData(v.data)} — ${esc(resumoItens(v))} · ${fmt(v.total)}</div>`).join('')}</details></div>
+    </div>`;
+}
+/* toque na data de uma parcela: muda o vencimento (de todas as partes da mesma parcela do plano) */
+function mudarVencParcela(pidsStr){
+  if(!podeEscrever('fiado')){toast('Seu acesso não permite alterar o fiado.');return;}
+  const its=parsePids(pidsStr).map(s=>{const v=vendaPorId(s.vid);return {v,p:v?recParcelas(v).find(x=>x.id===s.pid):null};}).filter(x=>x.p);
+  if(!its.length)return;
+  pedir({titulo:'Mudar a data da parcela',campos:[{id:'venc',tipo:'data',rotulo:'Vence em',valor:its[0].p.venc||hoje(),pergunta:'Vence em (AAAA-MM-DD):'}]},r=>{
+    const d=String(r.venc||'').slice(0,10);if(!/^\d{4}-\d\d-\d\d$/.test(d))return;
+    its.forEach(x=>{x.p.venc=d;});
+    salvar();renderTudo();toast('Parcela para '+fmtData(d)+' ✓');
+  });
+}
+/* ⋮ → Observação interna / Editar parcelas: com várias compras, pergunta de qual */
+function alvosDoCliente(n,soCompras){
+  const out=[];
+  if(!soCompras)Object.keys(planosDoCliente(n)).forEach(pid=>out.push({tipo:'plano',id:pid,rot:'O parcelamento ('+vendasDoPlano(n,pid).length+' compras)'}));
+  vendasSoltasDe(n).forEach(v=>out.push({tipo:'venda',id:v.id,rot:'Compra de '+fmtData(v.data)+' — '+resumoItens(v)}));
+  return out;
+}
+function escolherAlvo(n,soCompras,titulo,feito){
+  const al=alvosDoCliente(n,soCompras);
+  if(!al.length){toast('Nada em aberto para isso.');return;}
+  if(al.length===1){feito(al[0]);return;}
+  pedir({titulo,campos:[{id:'qual',tipo:'lista',rotulo:'Qual?',opcoes:al.map((a,i)=>[String(i),a.rot]),valor:'0',pergunta:'Qual?'}]},r=>{
+    const a=al[+r.qual];if(a)feito(a);
+  });
+}
+function obsFiadoCliente(n){escolherAlvo(n,false,'Observação de qual?',a=>a.tipo==='plano'?editarObsPlano(a.id):editarObsFiado(a.id));}
+function editarParcelasCliente(n){escolherAlvo(n,true,'Editar as parcelas de qual compra?',a=>abrirFiadoEdit(a.id));}
 const ORDENS_FIADO=[['vence','Vence primeiro'],['valor','Maior valor'],['nome','Nome (A–Z)'],['local','Local']];
 function renderFiadoCorpo(){
   const u=ui.f,modo=u.filtro||'todos',loc=u.local||'',termos=termosBusca(u.busca),ord=u.ordem||'vence';
@@ -7618,15 +7692,20 @@ function renderFiadoCorpo(){
 
   const blocos=nomes.map(n=>{
     const aberto=!!u.abertos[n],s=soma(n),somaTotalCli=somaGrupoFiado(vendasEmAbertoDe(n));
-    const c=cliDe(n),px=prox[n],lc=locNome(n),dp=c?diaPagaTexto(c):'';
+    const c=cliDe(n),px=prox[n],lc=locNome(n),dp=c?diaPagaTexto(c):'',h=hoje(),cred=creditoDe(n);
+    const nAb=parcelasAbertasDoCliente(n).length,atras=!!(px&&px.venc&&px.venc<=h);
+    const quando=!px?'':(!px.venc?'sem data':px.venc<h?'atrasada desde '+fmtData(px.venc).slice(0,5):px.venc===h?'vence hoje':'vence '+fmtData(px.venc).slice(0,5));
+    const sub=[lc?'📍'+esc(lc):'',dp?'💰 '+esc(dp):''].filter(Boolean).join(' · ');
     return `<div class="devedor f-cli${aberto?' aberto':''}">
       <header onclick="toggleDevedor('${attr(n)}')">
         <span class="f-dot ${estadoFiadoCliente(px)}"></span>
-        <span class="f-nome"><b>${esc(n)}</b>${lc?`<small>📍${esc(lc)}</small>`:''}</span>
-        <span class="f-total">${fmt(s)}${modo!=='todos'&&Math.abs(s-somaTotalCli)>0.005?`<small>de ${fmt(somaTotalCli)} no total</small>`:''}</span>
-        <span class="f-prox">${proximaHTML(px)}${dp?` <span class="f-paga">💰 ${esc(dp)}</span>`:''}</span>
+        <span class="f-nome"><b>${esc(n)}</b>${sub?`<small>${sub}</small>`:''}${cred>0.005?`<span class="bd ok" title="pagou a mais: desconta da próxima compra no fiado">crédito ${fmt(cred)}</span>`:''}</span>
+        <span class="f-nums">
+          <span class="f-num f-prox${atras?' atras':''}"><small>Próxima parcela</small><b>${px?fmt(px.valor):'—'}</b><span>${quando}</span></span>
+          <span class="f-num f-total"><small>${modo!=='todos'?'No filtro':'Total da conta'}</small><b>${fmt(s)}</b><span>${modo!=='todos'&&Math.abs(s-somaTotalCli)>0.005?'de '+fmt(somaTotalCli)+' no total':nAb+(nAb===1?' parcela em aberto':' parcelas em aberto')}</span></span>
+        </span>
         <span class="f-acoes">
-          <button class="bt mini verde" onclick="event.stopPropagation();abrirReceberValor('${attr(n)}')" title="a cliente pagou um valor qualquer: o painel abate das parcelas, da mais antiga para a mais nova">💵 Receber valor</button>
+          <button class="bt mini verde" onclick="event.stopPropagation();abrirReceberValor('${attr(n)}')" title="a cliente pagou: diga quanto e o painel abate das parcelas, da mais antiga para a mais nova">💵 Receber</button>
           <button class="bt mini" onclick="event.stopPropagation();abrirCobrar('${attr(n)}')">📲 Cobrar</button>
           <button class="bt mini bt-tres" title="mais ações" aria-label="Mais ações de ${esc(n)}" aria-haspopup="menu" onclick="event.stopPropagation();abrirMenuFiado('${attr(n)}',this)">${IC_TRES_PONTOS}</button>
         </span></header>
@@ -7640,7 +7719,7 @@ function renderFiadoCorpo(){
     if(termos.length)pgs=pgs.filter(p=>casaBusca(p.clienteNome,termos));
     pgs.sort(cmpDataDesc(gD,gId));
     const lp=pgs.slice(0,300).map(p=>`<tr><td>${fmtData(p.data)}</td><td>${esc(p.clienteNome)}</td>
-      <td class="mut">${p.alocacoes.length} parcela(s)${+p.acrescimo>0.005?` <span class="bd" style="border-color:var(--laranja);color:var(--laranja)">+${fmt(p.acrescimo)} acréscimo</span>`:''}</td><td>${esc(nomeDe(C().formas,p.formaId,'—'))}</td>
+      <td class="mut">${p.alocacoes.length} parcela(s)${+p.acrescimo>0.005?` <span class="bd" style="border-color:var(--laranja);color:var(--laranja)">+${fmt(p.acrescimo)} acréscimo</span>`:''}${+p.credito>0.005?` <span class="bd ok">+${fmt(p.credito)} virou crédito</span>`:''}</td><td>${p.doCredito?'<span class="bd ok">crédito dela</span>':esc(nomeDe(C().formas,p.formaId,'—'))}</td>
       <td class="num"><b class="pos">${fmt(p.valor)}</b></td>
       <td class="acoes"><button class="bt mini" onclick="cliqueDesfazerPagamento('${p.id}')">↩ Desfazer</button></td></tr>`).join('');
     pagosHtml=`<div class="painel" id="fiadoPagos" style="border-color:var(--verde)">
@@ -7696,7 +7775,9 @@ function abrirMenuFiado(nEnc,btn){
   const c=dados.clientes.find(x=>x.nome===n);
   const item=(acao,ic,rot)=>`<button type="button" role="menuitem" onclick="acaoFiado('${acao}')"><span class="ic-emoji" aria-hidden="true">${ic}</span><span>${rot}</span></button>`;
   m.innerHTML=`<div class="menu-cab">${esc(n)}</div>
-    ${item('copiar','📋','Copiar cobrança')}${item('recibo','🧾','Recibo (imagem)')}${item('desconto','🏷️','Dar desconto')}${item('parcelar','📆','Parcelar tudo')}
+    ${item('copiar','📋','Copiar cobrança')}${item('recibo','🧾','Recibo (imagem)')}${item('desconto','🏷️','Dar desconto')}${item('parcelar','⚖','Dividir em parcelas iguais')}
+    ${item('obs','📝','Observação interna')}${vendasSoltasDe(n).length?item('editar','✎','Editar as parcelas de uma compra'):''}
+    ${Object.keys(planosDoCliente(n)).length?item('desfazer','↩','Desfazer o parcelamento'):''}
     ${item('diapaga','💰',c&&diaPagaDe(c)?'Dia que paga: '+esc(diaPagaTexto(c).replace(/^paga /,'')):'Anotar o dia que ela paga')}
     ${c?item('historico','👤','Histórico do cliente'):''}`;
   m.hidden=false;$('menuProdutoFundo').hidden=false;
@@ -7710,6 +7791,9 @@ function acaoFiado(acao){
   else if(acao==='recibo')abrirReciboFiado(nEnc);
   else if(acao==='desconto')abrirDescontoFiado(nEnc);
   else if(acao==='parcelar')abrirPlano(nEnc);
+  else if(acao==='obs')obsFiadoCliente(n);
+  else if(acao==='editar')editarParcelasCliente(n);
+  else if(acao==='desfazer'){const pid=Object.keys(planosDoCliente(n))[0];if(pid)cliqueDesfazerPlano(nEnc,pid);}
   else if(acao==='diapaga')editarDiaPaga(n);
   else if(acao==='historico'){const c=dados.clientes.find(x=>x.nome===n);if(c)detalheCliente(c.id);}
 }
@@ -7865,7 +7949,14 @@ function montarReceber(cliente,sel){
   const cp=canalPadrao();if(cp)$('rCanal').value=cp.id;
   $('rParcCartao').innerHTML=Array.from({length:MAX_PARC_CARTAO},(_,i)=>`<option value="${i+1}">${i+1}x${i===0?' (à vista)':''}</option>`).join('');
   rCanalMudou();
-  $('rCliente').innerHTML='Cliente: <b>'+esc(cliente)+'</b>';
+  $('rCliente').innerHTML='Cliente: <b>'+esc(cliente)+'</b>'+(creditoDe(cliente)>0.005?' · <span class="bd ok">já tem '+fmt(creditoDe(cliente))+' de crédito</span>':'');
+  // atalhos (docx V15, item 8): a próxima parcela e a conta inteira
+  const px=parcelasAbertasDoCliente(cliente).find(g=>g.itens.some(x=>parcs.some(y=>y.p===x.p)));
+  const at=[];
+  if(px&&Math.abs(px.valor-total)>0.005)at.push(['próxima parcela',px.valor]);
+  at.push([parcs.length>1?'a conta inteira':'o valor todo',total]);
+  $('rAtalhos').innerHTML=at.map(([r,v])=>`<button type="button" class="bt mini" onclick="$('rValor').value=${v};rPreview()">${r} · ${fmt(v)}</button>`).join('');
+  document.querySelectorAll('input[name="rSobra"]').forEach(x=>{x.checked=x.value==='credito';});
   $('rItens').innerHTML=parcs.map(x=>`<div style="display:flex;gap:.5rem;justify-content:space-between"><span>${fmtData(x.v.data)} — ${esc(resumoItens(x.v))}${x.p.venc?' (vence '+fmtData(x.p.venc)+')':''}</span><b>${fmt(parcAberto(x.p))}</b></div>`).join('');
   $('rLiquido').value='';$('rTotal').value=fmt(total);$('rValor').value=total;$('rDesc').value='';$('rData').value=hoje();
   rDataMudou();rPreview();dlgReceber.showModal();
@@ -7913,7 +8004,11 @@ function rPreview(){
   else fim='';
   if(sobra>0.005)fim+=`<br><b class="neg">Continua devendo ${fmt(sobra)}</b>`;
   else fim+='<br><b class="pos">Quita tudo o que foi selecionado ✓</b>';
-  if(acresc>0.005)fim+=`<br><b style="color:var(--laranja)">+ ${fmt(acresc)} de acréscimo</b> <span class="mut">— entra no caixa e como <b>outra receita</b>, sem virar crédito do cliente.</span>`;
+  // pagou a mais (docx V15, item 8): a pessoa escolhe — crédito para a próxima compra ou acréscimo
+  const sb=$('rSobraBox');if(sb){sb.hidden=!(acresc>0.005);const t=$('rSobraTit');if(t)t.textContent='Ela pagou '+fmt(acresc)+' a mais do que devia. O que fazer com a diferença?';}
+  if(acresc>0.005)fim+=sobraComoCredito()
+    ?`<br><b class="pos">+ ${fmt(acresc)} vira crédito</b> <span class="mut">— desconta sozinho da próxima compra dela no fiado.</span>`
+    :`<br><b style="color:var(--laranja)">+ ${fmt(acresc)} de acréscimo</b> <span class="mut">— entra no caixa e como <b>outra receita</b>; não vira crédito, não volta para ela.</span>`;
   // atalho: faltando pouco, oferece perdoar o resto em vez de deixar centavos em aberto
   if(sobra>0.005&&desc<=0.005)fim+=`<br><a href="#" onclick="event.preventDefault();$('rDesc').value=${sobra};rPreview()" class="mut" style="font-size:.8rem">↳ perdoar os ${fmt(sobra)} que faltam (dar de desconto)</a>`;
   $('rPrev').innerHTML=(linhas.length?linhas.join(' · '):'—')+fim;
@@ -7940,8 +8035,9 @@ function confirmarReceber(){
     avisar('Digite quanto vai cair na conta: é o valor que o app da maquininha mostra para este pagamento.',{titulo:'Falta o valor que cai'});
     return;
   }
-  const acresc=r2(Math.max(0,val-total));
+  let acresc=r2(Math.max(0,val-total)),credito=0;
   if(val>total)val=total;
+  if(acresc>0.005&&sobraComoCredito()){credito=acresc;acresc=0;}
   // as perguntas são caixas do painel: cada "sim" segue para a próxima etapa
   const passoDesconto=seguir=>desc>0.005
     ?confirmar('Dar '+fmt(desc)+' de desconto para '+receberCtx.cliente+'?\nEsse valor sai da dívida sem entrar no caixa — entra no resultado como perda.',
@@ -7952,13 +8048,14 @@ function confirmarReceber(){
     ?confirmar('O cliente deve '+fmt(total)+' e você digitou '+fmt(r2(val+acresc))+'.\n\n'+fmt(acresc)+' vai entrar como ACRÉSCIMO (outra receita), não como crédito do cliente.',
       {titulo:'Valor maior que a dívida',ok:'Está certo'},seguir)
     :seguir();
-  passoDesconto(()=>passoAcrescimo(()=>gravarReceber(data,formaId,parcs,val,desc,acresc)));
+  passoDesconto(()=>passoAcrescimo(()=>gravarReceber(data,formaId,parcs,val,desc,acresc,credito)));
 }
-function gravarReceber(data,formaId,parcs,val,desc,acresc){
+function sobraComoCredito(){const x=document.querySelector('input[name="rSobra"]:checked');return !x||x.value==='credito';}
+function gravarReceber(data,formaId,parcs,val,desc,acresc,credito){
   const usa=formaUsaCanal(formaId),fSel=formaDe(formaId)||{};
   const pg=val>0?aplicarPagamento(receberCtx.cliente,parcs,val,data,formaId,usa?$('rCanal').value:null,
     usa?($('rBandeira').value||null):null,(usa&&fSel.tipoCartao==='credito')?(parseInt($('rParcCartao').value)||1):1,acresc,
-    usa?numDigitado($('rLiquido').value):null):null;
+    usa?numDigitado($('rLiquido').value):null,credito||0):null;
   // o desconto entra DEPOIS do dinheiro: assim o pagamento abate as compras mais
   // antigas normalmente e o perdão limpa só o que sobrou
   const dsc=desc>0.005?aplicarDescontoFiado(receberCtx.cliente,parcelasDoCtx(),desc,data,'',pg?pg.id:null):null;
@@ -7967,13 +8064,14 @@ function gravarReceber(data,formaId,parcs,val,desc,acresc){
   const partes=[];
   if(pg)partes.push('Recebido '+fmt(pg.valor));
   if(dsc)partes.push(fmt(dsc.valor)+' de desconto');
-  toast(partes.join(' · ')+' — '+esc(receberCtx.cliente)+(acresc>0.005?' (inclui '+fmt(acresc)+' de acréscimo)':'')+' ✓');
+  toast(partes.join(' · ')+' — '+esc(receberCtx.cliente)+(acresc>0.005?' (inclui '+fmt(acresc)+' de acréscimo)':'')
+    +(credito>0.005?' — '+fmt(credito)+' ficou de crédito para ela':'')+' ✓');
 }
 /* abate o valor nas parcelas (mais antigas primeiro) e lança no caixa.
    acrescimo = quanto o cliente pagou A MAIS do que devia (arredondou pra cima).
    Entra no caixa junto e conta como OUTRA RECEITA no DRE — não vira crédito dele. */
-function aplicarPagamento(cliente,parcs,valor,data,formaId,canalId,bandeiraId,parcelasCartao,acrescimo,liquido){
-  let rest=r2(valor);const alocacoes=[];const acresc=r2(Math.max(0,+acrescimo||0));
+function aplicarPagamento(cliente,parcs,valor,data,formaId,canalId,bandeiraId,parcelasCartao,acrescimo,liquido,credito){
+  let rest=r2(valor);const alocacoes=[];const acresc=r2(Math.max(0,+acrescimo||0)),cred=r2(Math.max(0,+credito||0));
   parcs.forEach(x=>{
     if(rest<=0.005)return;
     const ab=parcAberto(x.p),usa=r2(Math.min(ab,rest));
@@ -7986,10 +8084,10 @@ function aplicarPagamento(cliente,parcs,valor,data,formaId,canalId,bandeiraId,pa
   if(aplicado<=0.005)return null;
   const pgId=novoId();
   // o caixa (e a taxa do cartão) enxergam o valor CHEIO que o cliente pagou
-  const bruto=r2(aplicado+acresc);
+  const bruto=r2(aplicado+acresc+cred);
   const r=registrarEntrada({data,valor:bruto,formaId,canalId:canalId||null,bandeiraId:bandeiraId||null,parcelasCartao:parcelasCartao||1,liquido:liquido==null?null:liquido,
-    descricao:'Recebimento fiado — '+cliente+(acresc>0.005?' (inclui '+fmt(acresc)+' de acréscimo)':''),origem:'fiado',refId:pgId});
-  const pg={id:pgId,seq:novaSeq(),data,clienteNome:cliente,valor:bruto,aplicado,acrescimo:acresc,formaId,canalId:canalId||null,bandeiraId:bandeiraId||null,
+    descricao:'Recebimento fiado — '+cliente+(acresc>0.005?' (inclui '+fmt(acresc)+' de acréscimo)':'')+(cred>0.005?' (inclui '+fmt(cred)+' de crédito para a próxima compra)':''),origem:'fiado',refId:pgId});
+  const pg={id:pgId,seq:novaSeq(),data,clienteNome:cliente,valor:bruto,aplicado,acrescimo:acresc,credito:cred,formaId,canalId:canalId||null,bandeiraId:bandeiraId||null,
     lancId:r.lancId,lancTaxaId:r.lancTaxaId,recebivelId:r.recebivelId,alocacoes};
   if(!dados.pagamentosFiado)dados.pagamentosFiado=[];
   dados.pagamentosFiado.push(pg);
@@ -8008,6 +8106,39 @@ function desfazerPagamento(id){
   if(pg.recebivelId)removerRecebivel(pg.recebivelId);
   desfazerDescontosDoPagamento(id);
   dados.pagamentosFiado=dados.pagamentosFiado.filter(x=>x.id!==id);
+  // desfez um pagamento que tinha virado crédito, e o crédito já foi usado: o uso sai também
+  // (a compra que ele pagou volta a ficar em aberto — senão o crédito ficaria negativo)
+  if(+pg.credito>0.005){
+    let falta=r2(-creditoBruto(pg.clienteNome));
+    const usos=(dados.pagamentosFiado||[]).filter(x=>x.doCredito&&x.clienteNome===pg.clienteNome).sort(cmpDataDesc(gD,gId));
+    for(const u of usos){if(falta<=0.005)break;falta=r2(falta-(+u.valor||0));desfazerPagamento(u.id);}
+  }
+}
+/* ---- crédito da cliente (docx V15, item 8) ----
+   Pagou a mais e escolheu "crédito": o que passou fica guardado (pg.credito) e desconta sozinho
+   da próxima compra no fiado (um "pagamento" doCredito, sem dinheiro novo entrando no caixa —
+   o dinheiro já tinha entrado no dia em que ela pagou a mais). */
+function creditoBruto(nome){
+  let c=0;(dados.pagamentosFiado||[]).forEach(p=>{if(p.clienteNome!==nome)return;c+=(+p.credito||0);if(p.doCredito)c-=(+p.valor||0);});
+  return r2(c);
+}
+function creditoDe(nome){return Math.max(0,creditoBruto(nome));}
+function usarCreditoNaVenda(v){
+  const nome=v&&v.clienteNome;if(!nome||!v.receber)return null;
+  const cred=creditoDe(nome);if(cred<=0.005)return null;
+  let rest=r2(Math.min(cred,recAberto(v)));if(rest<=0.005)return null;
+  const alocacoes=[],data=v.data||hoje();
+  recParcelas(v).filter(p=>!parcPago(p)).sort((a,b)=>(a.venc||'9999')<(b.venc||'9999')?-1:1).forEach(p=>{
+    if(rest<=0.005)return;
+    const usa=r2(Math.min(parcAberto(p),rest));
+    p.recebido=r2((+p.recebido||0)+usa);sincParc(p);if(p.pago)p.pagoEm=data;
+    alocacoes.push({vendaId:v.id,parcelaId:p.id,valor:usa});rest=r2(rest-usa);
+  });
+  const valor=r2(alocacoes.reduce((s,a)=>s+a.valor,0));if(valor<=0.005)return null;
+  const pg={id:novoId(),seq:novaSeq(),data,clienteNome:nome,valor,aplicado:valor,acrescimo:0,doCredito:true,formaId:null,lancId:null,alocacoes};
+  if(!dados.pagamentosFiado)dados.pagamentosFiado=[];
+  dados.pagamentosFiado.push(pg);
+  return pg;
 }
 function cliqueDesfazerPagamento(id){
   const pg=(dados.pagamentosFiado||[]).find(x=>x.id===id);if(!pg)return;
@@ -8094,12 +8225,38 @@ function pagamentosSoltos(){
     const caso=Math.abs(S-T)<0.02&&recAberto(v)>=O-0.02?'abater':Math.abs(S+O-T)<0.02?'historico':'conferir';
     itens.forEach(x=>out.push(Object.assign(x,{v,caso})));
   });
+  /* 'esquecido' (caso real da Lara, backup de 10/11/2026): a parcela EXISTE e o pagamento aponta
+     para ela, mas ela ficou com "recebido" menor do que os pagamentos dizem — o dinheiro entrou no
+     caixa em 23/10 e a compra seguia "vence hoje". Um aparelho desatualizado tinha regravado a venda
+     antiga por cima (ver a correção da volta para a tela, v33). Conserto: devolve à parcela o que
+     falta, sem mexer nas alocações (elas já estavam certas). */
+  const somas=new Map();
+  [[dados.pagamentosFiado||[],'pagamento','recebido'],[descontosFiado(),'desconto','desconto']].forEach(([lista,tipo,campo])=>lista.forEach(r=>{
+    (r.alocacoes||[]).forEach(a=>{
+      const v=vendaPorId(a.vendaId);if(!v||!v.receber)return;
+      const p=recParcelas(v).find(x=>x.id===a.parcelaId);if(!p)return;
+      const k=v.id+'|'+p.id+'|'+campo;
+      if(!somas.has(k))somas.set(k,{v,p,tipo,campo,soma:0,r,a});
+      const s=somas.get(k);s.soma=r2(s.soma+(+a.valor||0));
+      if(String(r.data||'')>=String(s.r.data||''))Object.assign(s,{r,a});   // o mais recente explica a falta
+    });
+  }));
+  somas.forEach(s=>{
+    const falta=r2(s.soma-(+s.p[s.campo]||0)),cabe=Math.min(falta,parcAberto(s.p));
+    if(falta>0.009&&cabe>0.009)out.push({tipo:s.tipo,campo:s.campo,r:s.r,a:s.a,v:s.v,p:s.p,valor:r2(cabe),caso:'esquecido'});
+  });
   return out;
 }
 function consertarPagamentosSoltos(){
   let n=0;
   pagamentosSoltos().forEach(s=>{
     if(s.caso==='conferir')return;
+    if(s.caso==='esquecido'){
+      const usa=r2(Math.min(s.valor,parcAberto(s.p)));if(usa<=0.005)return;
+      s.p[s.campo]=r2((+s.p[s.campo]||0)+usa);sincParc(s.p);
+      if(s.p.pago&&s.campo==='recebido'){s.p.pagoEm=s.p.pagoEm||s.r.data||null;if(s.r.formaId)s.p.formaRecebId=s.p.formaRecebId||s.r.formaId;}
+      n++;return;
+    }
     const idx=s.r.alocacoes.indexOf(s.a);if(idx<0)return;
     let novas;
     if(s.caso==='abater')novas=espalharNaVenda(s.v,recParcelas(s.v),s.valor,s.campo,s.r.data,s.r.formaId,false).aloc;
@@ -8113,16 +8270,16 @@ function consertarPagamentosSoltos(){
   return n;
 }
 function avisoPagamentosSoltosHTML(){
-  const ss=pagamentosSoltos().filter(s=>s.tipo==='pagamento'&&s.caso==='abater');
+  const ss=pagamentosSoltos().filter(s=>s.tipo==='pagamento'&&(s.caso==='abater'||s.caso==='esquecido'));
   if(!ss.length)return '';
   const lista=ss.slice(0,4).map(s=>esc(s.v.clienteNome||'?')+' — '+fmt(s.valor)+' ('+fmtData(s.r.data).slice(0,5)+')').join(' · ');
   return `<div class="aviso-solto"><b>⚠️ ${ss.length===1?'Achei 1 pagamento que não está abatendo a dívida':'Achei '+ss.length+' pagamentos que não estão abatendo a dívida'}</b>
     <span>${lista}${ss.length>4?' · …':''}</span>
-    <span class="mut2">O dinheiro entrou, mas a compra continuava em aberto (acontecia quando a venda era editada depois do pagamento).</span>
+    <span class="mut2">O dinheiro entrou, mas a compra continuava em aberto (acontecia quando a venda era editada — ou regravada por um aparelho desatualizado — depois do pagamento).</span>
     <button class="bt mini primario" onclick="cliqueConsertarSoltos()">Consertar agora</button></div>`;
 }
 function cliqueConsertarSoltos(){
-  const ss=pagamentosSoltos().filter(s=>s.tipo==='pagamento'&&s.caso==='abater'),tot=r2(ss.reduce((s,x)=>s+x.valor,0));
+  const ss=pagamentosSoltos().filter(s=>s.tipo==='pagamento'&&(s.caso==='abater'||s.caso==='esquecido')),tot=r2(ss.reduce((s,x)=>s+x.valor,0));
   confirmar('Vou abater '+fmt(tot)+' das compras certas ('+ss.length+' pagamento'+(ss.length>1?'s':'')+'). O caixa não muda: o dinheiro já tinha entrado.',
     {titulo:'Consertar os pagamentos',ok:'Consertar'},()=>{
       const n=consertarPagamentosSoltos();salvar();renderTudo();toast(n?'Pronto: os pagamentos voltaram a abater a dívida ✓':'Nada para consertar.');
@@ -8802,22 +8959,23 @@ function desenharRecibo(spec){
 function specReciboFiado(nome,sel){
   const k=contaCobranca(nome,sel),dia=d=>fmtData(d);
   const um=k.itens.length===1?k.itens[0]:null;
-  const conta=[{e:'Total das compras',d:fmt(k.total)}];
-  if(k.pago>0.005)conta.push({e:'Já pago',d:'− '+fmt(k.pago),ok:true});
-  if(k.desc>0.005)conta.push({e:'Desconto',d:'− '+fmt(k.desc)});
-  conta.push({e:um?'Esta parcela':'Esta cobrança',d:'− '+fmt(k.valor)});
-  conta.push(k.depois>0.005?{e:'Depois desta, ainda falta',d:fmt(k.depois),tot:true}:{e:'Com esta, fica tudo pago',d:fmt(0),tot:true});
-  const secoes=[{tit:'Sua conta',linhas:conta}];
-  const lp=[];
-  k.planos.forEach(pl=>{if(pl.n<2)return;pl.grupos.forEach(g=>lp.push({e:(g.idx+1)+'ª · '+(g.venc?dia(g.venc):'sem data')
-    +(g.pago?' ✓ paga'+(g.pagoEm?' em '+dia(g.pagoEm).slice(0,5):''):g.esta?' ← esta':''),d:fmt(g.valor),ok:g.pago,forte:g.esta}));});
-  k.soltas.forEach(s=>{const parc=recParcelas(s.v);if(parc.length<2)return;parc.forEach((p,i)=>lp.push({e:(i+1)+'ª · '+(p.venc?dia(p.venc):'sem data')
-    +(parcPago(p)?' ✓ paga':s.ps.indexOf(p)>=0?' ← esta':'')+' · compra de '+dia(s.v.data).slice(0,5),d:fmt(+p.valor||0),ok:parcPago(p),forte:s.ps.indexOf(p)>=0}));});
-  if(lp.length)secoes.push({tit:'Parcelas',linhas:lp});
-  const pecas=k.compras.map(v=>{const its=itensCobrados(v),q=its.reduce((s,i)=>s+(+i.qtd||1),0);
+  /* docx V15, item 7: "no recibo só aparece a cobrança da próxima, mas deveria aparecer de todas
+     pendentes". A conta vem inteira — todas as parcelas, as pagas com ✓ e as desta cobrança com ← —
+     e as peças de todas as compras em aberto. */
+  const marc=new Set((sel&&sel.length?sel:selParcelasAbertas(nome)).map(s=>s.vid+':'+s.pid));
+  const ls=linhasDaConta(nome,'todos');
+  const conta=ls.map(o=>{const esta=!o.pago&&String(o.pids||'').split(',').some(x=>marc.has(x));
+    return {e:(o.venc?dia(o.venc).slice(0,5):'sem data')+' · '+o.curto+(o.pago?' ✓ paga'+(o.pagoEm?' em '+dia(o.pagoEm).slice(0,5):''):esta?' ← esta':''),
+      d:fmt(o.pago?o.valor:o.aberto),ok:o.pago,forte:esta};});
+  const aberto=r2(ls.filter(o=>!o.pago).reduce((s,o)=>s+o.aberto,0));
+  conta.push({e:'Total em aberto',d:fmt(aberto),tot:true});
+  const vs=new Map();vendasEmAbertoDe(nome).forEach(v=>vs.set(v.id,v));
+  Object.keys(planosDoCliente(nome)).forEach(pid=>vendasDoPlano(nome,pid).forEach(v=>vs.set(v.id,v)));
+  const compras=[...vs.values()].sort(cmpDataAsc(gD,gId));
+  const pecas=compras.map(v=>{const its=itensCobrados(v),q=its.reduce((s,i)=>s+(+i.qtd||1),0);
     return {e:dia(v.data).slice(0,5)+' · '+its.map(i=>nomeItem(i)+((+i.qtd||1)>1?' ('+i.qtd+'×)':'')).join(', ')+(q>1?' ('+q+' peças)':''),d:fmt(v.total)};});
-  if(pecas.length>1)pecas.push({e:'Total',d:fmt(r2(k.compras.reduce((s,v)=>s+(+v.total||0),0))),tot:true});
-  secoes.push({tit:'Peças',linhas:pecas});
+  if(pecas.length>1)pecas.push({e:'Total',d:fmt(r2(compras.reduce((s,v)=>s+(+v.total||0),0))),tot:true});
+  const secoes=[{tit:'Sua conta',linhas:conta},{tit:'Peças',linhas:pecas}];
   return {cliente:nomeNoRecibo(nome),destaque:{rot:'Esta cobrança',linha:um?um.rot+(um.venc?' · vence '+dia(um.venc):''):k.itens.length+' parcelas',valor:fmt(k.valor)},
     secoes,pix:(C().loja&&C().loja.pix)||'',arquivo:'recibo-'+nomeArquivoRecibo(nome)};
 }
@@ -10313,6 +10471,13 @@ a{color:inherit}
 .ck-erro{background:rgba(232,103,107,.12);border:1px solid var(--vermelho);color:var(--texto);border-radius:9px;padding:.55rem .7rem;font-size:.84rem;margin-bottom:.7rem}
 .ck-erro[hidden]{display:none}
 .ck-seguro{font-size:.74rem;color:var(--texto2);text-align:center;margin:.6rem 0 0}
+.ck-campo small{font-weight:400;color:var(--texto2)}
+.ck-pix-val{font-size:1.5rem;font-weight:800;text-align:center;margin:.2rem 0 .5rem}
+.ck-pix-qr{display:block;width:220px;max-width:70vw;height:auto;margin:0 auto .6rem;background:#fff;border-radius:10px;padding:8px}
+.ck-pix-cod{width:100%;font-family:monospace;font-size:.74rem;background:var(--fundo2,rgba(255,255,255,.05));color:inherit;border:1px solid var(--linha,rgba(255,255,255,.15));border-radius:8px;padding:.5rem;resize:none;margin-bottom:.5rem}
+.ck-pix-esp{text-align:center;font-size:.86rem;margin:.7rem 0 .4rem;color:var(--texto2)}
+.ck-pix-esp.ok{color:#2e9e5b;font-weight:700}
+#lgCartaoBrick{min-height:120px}
 .ped-ok{text-align:center;padding:.6rem 0 .2rem}
 .ped-ok .ic{font-size:2.6rem;line-height:1}
 .ped-ok h3{margin:.4rem 0 .2rem;font-size:1.2rem}
@@ -10484,6 +10649,7 @@ html.lg-esperando body::after{content:"";position:fixed;top:50%;left:50%;width:3
         <div class="ck-sec">Seus dados</div>
         <label class="ck-campo">Nome<input id="lgCkNome" autocomplete="name"></label>
         <label class="ck-campo">WhatsApp (com DDD)<input id="lgCkFone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 99999-9999"></label>
+        <label class="ck-campo" id="lgCkEmailBox" hidden>E-mail <small>(o comprovante vai para ele)</small><input id="lgCkEmail" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com"></label>
         <div class="ck-sec">Como você quer receber?</div>
         <div class="ck-opcoes" id="lgCkEntrega"></div>
         <div id="lgCkEndereco" hidden>
@@ -10496,8 +10662,28 @@ html.lg-esperando body::after{content:"";position:fixed;top:50%;left:50%;width:3
         <div class="ck-conta" id="lgCkConta"></div>
         <div class="ck-erro" id="lgCkErro" hidden></div>
         <button type="submit" class="btgrande" id="lgCkIr">Ir para o pagamento</button>
-        <p class="ck-seguro">🔒 O pagamento é feito na InfinitePay: Pix ou cartão em até 12x.</p>
+        <p class="ck-seguro" id="lgCkSeguro">🔒 O pagamento é feito na InfinitePay: Pix ou cartão em até 12x.</p>
       </form>
+      <!-- Mercado Pago (docx V15, item 3): o Pix e o cartão aqui mesmo, sem sair da loja -->
+      <div id="lgCkPagar" hidden>
+        <div id="lgPixBox" hidden>
+          <div class="ck-sec">Pague com Pix</div>
+          <p class="ck-pix-val" id="lgPixValor"></p>
+          <img class="ck-pix-qr" id="lgPixQr" alt="QR code do Pix">
+          <p class="ck-sub">No app do banco: Pix → Pagar com QR code — ou copie o código:</p>
+          <textarea class="ck-pix-cod" id="lgPixCod" readonly rows="3"></textarea>
+          <button type="button" class="btgrande" id="lgPixCopiar">Copiar o código Pix</button>
+          <p class="ck-pix-esp" id="lgPixStatus">⏳ Esperando o pagamento… assim que cair, esta tela avisa sozinha.</p>
+        </div>
+        <div id="lgCartaoBox" hidden>
+          <div class="ck-sec">Pague com cartão</div>
+          <p class="ck-pix-val" id="lgCartaoValor"></p>
+          <div id="lgCartaoBrick"></div>
+        </div>
+        <div class="ck-erro" id="lgPagErro" hidden></div>
+        <button type="button" class="btgrande wpp secundario" id="lgPagVoltar">← voltar e mudar os dados</button>
+        <p class="ck-seguro">🔒 Pagamento processado pelo Mercado Pago. A loja não vê os dados do seu cartão.</p>
+      </div>
     </div>
   </div>
 </div>
@@ -11705,8 +11891,11 @@ var LOJA_APP = __LOJA_APP__;
   var ckEntrega="",ckPag="";
   function ck(){
     var c=CATALOGO.checkout,N=CATALOGO.nuvem;
-    return (c&&c.ativo&&c.handle&&CATALOGO.slug&&N&&N.url&&N.chave&&noSite())?c:null;
+    if(!(c&&c.ativo&&CATALOGO.slug&&N&&N.url&&N.chave&&noSite()))return null;
+    // Mercado Pago (V15, item 3) precisa da chave PÚBLICA; a InfinitePay, da InfiniteTag
+    return (c.provedor==="mp"?!!c.chavePublica:!!c.handle)?c:null;
   }
+  function ehMP(){var c=ck();return !!c&&c.provedor==="mp";}
   function postarJson(url,corpo,cab){
     var h={"Content-Type":"application/json"};for(var k in (cab||{}))h[k]=cab[k];
     return fetch(url,{method:"POST",cache:"no-store",headers:h,body:JSON.stringify(corpo)})
@@ -11744,12 +11933,15 @@ var LOJA_APP = __LOJA_APP__;
     for(i=0;i<ops.length;i++)h+=opcaoHTML("ent:"+ops[i].id,ckEntrega===ops[i].id,ops[i].rot,ops[i].sub,ops[i].taxa>0?"+ "+fmtR(ops[i].taxa):(ops[i].id==="entrega"?"grátis":""));
     $("lgCkEntrega").innerHTML=h;
     $("lgCkEndereco").hidden=ckEntrega!=="entrega";
-    var k=contaCheckout();
-    // promoção só no Pix: a cliente escolhe aqui (o preço do Pix vale pagando no Pix)
-    $("lgCkPagWrap").hidden=!k.pix;
-    if(k.pix){
-      var cp=contaDoPedido(k.pix.nome);
-      $("lgCkPag").innerHTML=opcaoHTML("pag:pix",ckPag==="pix","Pix","com o desconto do Pix",fmtR(cp.total))+
+    var k=contaCheckout(),mpOn=ehMP();
+    $("lgCkEmailBox").hidden=!mpOn;
+    $("lgCkSeguro").textContent=mpOn?"🔒 Pagamento pelo Mercado Pago, aqui mesmo: Pix ou cartão em até 12x.":"🔒 O pagamento é feito na InfinitePay: Pix ou cartão em até 12x.";
+    // promoção só no Pix: a cliente escolhe aqui (o preço do Pix vale pagando no Pix).
+    // No Mercado Pago a escolha aparece sempre: o Pix e o cartão são telas diferentes.
+    $("lgCkPagWrap").hidden=!(k.pix||mpOn);
+    if(k.pix||mpOn){
+      var cp=k.pix?contaDoPedido(k.pix.nome):k.normal;
+      $("lgCkPag").innerHTML=opcaoHTML("pag:pix",ckPag==="pix","Pix",k.pix?"com o desconto do Pix":"aprovado na hora",fmtR(cp.total))+
         opcaoHTML("pag:cartao",ckPag==="cartao","Cartão de crédito","em até 12x",fmtR(k.normal.total));
     }else ckPag="";
     var L="";
@@ -11763,8 +11955,15 @@ var LOJA_APP = __LOJA_APP__;
   function erroCk(t){var e=$("lgCkErro");e.textContent=t||"";e.hidden=!t;if(t)try{e.scrollIntoView({block:"nearest"});}catch(x){}}
   function abrirCheckout(){
     if(!ck()||!carrinho.length)return;
+    // um Pix já gerado e ainda esperando (a cliente fechou a tela): volta direto para ele
+    var pq=pendMP();
+    if(pq&&pq.pix&&pq.pag==="pix"&&Date.now()-pq.em<30*60000){
+      fecharCarrinho("troca");$("lgCheckoutOverlay").classList.add("show");abrirCamada("checkout");mostrarPix(pq);return;
+    }
+    vistaPagar(false);
     try{var g=JSON.parse(localStorage.getItem(CHAVE_CKD)||"null");
       if(g){$("lgCkNome").value=$("lgCkNome").value||g.nome||"";$("lgCkFone").value=$("lgCkFone").value||g.fone||"";
+        $("lgCkEmail").value=$("lgCkEmail").value||g.email||"";
         var e=g.end||{};$("lgCkCep").value=e.cep||"";$("lgCkRua").value=e.rua||"";$("lgCkNum").value=e.numero||"";
         $("lgCkComp").value=e.complemento||"";$("lgCkBairro").value=e.bairro||"";$("lgCkCidade").value=e.cidade||"";}}catch(x){}
     erroCk("");$("lgCkIr").disabled=false;$("lgCkIr").textContent="Ir para o pagamento";
@@ -11774,6 +11973,7 @@ var LOJA_APP = __LOJA_APP__;
   }
   function fecharCheckout(modo){
     $("lgCheckoutOverlay").classList.remove("show");
+    if(typeof mpEspera!=="undefined"&&mpEspera){clearInterval(mpEspera);mpEspera=null;}
     if(modo!=="voltar"&&modo!=="troca")soltarCamada();
   }
   $("lgBtFinalizar").addEventListener("click",abrirCheckout);
@@ -11804,11 +12004,13 @@ var LOJA_APP = __LOJA_APP__;
         complemento:$("lgCkComp").value.trim(),bairro:$("lgCkBairro").value.trim(),cidade:$("lgCkCidade").value.trim()};
       if(!end.rua||!end.numero||!end.bairro)erro="Para a entrega, preencha rua, número e bairro.";
     }
-    if(!erro&&k.pix&&!ckPag)erro="Escolha se vai pagar no Pix ou no cartão.";
+    var email=$("lgCkEmail").value.trim();
+    if(!erro&&ehMP()&&!/^[^@ ]+@[^@ ]+[.][^@ ]+$/.test(email))erro="Escreva o seu e-mail — o Mercado Pago manda o comprovante para ele.";
+    if(!erro&&(k.pix||ehMP())&&!ckPag)erro="Escolha se vai pagar no Pix ou no cartão.";
     if(!erro&&!(k.total>=1))erro="O pedido precisa ser de pelo menos R$ 1,00.";
     if(erro){erroCk(erro);return;}
     erroCk("");
-    try{localStorage.setItem(CHAVE_CKD,JSON.stringify({nome:nome,fone:$("lgCkFone").value.trim(),end:end||undefined}));}catch(x){}
+    try{localStorage.setItem(CHAVE_CKD,JSON.stringify({nome:nome,fone:$("lgCkFone").value.trim(),email:email||undefined,end:end||undefined}));}catch(x){}
     var bt=$("lgCkIr");bt.disabled=true;bt.textContent="Abrindo o pagamento…";
     var itens=[],i;
     for(i=0;i<k.c.itens.length;i++){var it=k.c.itens[i];itens.push({id:it.id,nome:it.nome,tamanho:it.tamanho||"",qtd:it.qtd,preco:it.preco});}
@@ -11816,6 +12018,7 @@ var LOJA_APP = __LOJA_APP__;
       subtotal:k.c.subtotal,cupom:k.c.cupom?{codigo:k.c.cupom.codigo,desconto:k.c.desconto}:null,
       frete:k.frete,total:k.total,pagamento:ckPag||"",pecas:k.c.pecas};
     var N=CATALOGO.nuvem,c=ck();
+    if(c.provedor==="mp"){bt.disabled=false;bt.textContent="Ir para o pagamento";pagarNoMP(dados,nome,email,k);return;}
     postarJson(N.url+"/rest/v1/rpc/criar_pedido",{p_loja:CATALOGO.slug,p_dados:dados},{apikey:N.chave})
     .then(function(p){
       if(!p||!p.id)throw new Error(p&&p.erro==="muitos"?"muitos":"pedido");
@@ -11835,6 +12038,131 @@ var LOJA_APP = __LOJA_APP__;
     });
   }
   $("lgCkForm").addEventListener("submit",function(e){e.preventDefault();irParaPagamento();});
+  /* ---- Mercado Pago na própria loja (docx V15, item 3) ----
+     Pix: a função do servidor (loja-pagamento) cria o Pix e devolve o QR; a loja mostra e
+     pergunta a cada 4 s se caiu. Cartão: o formulário do próprio Mercado Pago (Card Payment
+     Brick) aparece aqui dentro e troca os dados do cartão por um código de uso único — a loja
+     e o servidor nunca veem o número do cartão. Quem diz "pago" é o Mercado Pago. */
+  var mpEspera=null,mpTentativa=null;
+  function urlPagamento(){return CATALOGO.nuvem.url+"/functions/v1/loja-pagamento";}
+  function chamarPagamento(corpo){return postarJson(urlPagamento(),corpo,{apikey:CATALOGO.nuvem.chave});}
+  function pendMP(){try{var p=JSON.parse(localStorage.getItem(CHAVE_PEND)||"null");return p&&p.mp?p:null;}catch(e){return null;}}
+  function guardarPendMP(p){try{localStorage.setItem(CHAVE_PEND,JSON.stringify(p));}catch(e){}}
+  function vistaPagar(on,qual){
+    $("lgCkForm").hidden=!!on;$("lgCkPagar").hidden=!on;
+    $("lgPixBox").hidden=qual!=="pix";$("lgCartaoBox").hidden=qual!=="cartao";
+    erroPag("");
+  }
+  function erroPag(t){var e=$("lgPagErro");e.textContent=t||"";e.hidden=!t;}
+  function motivoErroMP(r){
+    var m=r&&r.erro;
+    return m==="muitos"?"Muitos pedidos seguidos deste aparelho. Espere alguns minutos e tente de novo.":
+      m==="email"?"Confira o seu e-mail.":
+      m==="pedido"?"Os preços da loja mudaram enquanto você montava o pedido. Feche e abra o pedido de novo, por favor.":
+      "Não consegui abrir o pagamento agora. Tente de novo em instantes — ou combine pelo WhatsApp.";
+  }
+  function pagarNoMP(dados,nome,email,k){
+    var bt=$("lgCkIr"),pend=pendMP(),reaproveita=pend&&mpTentativa&&pend.id===mpTentativa?{id:pend.id,token:pend.token}:null;
+    var base={id:null,numero:null,token:null,total:k.total,em:Date.now(),nome:nome,entrega:ckEntrega,pag:ckPag,pecas:k.c.pecas,mp:true};
+    if(ckPag==="cartao"){abrirCartao(dados,nome,email,k,base,reaproveita);return;}
+    bt.disabled=true;bt.textContent="Gerando o Pix…";
+    chamarPagamento({acao:"pix",loja:CATALOGO.slug,dados:dados,payer:{email:email,nome:nome},pedido:reaproveita})
+    .then(function(r){
+      bt.disabled=false;bt.textContent="Ir para o pagamento";
+      if(!r||!r.id||!r.pix||!r.pix.qr_code){erroCk(motivoErroMP(r));return;}
+      base.id=r.id;base.numero=r.numero;base.token=r.token;base.pix=r.pix;mpTentativa=r.id;
+      guardarPendMP(base);mostrarPix(base);
+    }).catch(function(){bt.disabled=false;bt.textContent="Ir para o pagamento";erroCk(motivoErroMP(null));});
+  }
+  function mostrarPix(p){
+    vistaPagar(true,"pix");
+    $("lgPixValor").textContent=fmtR(p.total)+" · pedido nº "+p.numero;
+    $("lgPixQr").src=p.pix.qr_code_base64?"data:image/png;base64,"+p.pix.qr_code_base64:"";
+    $("lgPixQr").hidden=!p.pix.qr_code_base64;
+    $("lgPixCod").value=p.pix.qr_code||"";
+    $("lgPixStatus").className="ck-pix-esp";$("lgPixStatus").textContent="⏳ Esperando o pagamento… assim que cair, esta tela avisa sozinha.";
+    acompanharMP(p);
+  }
+  $("lgPixCopiar").addEventListener("click",function(){
+    var t=$("lgPixCod").value,ok=function(){avisoLoja("Código Pix copiado — cole no app do banco",true);};
+    try{navigator.clipboard.writeText(t).then(ok,function(){$("lgPixCod").select();try{document.execCommand("copy");}catch(e){}ok();});}
+    catch(e){$("lgPixCod").select();try{document.execCommand("copy");}catch(x){}ok();}
+  });
+  $("lgPagVoltar").addEventListener("click",function(){
+    if(mpEspera){clearInterval(mpEspera);mpEspera=null;}
+    try{var pp=pendMP();if(pp){delete pp.pix;guardarPendMP(pp);}}catch(e){}
+    vistaPagar(false);renderCheckout();
+  });
+  /* pergunta ao servidor (que pergunta ao Mercado Pago) a cada 4 s, por até 30 min */
+  function acompanharMP(p){
+    if(mpEspera)clearInterval(mpEspera);
+    var ini=Date.now();
+    mpEspera=setInterval(function(){
+      if(Date.now()-ini>30*60000){clearInterval(mpEspera);mpEspera=null;
+        $("lgPixStatus").textContent="O código venceu. Toque em voltar para gerar outro.";return;}
+      chamarPagamento({acao:"status",id:p.id,token:p.token}).then(function(r){
+        if(r&&r.status==="pago"){clearInterval(mpEspera);mpEspera=null;concluirMP(p);}
+        else if(r&&r.status==="expirado"){clearInterval(mpEspera);mpEspera=null;
+          $("lgPixStatus").textContent="O código venceu. Toque em voltar para gerar outro.";}
+      }).catch(function(){});
+    },4000);
+  }
+  function concluirMP(p){
+    carrinho=[];salvarCarrinho();atualizarFab();
+    cupomAplicado="";try{localStorage.removeItem(CHAVE_PEND);localStorage.removeItem(CHAVE_CUPOM);localStorage.removeItem(CHAVE_CUPOM_REGRA);}catch(e){}
+    mpTentativa=null;
+    $("lgCheckoutOverlay").classList.remove("show");soltarCamada();vistaPagar(false);
+    mostrarPedidoOk(p,{capture_method:p.pag==="pix"?"pix":"credit_card",receipt_url:""},true);
+  }
+  /* cartão: o formulário do Mercado Pago (o script dele só carrega quando a cliente escolhe cartão) */
+  function carregarSdkMP(){
+    return new Promise(function(ok,falha){
+      if(window.MercadoPago)return ok();
+      var s=document.createElement("script");s.src="https://sdk.mercadopago.com/js/v2";
+      s.onload=function(){window.MercadoPago?ok():falha(new Error("sdk"));};s.onerror=function(){falha(new Error("sdk"));};
+      document.head.appendChild(s);
+    });
+  }
+  var brickCartao=null;
+  function abrirCartao(dados,nome,email,k,base,reaproveita){
+    var bt=$("lgCkIr");bt.disabled=true;bt.textContent="Abrindo o cartão…";
+    carregarSdkMP().then(function(){
+      bt.disabled=false;bt.textContent="Ir para o pagamento";
+      vistaPagar(true,"cartao");
+      $("lgCartaoValor").textContent=fmtR(k.total);
+      try{if(brickCartao&&brickCartao.unmount)brickCartao.unmount();}catch(e){}
+      $("lgCartaoBrick").innerHTML="";
+      var mp=new window.MercadoPago(ck().chavePublica,{locale:"pt-BR"});
+      return mp.bricks().create("cardPayment","lgCartaoBrick",{
+        initialization:{amount:k.total,payer:{email:email}},
+        customization:{paymentMethods:{maxInstallments:12},visual:{style:{theme:"dark"}}},
+        callbacks:{
+          onReady:function(){},
+          onError:function(){erroPag("Não consegui carregar o formulário do cartão. Tente de novo — ou pague no Pix.");},
+          onSubmit:function(fd){
+            erroPag("");
+            return chamarPagamento({acao:"cartao",loja:CATALOGO.slug,dados:dados,payer:{email:(fd&&fd.payer&&fd.payer.email)||email,nome:nome},cartao:fd,pedido:reaproveita})
+            .then(function(r){
+              if(r&&r.id){base.id=r.id;base.numero=r.numero;base.token=r.token;mpTentativa=r.id;reaproveita={id:r.id,token:r.token};guardarPendMP(base);}
+              if(r&&r.status==="pago"){concluirMP(base);return;}
+              if(r&&r.status==="analise"){erroPag("O cartão está em análise no Mercado Pago. Assim que aprovar, a loja recebe o pedido e fala com você.");acompanharMP(base);return;}
+              erroPag(r&&r.status==="recusado"?"O cartão foi recusado. Confira os dados, tente outro cartão — ou volte e pague no Pix.":motivoErroMP(r));
+              throw new Error("recusado");
+            });
+          }
+        }
+      }).then(function(b){brickCartao=b;});
+    }).catch(function(){
+      bt.disabled=false;bt.textContent="Ir para o pagamento";
+      erroCk("Não consegui abrir o pagamento com cartão agora. Pague no Pix ou tente de novo em instantes.");
+    });
+  }
+  /* voltou para a loja com um Pix ainda esperando: confere em segundo plano */
+  function retomarPendenteMP(){
+    var p=pendMP();if(!p||!p.id||Date.now()-p.em>24*3600000)return;
+    chamarPagamento({acao:"status",id:p.id,token:p.token}).then(function(r){if(r&&r.status==="pago")concluirMP(p);}).catch(function(){});
+  }
+
   /* a cliente voltou da InfinitePay (?pedido=ID&transaction_nsu=…) */
   function mensagemPedidoOk(pend,pagou,forma){
     var NL=String.fromCharCode(10);
@@ -11893,6 +12221,7 @@ var LOJA_APP = __LOJA_APP__;
 
   render();atualizarFab();
   tratarRetornoPagamento();
+  if(noSite())retomarPendenteMP();
   $("lgBtLink").hidden=!noSite();   // na prévia do painel não há endereço de verdade
 
   /* ---- app da loja no celular (V9) ----
@@ -12604,7 +12933,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-11-10 10:24';
+const VERSAO_APP='2026-11-10 15:48';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -15506,12 +15835,19 @@ function cfgCheckout(){return (C().loja&&C().loja.checkout)||{};}
 // InfiniteTag sem o "$" (é assim que a InfinitePay pede)
 function handleInfinite(h){return String(h||'').trim().replace(/^[$@]+/,'').toLowerCase().replace(/[^a-z0-9_.-]/g,'');}
 /* o que vai na vitrine para a loja montar o "Finalizar pedido" (part6, catalogoLoja) */
+/* quem recebe: Mercado Pago (docx V15, item 3 — Pix e cartão na própria loja) ou InfinitePay.
+   Config antiga, só com a InfiniteTag, continua na InfinitePay até a pessoa trocar. */
+function provedorCheckout(c){c=c||cfgCheckout();return c.provedor==='infinitepay'||c.provedor==='mp'?c.provedor:(c.handle?'infinitepay':'mp');}
+function chaveMPValida(k){return /^(APP_USR|TEST)-[0-9A-Za-z-]{20,}$/.test(String(k||'').trim());}
 function checkoutParaLoja(){
-  const c=cfgCheckout(),h=handleInfinite(c.handle);
-  if(!c.ativo||!h)return null;
-  return {ativo:true,handle:h,
+  const c=cfgCheckout(),prov=provedorCheckout(c),h=handleInfinite(c.handle),pk=String(c.chavePublica||'').trim();
+  if(!c.ativo)return null;
+  if(prov==='mp'?!chaveMPValida(pk):!h)return null;
+  const o={ativo:true,provedor:prov,
     retirada:{ativo:c.retirada!==false,texto:String(c.retiradaTexto||'').slice(0,120)},
     entrega:{ativo:!!c.entrega,taxa:Math.max(0,r2(+c.taxaEntrega||0)),texto:String(c.entregaTexto||'').slice(0,120)}};
+  if(prov==='mp')o.chavePublica=pk;else o.handle=h;
+  return o;
 }
 /* forma de pagamento em que o pedido do site entra quando vira venda */
 function formaDoSite(tipo){
@@ -15527,13 +15863,27 @@ function painelCheckout(){
   const c=cfgCheckout(),pode=podeEscrever('loja'),ligado=!!checkoutParaLoja();
   const fs=(C().formas||[]).filter(f=>!f.ehFiado);
   const opF=sel=>fs.map(f=>`<option value="${f.id}"${f.id===sel?' selected':''}>${esc(f.nome)}</option>`).join('');
+  const prov=provedorCheckout(c);
+  if(nuvemOn()&&!lojaOn().mpBuscou)setTimeout(()=>carregarContaMP(),0);
   return `<div class="painel ck-painel">
-    <h3>💳 Pagamento online na loja ${ajuda('A cliente escolhe as peças, diz como quer receber e paga no próprio site — Pix ou cartão, pela InfinitePay. O pedido chega aqui na aba Vendas e o dinheiro cai na sua conta da InfinitePay. O botão de mandar o pedido pelo WhatsApp continua lá para quem preferir.')}
+    <h3>💳 Pagamento online na loja ${ajuda('A cliente escolhe as peças, diz como quer receber e paga no próprio site — Pix ou cartão. O pedido chega na aba Pedidos e o dinheiro cai na sua conta (Mercado Pago ou InfinitePay). O botão de mandar o pedido pelo WhatsApp continua lá para quem preferir.')}
       ${ligado?'<span class="bd ok">ligado</span>':''}</h3>
     ${!nuvemOn()?'<p class="mut" style="font-size:.85rem">Disponível com a conta na nuvem — é lá que os pedidos ficam guardados.</p>':`
     <fieldset class="ck-campos"${pode?'':' disabled'}>
     <label class="linha" style="margin-bottom:.6rem"><input type="checkbox" id="ckAtivo" ${c.ativo?'checked':''}> <b>Deixar a cliente pagar no site</b></label>
-    <div class="fgrid">
+    <h4>Quem recebe o pagamento</h4>
+    <div class="ck-provs">
+      <label class="linha"><input type="radio" name="ckProv" value="mp" ${prov==='mp'?'checked':''} onchange="ckProvMudou()"> <span><b>Mercado Pago</b> — Pix e cartão aqui mesmo, na página da loja</span></label>
+      <label class="linha"><input type="radio" name="ckProv" value="infinitepay" ${prov==='infinitepay'?'checked':''} onchange="ckProvMudou()"> <span><b>InfinitePay</b> — a cliente vai para a página da InfinitePay</span></label>
+    </div>
+    <div id="ckMpBox"${prov==='mp'?'':' hidden'}>
+      <div class="ck-mp-conta" id="ckMpStatus">${statusContaMPHTML()}</div>
+      <div class="fgrid">
+        <label class="campo span2">Chave pública (Public Key) ${ajuda('No Mercado Pago: mercadopago.com.br/developers → Suas integrações → a sua aplicação → Credenciais de produção. A chave pública começa com APP_USR- e pode ficar na loja (é ela que mostra o formulário do cartão). O Access Token é outra coisa: é secreto e vai no botão "Conectar a conta".')}
+          <input id="ckChavePublica" value="${esc(c.chavePublica||'')}" placeholder="APP_USR-…" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+      </div>
+    </div>
+    <div class="fgrid" id="ckIpBox"${prov==='infinitepay'?'':' hidden'}>
       <label class="campo">Sua InfiniteTag ${ajuda('É o seu nome de usuário na InfinitePay, o que começa com $ (por exemplo $minhaloja). Aparece no app da InfinitePay, no seu perfil. Não é senha: serve só para o pagamento cair na sua conta.')}
         <input id="ckHandle" value="${esc(c.handle?'$'+handleInfinite(c.handle):'')}" placeholder="$minhaloja" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
     </div>
@@ -15545,7 +15895,7 @@ function painelCheckout(){
       <label class="campo">Taxa de entrega (R$) <input id="ckTaxa" inputmode="decimal" value="${+c.taxaEntrega>0?fmtNum(c.taxaEntrega):''}" placeholder="vazio = grátis"></label>
       <label class="campo span2">Recado da entrega <input id="ckEntTxt" value="${esc(c.entregaTexto||'')}" placeholder="ex.: só em Limeira, em até 2 dias úteis" maxlength="120"></label>
     </div>
-    <h4 style="margin-top:1rem">Quando o pedido vira venda ${ajuda('O pedido pago entra nesta forma de pagamento ao registrar a venda aqui no painel. O dinheiro do site cai na InfinitePay: se quiser separar no Financeiro, crie uma forma "Pix do site" ligada à conta da InfinitePay e escolha aqui.')}</h4>
+    <h4 style="margin-top:1rem">Quando o pedido vira venda ${ajuda('O pedido pago entra nesta forma de pagamento ao registrar a venda aqui no painel. O dinheiro do site cai na conta do Mercado Pago (ou da InfinitePay): se quiser separar no Financeiro, crie uma forma "Pix do site" ligada a essa conta e escolha aqui.')}</h4>
     <div class="fgrid">
       <label class="campo">Pix do site <select id="ckFormaPix">${opF(formaDoSite('pix'))}</select></label>
       <label class="campo">Cartão do site <select id="ckFormaCartao">${opF(formaDoSite('cartao'))}</select></label>
@@ -15553,8 +15903,64 @@ function painelCheckout(){
     </fieldset>
     ${pode?'<div class="rodape"><button class="bt primario" onclick="salvarCheckout()">Salvar</button></div>'
       :'<p class="mut" style="font-size:.8rem;margin-top:.6rem">Só quem pode alterar o Site da loja muda isto.</p>'}
-    <p class="mut" style="font-size:.76rem;margin-top:.6rem">Taxas: as da sua conta InfinitePay. O pedido precisa ser de pelo menos R$ 1,00.</p>`}
+    <p class="mut" style="font-size:.76rem;margin-top:.6rem">Taxas: as da sua conta no Mercado Pago (ou na InfinitePay). O pedido precisa ser de pelo menos R$ 1,00.</p>`}
   </div>`;
+}
+function ckProvMudou(){
+  const v=(document.querySelector('input[name="ckProv"]:checked')||{}).value;
+  if($('ckMpBox'))$('ckMpBox').hidden=v!=='mp';
+  if($('ckIpBox'))$('ckIpBox').hidden=v!=='infinitepay';
+}
+/* a conta do Mercado Pago está conectada? (supabase-mercadopago.sql → conta_mp_ligada) */
+async function carregarContaMP(forcar){
+  const L=lojaOn();
+  if(!nuvemOn())return 'nuvem';
+  if(L.mpCarregando)return 'ocupado';
+  if(L.mpBuscou&&!forcar)return true;
+  L.mpCarregando=true;
+  try{
+    try{await garantirToken();}catch(e){}
+    const r=await chamarApi('/rest/v1/rpc/conta_mp_ligada',{metodo:'POST',corpo:{p_loja:lojaId()}});
+    L.mp=r&&!r.erro?r:{ligada:false};L.mpSemSql=false;
+  }catch(e){
+    if(e&&e.status===404){L.mpSemSql=true;L.mp={ligada:false};}
+  }finally{L.mpCarregando=false;L.mpBuscou=true;}
+  const el=$('ckMpStatus');if(el)el.innerHTML=statusContaMPHTML();
+  return L.mpSemSql?'sem':true;
+}
+function statusContaMPHTML(){
+  const L=lojaOn(),m=L.mp,pode=souDono();
+  if(!L.mpBuscou)return '<span class="mut2">Conferindo a conta do Mercado Pago…</span>';
+  if(L.mpSemSql)return '<span class="mut2">O pagamento pelo Mercado Pago ainda não está liberado nesta conta.</span>';
+  if(m&&m.ligada)return `<span class="bd ok">✓ conta conectada</span> <span class="mut2">Access Token terminando em …${esc(m.final||'')}${m.teste?' (de TESTE — não cobra de verdade)':''}</span>
+    ${pode?`<button type="button" class="bt mini" onclick="conectarContaMP()">trocar</button> <button type="button" class="bt mini perigo" onclick="desconectarContaMP()">desconectar</button>`:''}`;
+  return `<span class="bd inv">conta não conectada</span> ${pode?`<button type="button" class="bt mini primario" onclick="conectarContaMP()">Conectar a conta do Mercado Pago</button>`:'<span class="mut2">só o dono da loja conecta</span>'}
+    ${ajuda('No Mercado Pago: mercadopago.com.br/developers → Suas integrações → Criar aplicação (pagamentos online, Checkout Transparente) → Credenciais de produção. Copie o Access Token (começa com APP_USR-) e cole aqui. Ele fica guardado no servidor, fechado — nem o painel mostra de volta.')}`;
+}
+function conectarContaMP(){
+  if(!souDono()){avisar('Só o dono da loja conecta a conta do Mercado Pago.');return;}
+  pedir({titulo:'Conectar o Mercado Pago',campos:[{id:'token',rotulo:'Access Token (começa com APP_USR-)',
+    dica:'fica guardado no servidor, fechado — nem o painel mostra de volta',valor:'',pergunta:'Access Token do Mercado Pago:'}],
+    validar:v=>/^(APP_USR|TEST)-[0-9A-Za-z-]{20,}$/.test(String(v.token||'').trim())?'':'Esse não parece um Access Token do Mercado Pago (começa com APP_USR-).'},async v=>{
+    try{
+      try{await garantirToken();}catch(e){}
+      const r=await chamarApi('/rest/v1/rpc/guardar_conta_mp',{metodo:'POST',corpo:{p_loja:lojaId(),p_token:String(v.token||'').trim()}});
+      if(r&&r.erro){avisar(r.erro==='so-dono'?'Só o dono da loja conecta a conta.':'O Mercado Pago não reconheceria esse token. Confira e cole de novo.',{titulo:'Não deu'});return;}
+      lojaOn().mp=r;const el=$('ckMpStatus');if(el)el.innerHTML=statusContaMPHTML();
+      toast('Conta do Mercado Pago conectada ✓'+(r&&r.teste?' (token de TESTE)':''));
+    }catch(e){avisar(e&&e.status===404?'O pagamento pelo Mercado Pago ainda não está liberado nesta conta.':'Não consegui guardar agora. Tente de novo.',{titulo:'Não deu'});}
+  });
+}
+function desconectarContaMP(){
+  confirmar('A loja deixa de receber pelo Mercado Pago até você conectar de novo. Os pedidos já feitos continuam aqui.',
+    {titulo:'Desconectar o Mercado Pago?',ok:'Desconectar',perigo:true},async()=>{
+      try{
+        try{await garantirToken();}catch(e){}
+        const r=await chamarApi('/rest/v1/rpc/guardar_conta_mp',{metodo:'POST',corpo:{p_loja:lojaId(),p_token:''}});
+        lojaOn().mp=r&&!r.erro?r:{ligada:false};const el=$('ckMpStatus');if(el)el.innerHTML=statusContaMPHTML();
+        toast('Mercado Pago desconectado');
+      }catch(e){avisar('Não consegui agora. Tente de novo.',{titulo:'Não deu'});}
+    });
 }
 /* o banco já tem a parte da loja online? (supabase-loja-online.sql) */
 async function conferirLojaOnline(){
@@ -15571,12 +15977,20 @@ async function conferirLojaOnline(){
 async function salvarCheckout(){
   if(!podeEscrever('loja'))return;
   const l=C().loja,ant=l.checkout||{};
-  const novo={ativo:$('ckAtivo').checked,handle:handleInfinite($('ckHandle').value),
+  const provSel=(document.querySelector('input[name="ckProv"]:checked')||{}).value||provedorCheckout(ant);
+  const novo={ativo:$('ckAtivo').checked,provedor:provSel,handle:handleInfinite($('ckHandle').value),
+    chavePublica:String(($('ckChavePublica')||{}).value||'').trim(),
     retirada:$('ckRet').checked,retiradaTexto:$('ckRetTxt').value.trim().slice(0,120),
     entrega:$('ckEnt').checked,taxaEntrega:Math.max(0,r2(numDigitado($('ckTaxa').value)||0)),
     entregaTexto:$('ckEntTxt').value.trim().slice(0,120),
     formaPix:$('ckFormaPix').value||'',formaCartao:$('ckFormaCartao').value||''};
-  if(novo.ativo&&!novo.handle){avisar('Escreva a sua InfiniteTag — o nome que começa com $ no app da InfinitePay.',{titulo:'Falta a InfiniteTag'});return;}
+  if(novo.ativo&&provSel==='infinitepay'&&!novo.handle){avisar('Escreva a sua InfiniteTag — o nome que começa com $ no app da InfinitePay.',{titulo:'Falta a InfiniteTag'});return;}
+  if(novo.ativo&&provSel==='mp'){
+    if(!chaveMPValida(novo.chavePublica)){avisar('Cole a chave pública do Mercado Pago (começa com APP_USR-). Ela fica em mercadopago.com.br/developers → Suas integrações → Credenciais de produção.',{titulo:'Falta a chave pública'});return;}
+    const cm=await carregarContaMP(true);
+    if(cm==='sem'){avisar('O pagamento pelo Mercado Pago ainda não está liberado nesta conta. Fale com o suporte do Caderneta.',{titulo:'Não deu para ligar'});return;}
+    if(!lojaOn().mp||!lojaOn().mp.ligada){avisar('Falta conectar a conta: toque em "Conectar a conta do Mercado Pago" e cole o Access Token.',{titulo:'Conta do Mercado Pago'});return;}
+  }
   if(novo.ativo&&!novo.retirada&&!novo.entrega){avisar('Marque pelo menos um jeito de a cliente receber: retirar com a loja ou entrega em casa.',{titulo:'Como a cliente recebe?'});return;}
   if(novo.ativo&&!ant.ativo){
     const ok=await conferirLojaOnline();
@@ -15596,7 +16010,7 @@ async function salvarCheckout(){
 function pedidosLigados(){
   if(!nuvemOn())return false;
   const c=cfgCheckout();
-  return !!(c.ativo||c.handle)&&podeLer('vendas');
+  return !!(c.ativo||c.handle||c.chavePublica)&&podeLer('vendas');
 }
 function pedidoPorId(id){return (lojaOn().pedidos||[]).find(p=>p.id===id);}
 function vendaDoPedido(p){
@@ -15612,7 +16026,7 @@ async function carregarPedidos(forcar){
     try{await garantirToken();}catch(e){}
     // os últimos 60 dias + os pagos que ainda não foram entregues (de qualquer data)
     const desde=isoAddDias(hoje(),-60);
-    const r=await chamarApi('/rest/v1/pedidos_online?select=id,numero,status,dados,pagamento,painel,criado,alterado'+
+    const r=await chamarApi('/rest/v1/pedidos_online?select=id,numero,token,status,dados,pagamento,painel,criado,alterado'+
       '&loja=eq.'+encodeURIComponent(lojaId())+'&or=(criado.gte.'+desde+',status.eq.pago)&order=criado.desc&limit=300');
     L.pedidos=Array.isArray(r)?r:[];L.erro='';L.semSql=false;
   }catch(e){
@@ -15633,14 +16047,35 @@ function pagoEmReais(v,total){
    (a loja anota quando a cliente volta do pagamento; o aviso automático da
    InfinitePay também). Pago e conferido → grava "pago" no banco. */
 async function conferirPagamentos(){
-  const L=lojaOn(),h=handleInfinite(cfgCheckout().handle);if(!h)return;
+  const L=lojaOn(),h=handleInfinite(cfgCheckout().handle);
   for(const p of (L.pedidos||[])){
     const pg=p.pagamento||{};
-    if(p.status!=='aguardando'||!pg.transaction_nsu||!pg.slug)continue;
+    if(p.status!=='aguardando')continue;
+    if(pg.provedor==='mp'){
+      if(!pg.mp_id||!p.token||Date.now()-(L.conferidoEm[p.id]||0)<120000)continue;
+      L.conferidoEm[p.id]=Date.now();
+      await conferirPedidoMP(p);
+      continue;
+    }
+    if(!h||!pg.transaction_nsu||!pg.slug)continue;
     if(Date.now()-(L.conferidoEm[p.id]||0)<120000)continue;   // no máximo 1× a cada 2 min
     L.conferidoEm[p.id]=Date.now();
     await conferirUmPagamento(p,h);
   }
+}
+/* Mercado Pago: a função do servidor pergunta lá e já grava "pago" no banco; aqui só relê */
+async function conferirPedidoMP(p){
+  try{
+    const resp=await fetch(NUVEM_URL+'/functions/v1/loja-pagamento',{method:'POST',cache:'no-store',
+      headers:{'Content-Type':'application/json',apikey:NUVEM_KEY},body:JSON.stringify({acao:'status',id:p.id,token:p.token})});
+    const r=await resp.json();
+    if(r&&r.status==='pago'){
+      const l=await chamarApi('/rest/v1/pedidos_online?select=status,pagamento&id=eq.'+encodeURIComponent(p.id));
+      if(Array.isArray(l)&&l[0])Object.assign(p,l[0]);else p.status='pago';
+      return true;
+    }
+  }catch(e){}
+  return false;
 }
 async function conferirUmPagamento(p,h){
   const pg=p.pagamento||{};let r=null;
@@ -15784,7 +16219,8 @@ function cartaoPedidoHTML(p){
       <span class="tot">${fmt(+d.total||0)}</span></header>
     <div class="info">${ent.tipo==='entrega'?'🚚 Entrega: '+esc(enderecoTexto(ent.endereco)||'endereço não informado'):'🏬 Retirar com a loja'}
       ${cli.telefone?' · 📱 '+esc(foneBonito(cli.telefone)):''}${conta.length?' · '+conta.join(' · '):''}</div>
-    ${conf.faltou>0?`<div class="info" style="color:var(--vermelho)">⚠️ A InfinitePay mostra ${fmt(conf.pago)} pagos — faltam ${fmt(conf.faltou)} do pedido.</div>`:''}
+    ${conf.faltou>0?`<div class="info" style="color:var(--vermelho)">⚠️ ${pg.provedor==='mp'?'O Mercado Pago':'A InfinitePay'} mostra ${fmt(conf.pago)} pagos — faltam ${fmt(conf.faltou)} do pedido.</div>`:''}
+    ${pg.estornado?`<div class="info" style="color:var(--vermelho)">⚠️ Este pagamento foi devolvido ou contestado no Mercado Pago — confira lá antes de entregar.</div>`:''}
     ${v?`<div class="info">✓ Venda registrada${v.data?' em '+fmtData(v.data):''}</div>`:''}
     <ul class="pecas">${pecas}</ul>
     ${pg.receipt_url&&/^https:\/\//i.test(pg.receipt_url)?`<div class="info"><a href="${esc(pg.receipt_url)}" target="_blank" rel="noopener">ver o comprovante da InfinitePay</a></div>`:''}
@@ -15854,7 +16290,8 @@ function registrarVendaDoPedido(id){
   $('vObs').value='Pedido online nº '+p.numero+((d.entrega||{}).tipo==='entrega'?' · entrega':' · retirada');
   renderItensVenda();recalcVenda();
   // cartão: falta só o "Vai cair na conta" (o app da InfinitePay mostra)
-  if(cartao)setTimeout(()=>{const x=$('vLiquido');if(x)x.focus();},120);
+  if(cartao&&conf.liquido!=null&&+conf.liquido>0&&$('vLiquido'))$('vLiquido').value=fmtNum(+conf.liquido);
+  else if(cartao)setTimeout(()=>{const x=$('vLiquido');if(x)x.focus();},120);
 }
 /* chamado pelo salvarVenda (part4) quando a venda nasceu de um pedido */
 function vendaDoPedidoSalva(v){
