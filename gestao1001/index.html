@@ -152,16 +152,13 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--acento);outline-off
 .mb-area:last-child{border-bottom:none}
 .mb-area .nm{flex:1;min-width:150px;font-size:.9rem}
 .mb-area .nm small{display:block;color:var(--texto2);font-size:.74rem;line-height:1.3}
-.mb-area.mudou{background:var(--hover)}
 .mb-seg{display:inline-flex;border:1px solid var(--borda);border-radius:8px;overflow:hidden}
 .mb-seg button{background:var(--painel2);border:none;color:var(--texto2);padding:.38rem .7rem;font-size:.8rem;position:relative}
 .mb-seg button+button{border-left:1px solid var(--borda)}
 .mb-seg button:hover{color:var(--texto)}
 .mb-seg button.on{background:linear-gradient(180deg,var(--btp1),var(--btp2));color:var(--btpTx);font-weight:700}
 /* bolinha = o que o papel escolhido já daria; mostra o que foi mexido à mão */
-.mb-seg button.padrao::after{content:"";position:absolute;top:3px;right:3px;width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.6}
-.mb-legenda{white-space:nowrap}
-.mb-legenda i{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--texto2);margin:0 .25rem .1rem 0;vertical-align:middle}
+.mb-modelos{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .6rem}
 .aviso button{margin-left:auto}
 .aviso button+button{margin-left:0}
 /* fiado: sugestão de juntar compras que vencem no mesmo dia (V8) — no canto direito do cartão */
@@ -296,14 +293,9 @@ button.bd-clica:hover{filter:brightness(.95);text-decoration:underline}
 /* ---- Fiado mais simples (V13) ---- */
 .f-busca{min-width:150px;max-width:240px}
 .f-cards .card.escolhido{border-color:var(--acento)}
-.f-cobrar{background:var(--cob-bg);border:1px solid var(--cob-ln);border-radius:12px;padding:.75rem .95rem;margin-bottom:1rem}
-.f-cobrar h3{font-size:.95rem;margin:0 0 .45rem;color:var(--cob-tx);font-family:"Figtree","Segoe UI",sans-serif;font-weight:700;display:flex;align-items:center;gap:.35rem}
-.f-cobrar .cob-linha{border-bottom-color:var(--cob-ln)}
-.f-cobrar .cob-mais{margin-top:.4rem}
 .rec-img{max-height:62vh;overflow:auto;background:var(--painel2);border-radius:10px;padding:.6rem;text-align:center;margin:.4rem 0 .2rem}
 .rec-img img{width:100%;max-width:420px;border-radius:4px;box-shadow:0 8px 22px -12px rgba(0,0,0,.45);background:#fff}
 .rec-img img:not([src]){min-height:240px}
-.f-cobrar .cob-grupo{margin:.7rem 0 .15rem;font-weight:700;font-size:.84rem;color:var(--cob-tx)}
 .f-filtros{gap:.5rem}
 .f-lista{display:flex;flex-direction:column;gap:.5rem}
 .f-cli{background:var(--painel);border-radius:12px;margin-bottom:0}
@@ -554,6 +546,10 @@ tr.zerado:hover td{opacity:1}
 .logo-cad{width:64px;height:64px;display:block;filter:drop-shadow(0 4px 10px var(--brilho))}
 .login-erro{background:rgba(178,69,46,.1);border:1px solid var(--vermelho);color:var(--vermelho);border-radius:8px;padding:.5rem .7rem;font-size:.82rem}
 .login-caixa .bt{padding:.6rem}
+.login-google{display:flex;align-items:center;justify-content:center;gap:.55rem}
+.login-ou{display:flex;align-items:center;gap:.6rem;color:var(--texto2);font-size:.76rem}
+.login-ou::before,.login-ou::after{content:"";flex:1;height:1px;background:var(--borda)}
+.login-ou[hidden],.login-google[hidden]{display:none}
 /* estado da nuvem, no rodapé do menu */
 .nuvem-chip{font-size:.74rem;color:var(--texto2);display:flex;flex-wrap:wrap;align-items:center;gap:.3rem;line-height:1.35}
 .nuvem-chip b{font-weight:700}
@@ -758,9 +754,6 @@ main.larga{max-width:1480px}
 .r-per .nome{font-weight:700;font-size:1.02rem}
 .r-per .datas{font-size:.8rem;color:var(--texto2)}
 .r-datas{margin-top:-.4rem}
-.r-frase{background:var(--painel);border:1px solid var(--borda);border-left:3px solid var(--marca);border-radius:12px;
-  padding:.85rem 1rem;margin-bottom:1.1rem;font-size:.95rem;line-height:1.55}
-.r-frase b{font-weight:700}
 .r-tit{font-size:1.15rem;margin-bottom:.45rem;display:flex;align-items:center}
 .r-alerta{color:var(--laranja);font-size:.85rem;margin:.3rem 0 .6rem}
 .r-barra{display:flex;height:16px;border-radius:9px;overflow:hidden;margin:.45rem 0 .35rem;background:var(--painel3)}
@@ -1098,11 +1091,6 @@ main.larga{max-width:1480px}
   .f-filtros>label.linha>select,.f-filtros>.ordem-sel>select{flex:1;min-width:0;width:100%;max-width:none;font-size:.86rem;padding:.5rem .4rem}
   .f-filtros>label.linha>.combo{flex:1;min-width:0}
   /* cada pessoa numa linha só: nome e atraso empilhados à esquerda, valor e botão à direita */
-  .f-cobrar .cob-linha{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"nm vl bt" "qd vl bt";column-gap:.55rem;row-gap:.1rem}
-  .f-cobrar .cob-linha .nm{grid-area:nm;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .f-cobrar .cob-linha>.bd,.f-cobrar .cob-linha>.qdo{grid-area:qd;justify-self:start;font-size:.68rem}
-  .f-cobrar .cob-linha>b{grid-area:vl}
-  .f-cobrar .cob-linha .bt{grid-area:bt}
   /* Resumo (V13) */
   /* ◀ mês ▶ numa linha inteira; "outro período" e "voltar" descem para a de baixo */
   .r-per .meio{min-width:0;flex:1}
@@ -1220,6 +1208,9 @@ try{
       <input type="password" id="loginSenha" autocomplete="current-password" required></label>
     <div class="login-erro" id="loginErro" hidden></div>
     <button class="bt primario" type="submit" id="loginBt">Entrar</button>
+    <!-- entrar com o Google: só aparece quando o Google está ligado na conta do banco (part7, conferirGoogle) -->
+    <div class="login-ou" id="loginOu" hidden>ou</div>
+    <button class="bt login-google" type="button" id="loginGoogle" hidden onclick="entrarComGoogle()"><svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg><span>Entrar com o Google</span></button>
     <a href="#" class="mut" style="font-size:.8rem;text-align:center"
        onclick="event.preventDefault();esqueciSenha()">Esqueci minha senha</a>
     <button class="bt" type="button" onclick="mostrarCadastro()">Criar minha conta</button>
@@ -1232,6 +1223,8 @@ try{
     <div class="login-marca"><svg class="logo-cad" viewBox="0 0 512 512" role="img" aria-label="Caderneta"><use href="#marcaCaderneta"/></svg></div>
     <h2>Criar minha conta</h2>
     <p class="mut">14 dias para testar, sem cartão.</p>
+    <button class="bt login-google" type="button" id="cadGoogle" hidden onclick="entrarComGoogle()"><svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg><span>Criar com a conta do Google</span></button>
+    <div class="login-ou" id="cadOu" hidden>ou preencha</div>
     <label class="campo">Nome do seu negócio
       <input type="text" id="cadNegocio" placeholder="ex.: Joias da Ana" required></label>
     <label class="campo">WhatsApp
@@ -1258,13 +1251,14 @@ try{
   <div class="marca"><div class="logo" id="marcaLogo">1001</div><div><h1 id="marcaNome">1001 Joias e Estilos</h1><small>Caderneta</small></div></div>
   <nav id="nav" aria-label="Seções">
     <button data-tab="resumo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Resumo</span></button>
-    <button data-tab="vendas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2"/></svg><span>Vendas</span><span class="cont" id="navVendas" style="display:none"></span></button>
+    <button data-tab="vendas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2"/></svg><span>Vendas</span></button>
+    <button data-tab="pedidos" id="navBtPedidos" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/><path d="M3 4h2.5l2.2 11h10.1l1.7-8H6.4"/></svg><span>Pedidos</span><span class="cont" id="navPedidos" style="display:none"></span></button>
     <button data-tab="fiado"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h11a3 3 0 0 1 3 3v11H7a3 3 0 0 1-3-3zM8 9h6M8 13h6M18 8h2v11a2 2 0 0 1-2 2"/></svg><span>Fiado</span><span class="cont" id="navFiado"></span></button>
     <button data-tab="produtos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10"/></svg><span>Produtos</span></button>
     <button data-tab="fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H3zM3 7V6a2 2 0 0 1 2-2h11M16 13h2"/></svg><span>Financeiro</span></button>
     <button data-tab="clientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0M16 5a3 3 0 0 1 0 6M18 20a5 5 0 0 0-3-4.6"/></svg><span>Clientes</span></button>
     <div class="nav-grupo">Ajustes</div>
-    <button data-tab="config"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg><span>Configurações</span></button>
+    <button data-tab="config"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Configurações</span></button>
     <!-- atalho direto para a vitrine: é onde se mexe no dia a dia (banners, capa, cores) -->
     <button data-tab="config" data-cfg="lojaSite"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h16l-1.2-4.2A1 1 0 0 0 17.8 4H6.2a1 1 0 0 0-1 .8zM5 9v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9M10 20v-6h4v6"/></svg><span>Site da loja</span></button>
   </nav>
@@ -1314,6 +1308,7 @@ try{
 <main>
   <section id="tab-resumo" class="tab"></section>
   <section id="tab-vendas" class="tab"></section>
+  <section id="tab-pedidos" class="tab"></section>
   <section id="tab-fiado" class="tab"></section>
   <section id="tab-produtos" class="tab"></section>
   <section id="tab-fin" class="tab"></section>
@@ -1326,11 +1321,11 @@ try{
 <!-- barra de baixo (celular): seções mais usadas + venda no botão do meio -->
 <nav id="navCel" class="nav-cel" aria-label="Seções">
   <button data-tab="resumo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Resumo</span></button>
-  <button data-tab="vendas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2"/></svg><span>Vendas</span><i class="cont" id="navVendasCel" style="display:none"></i></button>
+  <button data-tab="vendas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2"/></svg><span>Vendas</span></button>
   <button type="button" class="fab" id="fabVenda" aria-label="Nova venda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
   <button data-tab="fiado"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h11a3 3 0 0 1 3 3v11H7a3 3 0 0 1-3-3zM8 9h6M8 13h6M18 8h2v11a2 2 0 0 1-2 2"/></svg><span>Fiado</span><i class="cont" id="navFiadoCel"></i></button>
   <button data-tab="produtos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10"/></svg><span>Produtos</span></button>
-  <button type="button" id="btMais"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>Mais</span></button>
+  <button type="button" id="btMais"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>Mais</span><i class="cont" id="navMaisCont" style="display:none"></i></button>
 </nav>
 <!-- o que não coube na barra de baixo: outras seções, aparência e a conta -->
 <dialog id="dlgMais">
@@ -1757,12 +1752,14 @@ try{
       placeholder="o mesmo que ela vai usar para criar a conta"></label>
     <label class="campo span2">Nome <span class="mut" style="font-size:.76rem">— só para você identificar</span> <input id="mbNome"></label>
   </div>
-  <label class="campo mt">Ponto de partida
-    <select id="mbPapel" onchange="mbPapelMudou()"></select>
-    <small class="mut" id="mbPapelDesc" style="font-size:.76rem"></small></label>
+  <label class="campo mt">Nome deste acesso <span class="mut" style="font-size:.76rem">— escreva como quiser: Vendedora, Estoquista, Sócia…</span>
+    <input id="mbRotulo" maxlength="30" autocomplete="off" placeholder="ex.: Vendedora" oninput="MB.titulo=this.value"></label>
+  <div class="mb-modelos mt"><span class="mut" style="font-size:.8rem">Começar de um modelo pronto:</span>
+    <span class="filtro-chips" id="mbModelos"></span></div>
+  <select id="mbPapel" onchange="mbPapelMudou()" hidden></select>
+  <small class="mut" id="mbPapelDesc" style="font-size:.76rem;display:block;margin-top:.3rem"></small>
   <h4 class="mt">O que esta pessoa vê</h4>
-  <p class="mut" style="font-size:.8rem;margin:-.2rem 0 .6rem">O ponto de partida já marca o padrão — mude só o que quiser.
-    <span class="mb-legenda"><i></i>= padrão do ponto de partida</span></p>
+  <p class="mut" style="font-size:.8rem;margin:-.2rem 0 .6rem">Marque área por área — vale o que estiver marcado aqui.</p>
   <div id="mbAreas" class="mb-areas"></div>
   <div id="mbAviso" class="mt"></div>
   <div class="rodape">
@@ -2804,16 +2801,18 @@ function renderNav(){
 /* menu "Mais" do celular: o que não coube na barra de baixo, a aparência e a
    conta. Monta na hora de abrir, porque depende da permissão de quem está usando. */
 function preencherMais(){
-  const abas=[['resumo','Resumo'],['vendas','Vendas'],['fiado','Fiado'],['produtos','Produtos'],
+  const abas=[['resumo','Resumo'],['vendas','Vendas'],['pedidos','Pedidos da loja'],['fiado','Fiado'],['produtos','Produtos'],
     ['fin','Financeiro'],['clientes','Clientes'],['config','Configurações'],['config','Site da loja','lojaSite']];
   const pode=t=>typeof abaPermitida==='function'?abaPermitida(t):true;
   // o ícone vem do próprio menu lateral: um desenho só, nos dois lugares
   const icone=(t,cfg)=>{const s=document.querySelector('#nav button[data-tab="'+t+'"]'+(cfg?'[data-cfg="'+cfg+'"]':':not([data-cfg])')+' svg');return s?s.outerHTML:'';};
   const nuvem=$('nuvemChip'),logado=typeof nuvemLigada==='function'&&nuvemLigada();
   const cfgAtual=ui.tab==='config'?(ui.cfgTab==='lojaSite'?'lojaSite':''):'';
+  // pedidos pagos da loja esperando entrega (V15): o número aparece ao lado, como no menu do computador
+  const nPed=typeof pedidosParaEntregar==='function'?pedidosParaEntregar().length:0;
   $('maisCorpo').innerHTML=
     `<div class="mais-abas">${abas.filter(a=>pode(a[0])).map(a=>
-      `<button type="button" class="${ui.tab===a[0]&&(a[2]||'')===(a[0]==='config'?cfgAtual:'')?'ativo':''}" onclick="dlgMais.close();${a[2]?`ui.cfgTab='${a[2]}';`:(a[0]==='config'?`if(ui.cfgTab==='lojaSite')ui.cfgTab='geral';`:'')}trocarTab('${a[0]}')">${icone(a[0],a[2])}<span>${a[1]}</span></button>`).join('')}</div>
+      `<button type="button" class="${ui.tab===a[0]&&(a[2]||'')===(a[0]==='config'?cfgAtual:'')?'ativo':''}" onclick="dlgMais.close();${a[2]?`ui.cfgTab='${a[2]}';`:(a[0]==='config'?`if(ui.cfgTab==='lojaSite')ui.cfgTab='geral';`:'')}trocarTab('${a[0]}')">${icone(a[0],a[2])}<span>${a[1]}</span>${a[0]==='pedidos'&&nPed?`<i class="cont">${nPed}</i>`:''}</button>`).join('')}</div>
     <h4 class="mt">Aparência</h4>
     <div class="mb-seg">${APARENCIAS.map(([id,rot])=>
       `<button type="button" class="${aparenciaEscolhida()===id?'on':''}" onclick="trocarAparencia('${id}')">${rot}</button>`).join('')}</div>
@@ -2883,7 +2882,7 @@ function aplicarIdentidade(){
 function renderTudo(){
   aplicarIdentidade();renderNav();renderDatalists();
   if(typeof avisoCobranca==='function')avisoCobranca();
-  ({resumo:renderResumo,vendas:renderVendas,fiado:renderFiado,produtos:renderProdutos,
+  ({resumo:renderResumo,vendas:renderVendas,pedidos:renderPedidos,fiado:renderFiado,produtos:renderProdutos,
     fin:renderFin,clientes:renderClientes,config:renderConfig})[ui.tab]();
   // quem só pode consultar esta tela precisa saber disso ANTES de tentar mexer
   if(typeof avisoSomenteLeitura==='function')avisoSomenteLeitura();
@@ -7221,7 +7220,7 @@ function renderVendas(){
   /* V14: igual a Produtos — o período e a busca à vista; os filtros pelas peças vendidas
      moram atrás do botão "Filtros" (no celular eram duas fileiras antes da 1ª venda) */
   const nf=nFiltrosVendas(),aberto=!!u.verFiltros;
-  $('tab-vendas').innerHTML=cabVendas()+(typeof painelPedidosHTML==='function'?painelPedidosHTML():'')+cardsVendasPeriodo()+`<div class="barra v-busca">
+  $('tab-vendas').innerHTML=cabVendas()+cardsVendasPeriodo()+`<div class="barra v-busca">
     <select class="v-per" aria-label="Período" onchange="ui.v.per=this.value;renderVendas()">
       <option value="fiscal"${u.per==='fiscal'?' selected':''}>${nomeMesAtual(true)}</option>
       <option value="fiscalAnt"${u.per==='fiscalAnt'?' selected':''}>${nomeMesAnterior(true)}</option>
@@ -7473,42 +7472,9 @@ function textoResumoCobranca(){
    A coluna de caixinhas saiu da lista: o que entra na cobrança se escolhe na
    janela "Cobrar". A lista vem por quem vence primeiro; o ⇅ muda a ordem.
    ============================================================ */
-function painelCobrancas(){
-  const r=resumoCobranca();
-  if(!r.lista.length)return '';
-  // um por cliente: a lista vem parcela a parcela
-  const porCli=[];
-  r.lista.forEach(x=>{
-    let g=porCli.find(y=>y.cliente===x.cliente);
-    if(!g){g={cliente:x.cliente,valor:0,venc:x.venc,atraso:x.atraso};porCli.push(g);}
-    g.valor=r2(g.valor+x.valor);
-    if(x.venc<g.venc){g.venc=x.venc;g.atraso=x.atraso;}
-  });
-  const linha=x=>{
-    const quando=x.atraso>0?`<span class="bd fiadoV">${x.atraso} dia(s) de atraso</span>`
-      :(x.venc===hoje()?'<span class="bd fiadoP">vence hoje</span>':`<span class="mut qdo">vence ${fmtData(x.venc).slice(0,5)}</span>`);
-    return `<div class="cob-linha"><span class="nm">${esc(x.cliente)}</span>${quando}
-      <b class="neg">${fmt(x.valor)}</b>
-      <button class="bt mini primario" onclick="abrirCobrar('${attr(x.cliente)}')">📲 Cobrar</button></div>`;
-  };
-  // V14: quem vence amanhã não é "cobrar hoje" — cada grupo diz quando (caso real: dia 29,
-  // com o aviso de 1 dia, a lista inteira era do dia 30 e o título dizia "Cobrar hoje")
-  porCli.forEach(x=>{x.daqui=Math.max(0,diasEntre(hoje(),x.venc));});
-  porCli.sort((a,b)=>a.daqui-b.daqui||(a.venc<b.venc?-1:a.venc>b.venc?1:0));
-  const titulo=d=>d===0?'Cobrar hoje':d===1?'Cobrar amanhã':'Cobrar daqui '+d+' dias';
-  const dias=cfgAvisos().diasAntes;
-  // 5 de cara: com muita gente atrasada o bloco empurrava a lista de clientes para longe
-  const LIM=5,todos=!!ui.f.cobTodos||porCli.length<=LIM+1,vis=todos?porCli:porCli.slice(0,LIM);
-  const linhas=vis.map((x,i)=>(i>0&&x.daqui!==vis[i-1].daqui?`<div class="cob-grupo">${titulo(x.daqui)}</div>`:'')+linha(x)).join('');
-  return `<div class="f-cobrar">
-    <h3>🔔 ${titulo(porCli[0].daqui)} ${r.vencidas.length?'<span class="bd fiadoV">'+r.vencidas.length+' vencida(s)</span>':''}
-      ${ajuda('Aparece o que já venceu e o que vence até '+(dias>0?'daqui a '+dias+' dia(s)':'hoje')+'. Dá para mudar em Configurações → Geral → Aviso de cobrança.')}</h3>
-    <div class="cob-lista">${linhas}</div>
-    ${porCli.length>LIM+1?`<button class="bt mini cob-mais" onclick="ui.f.cobTodos=!ui.f.cobTodos;renderFiadoCorpo()">${todos?'mostrar menos':'ver todos os '+porCli.length+' clientes'}</button>`:''}
-    <div class="barra" style="margin:.6rem 0 0"><b>Total a cobrar: <span class="neg">${fmt(r.total)}</span></b></div>
-  </div>`;
-}
-
+/* O bloco "Cobrar hoje" saiu do Fiado (docx V15, item 9: "fica muito redundante e polui a
+   tela") — a lista já vem na ordem de quem vence primeiro, com os cartões de Atrasado e
+   Vence essa semana no alto e o aviso do topo do painel. */
 function renderFiado(){
   $('tab-fiado').innerHTML=cabFiado()+`<div id="fiadoCorpo"></div>`;
   renderFiadoCorpo();
@@ -7709,7 +7675,6 @@ function renderFiadoCorpo(){
     ${card('mes',false,usaMesFiscal()?'Vence nesse mês fiscal':'Vence nesse mês',fmt(doMes),'',fmtData(mes.ini).slice(0,5)+' a '+fmtData(mes.fim))}
     ${card('todos',false,'A receber',fmt(totGeral),totGeral>0?'var(--vermelho)':'var(--verde)',nCli+' cliente(s)')}
   </div>
-  ${painelCobrancas()}
   <div class="barra f-filtros">
     <div class="filtro-chips">${chip('todos','Todos')}${chip('vencidos','Atrasados')}${chip('7dias','Esta semana')}${chip('mes',usaMesFiscal()?'Este mês fiscal':'Este mês')}</div>
     <span class="esp"></span>
@@ -8527,6 +8492,12 @@ function primeiroNome(nome){
   if(c&&c.apelido&&c.apelido.trim())return c.apelido.trim();
   return String(nome||'').split(' - ')[0].trim();
 }
+/* o nome que vai no RECIBO (docx V15, item 1): o recibo é mandado para a cliente, então
+   vale o apelido dela; sem apelido cadastrado, o nome do cadastro como está */
+function nomeNoRecibo(nome){
+  const c=dados.clientes.find(x=>x.nome===nome);
+  return (c&&c.apelido&&c.apelido.trim())||String(nome||'');
+}
 function responsavelDe(c,nome){if(c&&c.localId)return localNome(c.localId);const p=nome.split(' - ');return p.length>1?p[1].trim():'';}
 function moedaSimples(v){return 'R$'+(+v||0).toFixed(2).replace('.',',');}
 function abertasDoCliente(nome){const a=[];fiadosPendentes().filter(v=>v.clienteNome===nome).forEach(v=>recParcelas(v).forEach(p=>{if(!parcPago(p))a.push(p.id);}));return a;}
@@ -8847,7 +8818,7 @@ function specReciboFiado(nome,sel){
     return {e:dia(v.data).slice(0,5)+' · '+its.map(i=>nomeItem(i)+((+i.qtd||1)>1?' ('+i.qtd+'×)':'')).join(', ')+(q>1?' ('+q+' peças)':''),d:fmt(v.total)};});
   if(pecas.length>1)pecas.push({e:'Total',d:fmt(r2(k.compras.reduce((s,v)=>s+(+v.total||0),0))),tot:true});
   secoes.push({tit:'Peças',linhas:pecas});
-  return {cliente:nome,destaque:{rot:'Esta cobrança',linha:um?um.rot+(um.venc?' · vence '+dia(um.venc):''):k.itens.length+' parcelas',valor:fmt(k.valor)},
+  return {cliente:nomeNoRecibo(nome),destaque:{rot:'Esta cobrança',linha:um?um.rot+(um.venc?' · vence '+dia(um.venc):''):k.itens.length+' parcelas',valor:fmt(k.valor)},
     secoes,pix:(C().loja&&C().loja.pix)||'',arquivo:'recibo-'+nomeArquivoRecibo(nome)};
 }
 /* o recibo de uma venda (qualquer forma de pagamento) */
@@ -8868,7 +8839,7 @@ function specReciboVenda(v){
     sec.push({tit:'Parcelas',linhas:parc.map((p,i)=>({e:(parc.length>1?(i+1)+'ª · ':'')+(p.venc?'vence '+dia(p.venc):'sem data')+(parcPago(p)?' ✓ paga':''),d:fmt(+p.valor||0),ok:parcPago(p)}))});
     if(parc.some(p=>!parcPago(p)))pix=(C().loja&&C().loja.pix)||'';
   }
-  return {cliente:v.clienteNome||'',destaque:{rot:'Compra de '+dia(v.data),linha:(f.nome||'')+(+v.parcelasCartao>1?' em '+v.parcelasCartao+'x':''),valor:fmt(v.total)},
+  return {cliente:nomeNoRecibo(v.clienteNome),destaque:{rot:'Compra de '+dia(v.data),linha:(f.nome||'')+(+v.parcelasCartao>1?' em '+v.parcelasCartao+'x':''),valor:fmt(v.total)},
     secoes:sec,pix,arquivo:'recibo-'+nomeArquivoRecibo(v.clienteNome||'venda')+'-'+v.data};
 }
 var RECIBO={blob:null,url:'',arquivo:'recibo.png',texto:''};
@@ -9508,21 +9479,6 @@ function painelCaixaSimples(cx,atual){
     <div class="r-conta">${L.join('')}</div>`;
 }
 /* a frase do mês, em palavras (só o que aconteceu: custo zerado não entra) */
-function fraseDoMes(d,atual,custom,ini){
-  if(!(d.receita>0.005)&&!d.nV)return '';
-  const quando=custom?'Neste período':(atual?'Neste mês':'Em '+mesDaLoja(ini,0).rotulo);
-  const custos=[];
-  if(d.cmv>0.005)custos.push('as peças vendidas custaram <b>'+emReais(d.cmv)+'</b>');
-  if(d.taxas>0.005)custos.push('a maquininha ficou com <b>'+emReais(d.taxas)+'</b>');
-  const desp=despesasDRE(d);if(desp>0.005)custos.push('as despesas foram <b>'+emReais(desp)+'</b>');
-  let f=quando+' você <b>vendeu '+emReais(d.receita)+'</b>.';
-  if(custos.length){const t=custos.length>1?custos.slice(0,-1).join(', ')+' e '+custos[custos.length-1]:custos[0];f+=' '+t.charAt(0).toUpperCase()+t.slice(1)+'.';}
-  const sobra=sobraDaOperacao(d);
-  if(d.invest>0.005)f+=' Sobraram <b>'+emReais(sobra)+'</b> — e você colocou <b>'+emReais(d.invest)+'</b> em investimentos.';
-  f+=d.resultLiq>=0?' <b class="pos">Lucro: '+emReais(d.resultLiq)+'</b>.':' <b class="neg">Prejuízo: '+emReais(-d.resultLiq)+'</b>.';
-  if(d.cmv<=0.005&&d.receita>0.005)f+=' <span class="mut2">Cadastre o custo das peças para o lucro ficar certo.</span>';
-  return `<div class="r-frase">💬 ${f}</div>`;
-}
 /* ---- fechamento de mês fiscal ---- */
 function vendasCategoriasTipos(ini,fim){
   const porCat={},porTipo={},porLoc={},porForn={},porCol={};
@@ -9694,7 +9650,6 @@ function renderResumo(){
     ${totalNaMaquininha()>0?`<div class="card clicavel" onclick="trocarTab('fin')"><div class="rotulo">Na maquininha (a cair)</div><div class="valor rdb">${fmt(totalNaMaquininha())}</div><div class="extra">${recebiveisPendentes().length} recebimento(s)</div></div>`:''}
     ${alertas?`<div class="card clicavel" onclick="verEstoqueBaixo()" title="ver quais produtos"><div class="rotulo">Estoque baixo</div><div class="valor neg">${alertas}</div><div class="extra">toque para ver quais →</div></div>`:''}
   </div>
-  ${fraseDoMes(d,atual,custom,ini)}
   <div class="grade2">
     <div class="painel">${painelLucroSimples(d,custom)}</div>
     <div class="painel">${painelCaixaSimples(cx,atual)}</div>
@@ -12649,7 +12604,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-10-30 23:37';
+const VERSAO_APP='2026-11-10 10:24';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -12787,6 +12742,7 @@ function sairDaContaAgora(){
 function mostrarLogin(){
   const t=$('telaLogin');if(!t)return;
   t.hidden=false;
+  conferirGoogle();
   $('formLogin').hidden=false;
   if($('formCadastro'))$('formCadastro').hidden=true;
   $('loginErro').hidden=true;
@@ -13052,18 +13008,47 @@ function atualizarChipNuvem(){
    ============================================================ */
 /* cada lista do sistema, a tabela onde mora e a área que a governa —
    é a área que decide se esta pessoa pode ler ou gravar aquilo */
+/* `tambem` (docx V15, item 12 — "dei acesso pra Edilene fazer venda e ela não faz"):
+   uma venda não mora só na lista de vendas. Ela baixa o estoque (produtos,
+   mov_estoque), põe o dinheiro no caixa (lancamentos, recebiveis) e, muitas vezes,
+   cadastra a cliente. Receber um fiado mexe na venda, no caixa e nos pagamentos.
+   Antes, quem tinha "Vendas: vê e altera" mas só VIA o Financeiro ou os Clientes
+   registrava a venda e o resto ficava preso no aparelho dela — e sumia na
+   sincronização seguinte. Agora quem pode alterar uma das áreas de `tambem` grava
+   (e lê) aquela lista; as TELAS continuam seguindo a área de cada uma. O banco
+   aplica a mesma regra (supabase-acesso-vendas.sql). */
 const TABELAS=[
-  {tab:'produtos',         lista:'produtos',        area:'estoque'},
-  {tab:'clientes',         lista:'clientes',        area:'clientes'},
-  {tab:'vendas',           lista:'vendas',          area:'vendas'},
-  {tab:'lancamentos',      lista:'lancamentos',     area:'financeiro'},
-  {tab:'mov_estoque',      lista:'movEstoque',      area:'estoque'},
-  {tab:'recebiveis',       lista:'recebiveis',      area:'financeiro'},
-  {tab:'pagamentos_fiado', lista:'pagamentosFiado', area:'fiado'},
-  {tab:'descontos_fiado',  lista:'descontosFiado',  area:'fiado'},
-  {tab:'planos_fiado',     lista:'planosFiado',     area:'fiado'},
+  {tab:'produtos',         lista:'produtos',        area:'estoque',    tambem:['vendas']},
+  {tab:'clientes',         lista:'clientes',        area:'clientes',   tambem:['vendas','fiado']},
+  {tab:'vendas',           lista:'vendas',          area:'vendas',     tambem:['fiado']},
+  {tab:'lancamentos',      lista:'lancamentos',     area:'financeiro', tambem:['vendas','fiado']},
+  {tab:'mov_estoque',      lista:'movEstoque',      area:'estoque',    tambem:['vendas']},
+  {tab:'recebiveis',       lista:'recebiveis',      area:'financeiro', tambem:['vendas','fiado']},
+  {tab:'pagamentos_fiado', lista:'pagamentosFiado', area:'fiado',      tambem:['vendas']},
+  {tab:'descontos_fiado',  lista:'descontosFiado',  area:'fiado',      tambem:['vendas']},
+  {tab:'planos_fiado',     lista:'planosFiado',     area:'fiado',      tambem:['vendas']},
   {tab:'fechamentos',      lista:'fechamentos',     area:'financeiro'}
 ];
+/* pode gravar nesta lista? Pela área dela, ou por uma das áreas de `tambem`.
+   NUVEM.semAcessoAmplo: o banco ainda está com a regra antiga (recusou) — volta ao
+   jeito de antes até o fim da sessão, sem derrubar a sincronização. */
+function podeGravarTabela(t){
+  if(podeEscrever(t.area))return true;
+  return !NUVEM.semAcessoAmplo&&(t.tambem||[]).some(podeEscrever);
+}
+function recusaDeRegra(e){return !!e&&(e.status===403||/row-level security|policy/i.test(String(e.msg||'')));}
+/* envia uma lista; se ela só é permitida pelo `tambem` e o banco recusar (regra
+   antiga), marca e segue — devolve false para a base não registrar o que não subiu */
+async function enviarComRegra(t,linhas,apagar){
+  try{
+    if(linhas&&linhas.length)await enviarLote(t.tab,linhas);
+    if(apagar&&apagar.length)await apagarSumidos(t.tab,apagar);
+    return true;
+  }catch(e){
+    if(!podeEscrever(t.area)&&recusaDeRegra(e)){NUVEM.semAcessoAmplo=true;return false;}
+    throw e;
+  }
+}
 /* ------------------------------------------------------------
    A BASE: retrato de quando este aparelho e o servidor estavam
    iguais pela última vez. É o que permite distinguir as duas
@@ -13147,7 +13132,7 @@ function podeLer(area){return ['ler','escrever'].includes(nivelEm(area));}
 function podeEscrever(area){return nivelEm(area)==='escrever';}
 function souDono(){return !NUVEM.acesso||NUVEM.acesso.papel==='dono';}
 /* qual área do sistema corresponde a cada aba */
-const AREA_DA_ABA={resumo:'resumo',vendas:'vendas',fiado:'fiado',produtos:'estoque',
+const AREA_DA_ABA={resumo:'resumo',vendas:'vendas',pedidos:'vendas',fiado:'fiado',produtos:'estoque',
   fin:'financeiro',clientes:'clientes',config:'config'};
 
 async function enviarLote(tab,linhas){
@@ -13395,7 +13380,7 @@ async function sincronizarTudo(){
     /* Área só de leitura: adota o que vem da loja e não tenta devolver nada.
        Sem isto, quem não pode gravar ficaria com a versão do próprio aparelho
        divergindo em silêncio da versão da loja. */
-    if(!podeEscrever(t.area)){p.subir=[];p.apagarLa=[];}
+    if(!podeGravarTabela(t)){p.subir=[];p.apagarLa=[];}
     if(p.trazer.length||p.apagarAqui.length){
       const fora={};p.apagarAqui.forEach(i=>fora[i]=1);
       const trocas={};p.trazer.forEach(r=>trocas[r.id]=r);
@@ -13403,8 +13388,8 @@ async function sincronizarTudo(){
       Object.keys(trocas).forEach(id=>{if(!lista.some(r=>r.id===id))lista.push(trocas[id]);});
       dados[t.lista]=lista;mudouAqui=true;
     }
-    if(p.subir.length)await enviarLote(t.tab,p.subir.map(r=>({id:r.id,dados:r,atualizado_em:new Date().toISOString()})));
-    if(p.apagarLa.length)await apagarSumidos(t.tab,p.apagarLa);
+    if(p.subir.length||p.apagarLa.length)
+      await enviarComRegra(t,p.subir.map(r=>({id:r.id,dados:r,atualizado_em:new Date().toISOString()})),p.apagarLa);
   }
   /* A configuração (contas, categorias, formas de pagamento, canais) é o
      cadastro que dá sentido a todo o resto: sem ela os lançamentos ficam
@@ -13458,12 +13443,14 @@ async function subirParaNuvem(){
     /* Sem permissão de escrita nessa área, nem tenta: o servidor recusaria e
        o painel ficaria batendo numa porta trancada a cada gravação. A base
        também não é atualizada, senão perderíamos o registro do que falta. */
-    if(!podeEscrever(t.area))continue;
+    if(!podeGravarTabela(t))continue;
     const atual=retratoDe(dados[t.lista]),antes=base[t.tab]||{};
     const mudados=(dados[t.lista]||[]).filter(r=>r&&r.id&&atual[r.id]!==antes[r.id]);
     const sumiram=Object.keys(antes).filter(id=>!(id in atual));
-    if(mudados.length)await enviarLote(t.tab,mudados.map(r=>({id:r.id,dados:r,atualizado_em:new Date().toISOString()})));
-    if(sumiram.length)await apagarSumidos(t.tab,sumiram);
+    if(mudados.length||sumiram.length){
+      const foi=await enviarComRegra(t,mudados.map(r=>({id:r.id,dados:r,atualizado_em:new Date().toISOString()})),sumiram);
+      if(!foi)continue;   // banco com a regra antiga: não registra na base o que não subiu
+    }
     base[t.tab]=atual;
   }
   const hCfg=hashReg(dados.config);
@@ -13493,13 +13480,20 @@ async function sincronizarComNuvem(op){
   NUVEM.sincronizando=true;NUVEM.ultimoErro=null;atualizarChipNuvem();
   try{
     await garantirToken();
-    if(o.completo){await buscarAcesso();await buscarAssinatura();}
+    if(o.completo){
+      // o dono mudou o acesso desta pessoa: a tela precisa acompanhar sem ela sair e entrar
+      const ch=a=>a?String(a.papel)+'|'+JSON.stringify(a.ajustes||{}):'',antes=ch(NUVEM.acesso);
+      await buscarAcesso();await buscarAssinatura();
+      if(antes&&ch(NUVEM.acesso)&&ch(NUVEM.acesso)!==antes)NUVEM.acessoMudou=true;
+    }
     /* Assinatura vencida para a sincronização, nunca o trabalho: o painel
        continua salvando no aparelho e nada é apagado. */
     if(assinaturaBloqueia()){NUVEM.sincronizando=false;atualizarChipNuvem();return;}
     if(o.completo)await sincronizarTudo();
     else await subirParaNuvem();
     NUVEM.ultimoSync=Date.now();
+    if(o.completo)NUVEM.ultimoCompleto=Date.now();
+    if(NUVEM.acessoMudou){NUVEM.acessoMudou=false;renderTudo();toast('Seu acesso a esta loja foi atualizado ✓');}
     if(o.completo){talvezBoasVindas();carregarEquipe();}
   }catch(e){
     NUVEM.ultimoErro=e;
@@ -13516,6 +13510,8 @@ async function sincronizarComNuvem(op){
     }
   }finally{
     NUVEM.sincronizando=false;NUVEM.progresso=null;atualizarChipNuvem();
+    // alguém pediu a sincronização completa enquanto esta (só de subida) rodava: vai agora
+    if(NUVEM.pedeCompleto){NUVEM.pedeCompleto=false;if(!o.completo)setTimeout(()=>sincronizarComNuvem({completo:true}),100);}
   }
 }
 
@@ -13538,11 +13534,14 @@ function sincronizarPendenteAgora(){
   return true;
 }
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='hidden'){sincronizarPendenteAgora();return;}
-  // de volta à tela: só vale a pena se ficou algo pendente ou faz tempo
-  if(syncTimer||!NUVEM.ultimoSync||Date.now()-NUVEM.ultimoSync>60000)sincronizarComNuvem();
+  if(document.visibilityState==='hidden')sincronizarPendenteAgora();
+  /* De volta à tela: quem cuida é o talvezResincronizar (fim deste arquivo), que BAIXA
+     e sobe. Antes havia aqui uma subida rápida que saía na frente e fazia a completa
+     desistir ("já tem uma rodando") — o aplicativo que ficava aberto no celular nunca
+     mais buscava o que os outros aparelhos gravaram, nem a permissão nova da pessoa
+     (docx V15, item 12: a Edilene com acesso novo e a tela igual). */
 });
-window.addEventListener('online',()=>sincronizarComNuvem());
+window.addEventListener('online',()=>talvezResincronizar(1));   // a internet voltou: baixa e sobe
 
 /* ============================================================
    FOTOS E VÍDEOS NO ARMAZENAMENTO DA NUVEM
@@ -13872,6 +13871,8 @@ async function buscarAcesso(){
 function abaPermitida(tab){
   const area=AREA_DA_ABA[tab];
   if(!area)return true;
+  // a aba Pedidos só existe para a loja que vende pelo site (V15)
+  if(tab==='pedidos'&&!(typeof pedidosLigados==='function'&&pedidosLigados()))return false;
   return tab==='config'?podeEscrever('config'):podeLer(area);
 }
 function aplicarPermissoesNaTela(){
@@ -14009,7 +14010,7 @@ function painelEquipe(){
     return `<tr>
       <td>${esc(m.nome||(eu?'Você':'—'))}${eu?' <span class="bd cat">você</span>':''}
         <div class="mut" style="font-size:.76rem">${m.papel==='dono'?esc(p.desc):resumoAcesso(m.papel,m.ajustes)}</div></td>
-      <td>${esc(p.nome)}${Object.keys(m.ajustes||{}).length?' <span class="bd cat" title="áreas ajustadas à mão">ajustado</span>':''}</td>
+      <td>${esc(tituloDoAcesso(m.papel,m.ajustes))}</td>
       <td class="acoes">${(dono&&!eu)?`
         <button class="bt mini" onclick="editarMembro('${attr(m.usuario)}')">✎ acesso</button>
         <button class="bt mini perigo" onclick="removerMembro('${attr(m.usuario)}')">✕</button>`
@@ -14017,7 +14018,7 @@ function painelEquipe(){
     </tr>`;}).join('');
   const pendentes=EQUIPE.convites.map(c=>`<tr>
       <td>${esc(c.email)}<div class="mut" style="font-size:.76rem">aguardando criar a conta</div></td>
-      <td>${esc((PAPEIS[c.papel]||{}).nome||c.papel)}</td>
+      <td>${esc(tituloDoAcesso(c.papel,c.ajustes))}</td>
       <td class="acoes"><button class="bt mini perigo" onclick="cancelarConvite('${attr(c.email)}')">✕</button></td>
     </tr>`).join('');
   return `<div class="painel">
@@ -14061,7 +14062,32 @@ const AREA_ROTULO={
   config:['Configurações','categorias, formas de pagamento, equipe']
 };
 const NIVEIS_ROTULO=[['nenhum','Não vê'],['ler','Só vê'],['escrever','Vê e altera']];
-let MB={modo:'editar',usuario:null,papel:'estoquista',escolhas:{}};
+let MB={modo:'editar',usuario:null,papel:'estoquista',escolhas:{},titulo:''};
+/* Nome do acesso (docx V15, item 12: "não precisa ter nomes padrão como Estoquista,
+   Gerente… a pessoa preenche o nome que quiser"): o nome é livre e mora em
+   ajustes.titulo; "Gerente" e "Estoquista" viraram só MODELOS que marcam as áreas de
+   uma vez. O papel gravado continua sendo o do modelo de onde se partiu — é ele que
+   o banco usa para as áreas que ninguém mexeu. */
+const MODELOS_ACESSO=[
+  {nome:'Vendedora', papel:'gerente',   escolhas:{financeiro:'nenhum',resumo:'nenhum',loja:'ler'},
+    desc:'vende, recebe fiado e cadastra cliente; não vê o financeiro nem o resumo'},
+  {nome:'Gerente',   papel:'gerente',   escolhas:{}, desc:PAPEIS.gerente.desc},
+  {nome:'Estoquista',papel:'estoquista',escolhas:{}, desc:PAPEIS.estoquista.desc},
+  {nome:'Dono',      papel:'dono',      escolhas:{}, desc:PAPEIS.dono.desc}
+];
+function tituloDoAcesso(papel,ajustes){
+  const t=ajustes&&typeof ajustes.titulo==='string'?ajustes.titulo.trim():'';
+  return t||(PAPEIS[papel]||{}).nome||papel||'';
+}
+function mbModelo(i){
+  const m=MODELOS_ACESSO[i];if(!m)return;
+  // só troca o nome se a pessoa não escreveu um dela (vazio ou ainda o de outro modelo)
+  const atual=(MB.titulo||'').trim();
+  if(!atual||MODELOS_ACESSO.some(x=>x.nome===atual))MB.titulo=m.nome;
+  MB.papel=m.papel;MB.escolhas=Object.assign({},m.escolhas);
+  $('mbPapel').value=m.papel;$('mbRotulo').value=MB.titulo;
+  renderAreasMembro();
+}
 
 function nivelEscolhido(area){return MB.escolhas[area]||nivelDoPapel(MB.papel,area);}
 /* Grava só o que foge do padrão do papel: se o padrão de um papel mudar um
@@ -14069,7 +14095,7 @@ function nivelEscolhido(area){return MB.escolhas[area]||nivelDoPapel(MB.papel,ar
 function ajustesSoDiferencas(papel,escolhas){
   const out={};
   Object.keys(escolhas||{}).forEach(a=>{
-    if(escolhas[a]&&escolhas[a]!==nivelDoPapel(papel,a))out[a]=escolhas[a];
+    if(AREAS.indexOf(a)>=0&&escolhas[a]&&escolhas[a]!==nivelDoPapel(papel,a))out[a]=escolhas[a];
   });
   return out;
 }
@@ -14083,7 +14109,7 @@ function resumoAcesso(papel,ajustes){
     .filter(Boolean).join(' · ')||'não vê nenhuma área';
 }
 function convidarPessoa(){
-  MB={modo:'convidar',usuario:null,papel:'estoquista',escolhas:{}};
+  MB={modo:'convidar',usuario:null,papel:'gerente',escolhas:Object.assign({},MODELOS_ACESSO[0].escolhas),titulo:MODELOS_ACESSO[0].nome};
   $('formMembro').reset();
   $('mbTitulo').textContent='Dar acesso a alguém';
   $('mbNovoBox').hidden=false;$('mbSalvar').textContent='Criar convite';
@@ -14092,7 +14118,8 @@ function convidarPessoa(){
 }
 function editarMembro(usuario){
   const m=EQUIPE.membros.find(x=>x.usuario===usuario);if(!m)return;
-  MB={modo:'editar',usuario,papel:m.papel||'estoquista',escolhas:Object.assign({},m.ajustes||{})};
+  MB={modo:'editar',usuario,papel:m.papel||'estoquista',escolhas:Object.assign({},m.ajustes||{}),titulo:tituloDoAcesso(m.papel,m.ajustes)};
+  delete MB.escolhas.titulo;
   $('formMembro').reset();
   $('mbTitulo').textContent='Acesso de '+(m.nome||'esta pessoa');
   $('mbNovoBox').hidden=true;$('mbSalvar').textContent='Salvar acesso';
@@ -14101,17 +14128,22 @@ function editarMembro(usuario){
 function prepararDialogoMembro(){
   $('mbPapel').innerHTML=['gerente','estoquista','dono'].map(p=>
     `<option value="${p}"${p===MB.papel?' selected':''}>${PAPEIS[p].nome}</option>`).join('');
+  $('mbRotulo').value=MB.titulo||'';
+  $('mbModelos').innerHTML=MODELOS_ACESSO.map((m,i)=>
+    `<button type="button" title="${esc(m.desc)}" onclick="mbModelo(${i})">${m.nome}</button>`).join('');
   renderAreasMembro();
 }
 function mbPapelMudou(){
   MB.papel=$('mbPapel').value;
   MB.escolhas={};   // trocar o ponto de partida recomeça do padrão dele: previsível
+  if(!(MB.titulo||'').trim()||MODELOS_ACESSO.some(x=>x.nome===(MB.titulo||'').trim())||Object.keys(PAPEIS).some(k=>PAPEIS[k].nome===(MB.titulo||'').trim())){
+    MB.titulo=(PAPEIS[MB.papel]||{}).nome||'';if($('mbRotulo'))$('mbRotulo').value=MB.titulo;}
   renderAreasMembro();
 }
 function mbNivel(area,nivel){MB.escolhas[area]=nivel;renderAreasMembro();}
 function renderAreasMembro(){
-  $('mbPapelDesc').textContent=(PAPEIS[MB.papel]||{}).desc||'';
   const dono=MB.papel==='dono';
+  $('mbPapelDesc').textContent=dono?'Dono vê e altera tudo, inclusive quem tem acesso à loja.':'';
   $('mbAreas').innerHTML=ORDEM_AREAS.map(a=>{
     const nome=AREA_ROTULO[a][0],desc=AREA_ROTULO[a][1];
     const atual=dono?'escrever':nivelEscolhido(a),pad=nivelDoPapel(MB.papel,a);
@@ -14128,6 +14160,8 @@ function renderAreasMembro(){
   const avisos=[];
   if(dono)avisos.push('Dono vê e altera tudo — as áreas não se aplicam.');
   else{
+    if(nivelEscolhido('vendas')==='escrever'||nivelEscolhido('fiado')==='escrever')
+      avisos.push('💡 Quem <b>vende ou recebe fiado</b> também grava o que a venda mexe — a baixa do estoque, a cliente nova e o dinheiro no caixa — mesmo sem ver essas telas.');
     if(nivelEscolhido('fiado')!=='nenhum'&&nivelEscolhido('vendas')==='nenhum')
       avisos.push('⚠️ A aba <b>Fiado</b> vai aparecer vazia: as parcelas ficam guardadas dentro das vendas. Deixe <b>Vendas</b> pelo menos em "Só vê".');
     if(nivelEscolhido('resumo')!=='nenhum'&&nivelEscolhido('financeiro')==='nenhum')
@@ -14137,6 +14171,9 @@ function renderAreasMembro(){
 }
 async function salvarAcessoMembro(){
   const papel=MB.papel,ajustes=papel==='dono'?{}:ajustesSoDiferencas(papel,MB.escolhas);
+  // o nome que o dono escreveu (só guarda quando não é o nome do próprio papel)
+  const tit=(MB.titulo||($('mbRotulo')?$('mbRotulo').value:'')||'').trim().slice(0,30);
+  if(tit&&tit!==(PAPEIS[papel]||{}).nome)ajustes.titulo=tit;
   const bt=$('mbSalvar');bt.disabled=true;
   try{
     if(MB.modo==='convidar'){
@@ -14156,7 +14193,7 @@ async function salvarAcessoMembro(){
         {metodo:'PATCH',corpo:{papel,ajustes},headers:{'Prefer':'return=minimal'}});
       dlgMembro.close();
       await carregarEquipe();
-      toast('Acesso atualizado ✓ — vale na próxima vez que a pessoa abrir o painel');
+      toast('Acesso atualizado ✓ — o painel dela acompanha sozinho em alguns minutos');
     }
   }catch(e){avisar('Não deu para salvar: '+(e.msg||'erro'));}
   finally{bt.disabled=false;}
@@ -14237,6 +14274,64 @@ async function forcarEnvioParaNuvem(){
   }
 }
 
+/* ---------- entrar com o Google (docx V15, item 13) ----------
+   O botão só aparece no painel publicado (http/https) e quando o Google está ligado
+   na conta do banco — o painel pergunta isso sozinho (/auth/v1/settings, público).
+   Tocar leva ao Google e volta com a sessão no endereço (#access_token=…); o painel
+   lê, tira da barra e segue igual ao login com senha. Conta do Google com o MESMO
+   e-mail de uma conta já existente entra nela (o banco junta as duas). */
+function googlePossivel(){return nuvemConfigurada()&&/^https?:$/.test(location.protocol);}
+function mostrarBotaoGoogle(on){
+  ['loginGoogle','loginOu','cadGoogle','cadOu'].forEach(id=>{const b=$(id);if(b)b.hidden=!on;});
+}
+async function conferirGoogle(){
+  if(!googlePossivel()){mostrarBotaoGoogle(false);return false;}
+  let salvo='';try{salvo=localStorage.getItem('g1001_google')||'';}catch(e){}
+  mostrarBotaoGoogle(salvo==='1');
+  try{
+    const r=await fetch(NUVEM_URL+'/auth/v1/settings',{headers:{apikey:NUVEM_KEY}});
+    const j=await r.json(),on=!!(j&&j.external&&j.external.google);
+    try{localStorage.setItem('g1001_google',on?'1':'0');}catch(e){}
+    mostrarBotaoGoogle(on);return on;
+  }catch(e){return salvo==='1';}
+}
+function enderecoDoGoogle(){
+  return NUVEM_URL+'/auth/v1/authorize?provider=google&redirect_to='+encodeURIComponent(location.origin+location.pathname);
+}
+function entrarComGoogle(){location.href=enderecoDoGoogle();}
+/* a volta do Google: #access_token=…&refresh_token=…&expires_in=…  (ou #error=…) */
+function sessaoDoEndereco(){
+  const h=String(location.hash||'').replace(/^#/,'');
+  if(h.indexOf('access_token=')<0&&h.indexOf('error=')<0)return null;
+  const q=new URLSearchParams(h);
+  try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}   // o acesso não fica na barra
+  if(q.get('error'))return {erro:q.get('error_description')||q.get('error')};
+  const at=q.get('access_token'),rt=q.get('refresh_token');
+  if(!at||!rt)return null;
+  return {access_token:at,refresh_token:rt,token_type:'bearer',
+    expires_at:+q.get('expires_at')||Math.floor(Date.now()/1000)+(+q.get('expires_in')||3600)};
+}
+/* devolve '' quando entrou, ou o texto do que deu errado */
+async function entrarPelaVoltaDoGoogle(veio){
+  NUVEM.sessao=veio;
+  let u=null;
+  try{u=await chamarApi('/auth/v1/user');}catch(e){u=null;}
+  if(!u||!u.id){NUVEM.sessao=null;return 'Não deu para entrar com o Google agora. Tente de novo.';}
+  veio.user=u;
+  /* Google errado: o aparelho tem os dados de UMA conta e o Google acabou de criar OUTRA
+     (o e-mail dele não tinha cadastro). Seguir adiante misturaria os dados das duas. */
+  let ant=null;try{ant=JSON.parse(localStorage.getItem(LS_ACESSO)||'null');}catch(e){}
+  const nova=!!u.created_at&&(Date.now()-new Date(u.created_at).getTime())<180000;
+  const temDados=(dados.vendas||[]).length||(dados.produtos||[]).length;
+  if(nova&&ant&&ant.usuario&&ant.usuario!==u.id&&temDados){
+    NUVEM.sessao=null;
+    return 'A conta do Google '+(u.email||'')+' não é a que usava este painel. Entre com o e-mail de sempre — ou com o Google desse mesmo e-mail.';
+  }
+  guardarSessao(veio);
+  try{localStorage.removeItem(LS_MODO);}catch(e){}
+  return '';
+}
+
 /* ---------- boot ---------- */
 /* Roda depois de carregar(): o painel já está na tela com os dados locais,
    e a nuvem entra por cima. Assim o sistema abre rápido e nunca fica
@@ -14244,6 +14339,12 @@ async function forcarEnvioParaNuvem(){
 async function iniciarNuvem(){
   if(!nuvemConfigurada()){NUVEM.modo='local';esperandoAcesso(false);return;}
   lerBase();
+  // voltou do "Entrar com o Google"?
+  const veio=sessaoDoEndereco();
+  if(veio){
+    const erro=veio.erro?'Não deu para entrar com o Google. Tente de novo.':await entrarPelaVoltaDoGoogle(veio);
+    if(erro){esperandoAcesso(false);mostrarLogin();const le=$('loginErro');if(le){le.hidden=false;le.textContent=erro;}return;}
+  }
   let modoSalvo=null;
   try{modoSalvo=localStorage.getItem(LS_MODO);}catch(e){}
   if(modoSalvo==='local'){NUVEM.modo='local';esperandoAcesso(false);atualizarChipNuvem();return;}
@@ -14277,13 +14378,28 @@ async function iniciarNuvem(){
    o momento mais comum de estar vendo dado desatualizado na tela — sem isso,
    só um F5 manual traria a atualização. Sincroniza sozinho quando a aba volta
    a ficar visível ou a janela ganha foco, sem esperar o usuário mexer em nada. */
-function talvezResincronizar(){
-  if(!nuvemLigada()||NUVEM.sincronizando)return Promise.resolve(false);
-  const passou=!NUVEM.ultimoSync||(Date.now()-NUVEM.ultimoSync)>15000;
-  return passou?sincronizarComNuvem({completo:true}):Promise.resolve(false);
+function talvezResincronizar(folga){
+  if(!nuvemLigada())return Promise.resolve(false);
+  // conta a partir da última sincronização COMPLETA (a que baixa): a subida rápida
+  // de uma venda não pode adiar a busca do que os outros aparelhos gravaram
+  const passou=!NUVEM.ultimoCompleto||(Date.now()-NUVEM.ultimoCompleto)>(folga||15000);
+  if(!passou)return Promise.resolve(false);
+  // uma subida está no meio do caminho: a completa entra assim que ela terminar
+  if(NUVEM.sincronizando){NUVEM.pedeCompleto=true;return Promise.resolve(false);}
+  clearTimeout(syncTimer);syncTimer=null;   // a completa já sobe o que estava pendente
+  return sincronizarComNuvem({completo:true});
 }
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)talvezResincronizar();});
-window.addEventListener('focus',talvezResincronizar);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')talvezResincronizar();});
+window.addEventListener('focus',()=>talvezResincronizar());
+/* Painel que fica aberto o dia inteiro (o tablet no balcão, o aplicativo que o celular
+   não fecha): a cada 5 minutos busca o que mudou — menos com uma janela aberta ou com
+   alguém digitando, para a tela não se redesenhar no meio de um lançamento. */
+setInterval(()=>{
+  if(document.visibilityState!=='visible'||document.querySelector('dialog[open]'))return;
+  const a=document.activeElement;
+  if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))return;
+  talvezResincronizar(300000);
+},60000);
 
 /* Chamado aqui no fim, e não dentro de iniciar() (part5): iniciar() executa no
    topo do part5, quando as constantes deste arquivo ainda não existem. */
@@ -15575,21 +15691,41 @@ function avisarPedidosNovos(){
   toast(t);
   try{
     if(typeof Notification!=='undefined'&&Notification.permission==='granted'&&document.visibilityState!=='visible')
-      avisarNoCelular(t,{body:'Abra Vendas para ver e registrar a venda.',tag:'pedido-loja'});
+      avisarNoCelular(t,{body:'Abra Pedidos para ver e registrar a venda.',tag:'pedido-loja'});
   }catch(e){}
 }
+/* A aba "Pedidos" do menu (V15, pedido do Luan: "uma aba só dela, com balão de
+   notificação igual o fiado"): só aparece para a loja que vende pelo site. O número
+   = pedidos pagos esperando entrega; no celular vai no botão "Mais" e dentro dele. */
 function pintarBadgePedidos(){
   const L=lojaOn(),on=pedidosLigados(),n=on?pedidosParaEntregar().length:0;
-  ['navVendas','navVendasCel'].forEach(id=>{const e=$(id);if(!e)return;
-    e.textContent=n||'';e.title=n?n+(n===1?' pedido da loja para entregar':' pedidos da loja para entregar'):'';e.style.display=n?'':'none';});
+  const bt=$('navBtPedidos');if(bt)bt.hidden=!on;
+  const rot=n?n+(n===1?' pedido da loja para entregar':' pedidos da loja para entregar'):'';
+  ['navPedidos','navMaisCont'].forEach(id=>{const e=$(id);if(!e)return;
+    e.textContent=n||'';e.title=rot;e.style.display=n?'':'none';});
   // primeira vez depois de entrar (e a cada 3 min pelo relógio abaixo)
   if(on&&!L.carregando&&Date.now()-L.ultimaBusca>180000)setTimeout(()=>carregarPedidos(false),0);
 }
-function pintarPedidos(){
-  const b=$('pedidosBox');if(!b)return;
-  const h=painelPedidosHTML();
-  if(!h){b.remove();return;}
-  b.outerHTML=h;
+function pintarPedidos(){if(ui.tab==='pedidos')renderPedidos();}
+function renderPedidos(){
+  const sec=$('tab-pedidos');if(!sec)return;
+  const L=lojaOn(),ps=L.pedidos||[];
+  const cab=`<div class="barra"><h2 style="margin:0">Pedidos da loja</h2>${ajuda('Pedidos que as clientes fizeram e pagaram no site. O painel confere cada pagamento antes de mostrar como pago. Registrar a venda baixa o estoque e entra no Resumo; depois de entregar, toque em "Entregue".')}
+    <span class="esp"></span><button class="bt" onclick="carregarPedidos(true)">↻ Atualizar</button></div>`;
+  if(!pedidosLigados()||L.semSql){
+    sec.innerHTML=cab+`<div class="painel vazio-inicio"><div class="big">🛒</div><p>A loja ainda não está recebendo pedidos pagos pelo site.</p>
+      <p class="mut" style="font-size:.85rem">Para ligar: Site da loja → Pagamento online na loja.</p></div>`;
+    return;
+  }
+  const soma=l=>r2(l.reduce((s,p)=>s+(+((p.dados||{}).total)||0),0));
+  const pagos=ps.filter(p=>p.status==='pago'),espera=ps.filter(p=>p.status==='aguardando');
+  const de=isoAddDias(hoje(),-30);
+  const entregues=ps.filter(p=>p.status==='entregue'&&String(p.criado||'').slice(0,10)>=de);
+  sec.innerHTML=cab+`<div class="cards">
+      <div class="card"><div class="rotulo">Para entregar</div><div class="valor ${pagos.length?'pos':''}">${pagos.length}</div><div class="extra">${pagos.length?fmt(soma(pagos))+' já pagos':'nenhum esperando'}</div></div>
+      <div class="card"><div class="rotulo">Começaram e não pagaram</div><div class="valor">${espera.length}</div><div class="extra">${espera.length?fmt(soma(espera))+' parados':'—'}</div></div>
+      <div class="card"><div class="rotulo">Entregues em 30 dias</div><div class="valor">${entregues.length}</div><div class="extra">${entregues.length?fmt(soma(entregues)):'—'}</div></div>
+    </div>`+painelPedidosHTML();
 }
 /* hora do pedido em texto curto: "hoje 14:32", "ontem 09:10", "28/10 18:05" */
 function quandoPedido(iso){
@@ -15655,20 +15791,17 @@ function cartaoPedidoHTML(p){
     ${ac.length?`<div class="acoes">${ac.join('')}</div>`:''}
   </div>`;
 }
-/* bloco da aba Vendas (entra logo abaixo do topo, part4 renderVendas) */
+/* a lista da aba Pedidos (renderPedidos): pagos em cima, o resto recolhido */
 function painelPedidosHTML(){
   if(!pedidosLigados())return '';
-  const L=lojaOn(),c=cfgCheckout();
+  const L=lojaOn();
   if(L.semSql)return '';
   if(Date.now()-L.ultimaBusca>60000&&!L.carregando)setTimeout(()=>carregarPedidos(false),0);
   const ps=L.pedidos||[];
   const pagos=ps.filter(p=>p.status==='pago');
   const espera=ps.filter(p=>p.status==='aguardando');
   const feitos=ps.filter(p=>p.status==='entregue'||p.status==='cancelado');
-  if(!ps.length&&!c.ativo)return '';
-  const cab=`<h3>🛒 Pedidos da loja ${pagos.length?`<span class="bd ok">${pagos.length} para entregar</span>`:''}
-    ${ajuda('Pedidos que as clientes fizeram e pagaram no site. O painel confere cada pagamento na própria InfinitePay antes de mostrar como pago. Registrar a venda baixa o estoque e entra no Resumo; depois de entregar, toque em "Entregue".')}
-    <button class="bt mini" style="margin-left:auto" onclick="carregarPedidos(true)" title="buscar de novo">↻</button></h3>`;
+  const cab=`<h3>Para entregar ${pagos.length?`<span class="bd ok">${pagos.length}</span>`:''}</h3>`;
   let corpo='';
   if(L.pedidos==null)corpo='<p class="mut" style="font-size:.85rem">Buscando os pedidos…</p>';
   else if(!ps.length)corpo='<p class="mut" style="font-size:.85rem">Nenhum pedido pelo site ainda. Quando uma cliente pagar na loja, o pedido aparece aqui.</p>';
