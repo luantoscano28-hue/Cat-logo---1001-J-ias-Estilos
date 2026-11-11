@@ -1371,12 +1371,13 @@ try{
   <div class="fgrid">
     <label class="campo">Data <input type="date" id="vData" required onchange="vDataMudou()"><small class="aviso-dia" id="vDataAviso"></small></label>
     <label class="campo">Forma de pagamento <select id="vForma"></select></label>
-    <label class="campo" id="vCanalBox" hidden>Canal (a taxa muda conforme o canal) <select id="vCanal" onchange="vCanalMudou()"></select></label>
+    <label class="campo" id="vCanalBox" hidden>Maquininha / link (a taxa muda conforme) <select id="vCanal" onchange="vCanalMudou()"></select></label>
     <label class="campo" id="vBandeiraBox" hidden>Bandeira <select id="vBandeira" onchange="vTaxaPadraoMudou()"></select></label>
     <label class="campo" id="vParcCartaoBox" hidden>Parcelado no cartão em <select id="vParcCartao" onchange="vTaxaPadraoMudou()"></select></label>
     <label class="campo" id="vTaxaBox" hidden>Vai cair na conta (R$) <input id="vLiquido" inputmode="decimal" autocomplete="off" oninput="recalcVenda()"><small class="mut" id="vTaxaDica" style="font-size:.7rem"></small></label>
     <label class="campo">Cliente <input id="vCliente" placeholder="digite pra buscar ou criar" autocomplete="off" oninput="vClienteMudou();acClientes(this,vClienteMudou)" onfocus="acClientes(this,vClienteMudou)" onkeydown="acTeclas(event,()=>acClientes(this,vClienteMudou))" onblur="acBlur()"><small id="vClienteHint" style="font-size:.72rem;min-height:.9rem;display:block"></small></label>
     <label class="campo">Local <span class="sel-add"><select id="vLocal"></select><button type="button" class="bt mini" title="novo local" onclick="novoCadInline('locais','vLocal')">+</button></span></label>
+    <label class="campo">Canal de venda <select id="vCanalVenda"></select></label>
     <label class="campo span2" id="vTelBox" hidden>Telefone do novo cliente (opcional, ajuda na cobrança) <input id="vTelNovo" placeholder="(11) 9...."></label>
   </div>
   <h4 class="mt">Itens da venda</h4>
@@ -3126,7 +3127,7 @@ function opcoes(lista,sel,rotulo){
 function renderConfig(){
   // Site da loja não é mais uma das abas daqui: tem página própria, pelo menu (V8)
   const abas=[['geral','Geral / Loja'],['categorias','Categorias'],['colecoes','Coleções'],['tipos','Tipos'],['fornecedores','Fornecedores'],
-    ['locais','Locais'],['formas','Formas de pagamento'],['canais','Canais (maquininha/link)'],['insumos','Embalagem / insumos'],['contas','Contas'],['catFin','Categorias financeiras'],['promocoes','Promoções e cupons'],['dados','Conta e dados']];
+    ['locais','Locais'],['canaisVenda','Canais de venda'],['formas','Formas de pagamento'],['canais','Canais (maquininha/link)'],['insumos','Embalagem / insumos'],['contas','Contas'],['catFin','Categorias financeiras'],['promocoes','Promoções e cupons'],['dados','Conta e dados']];
   let corpo='';
   const cfg=C();
   if(ui.cfgTab==='geral'){
@@ -3255,14 +3256,14 @@ function painelCadastro(qual){
         <b><a href="#" onclick="event.preventDefault();ui.cfgTab='lojaSite';renderConfig()">Site da loja → Personalizar o catálogo</a></b>${comCara?` (${comCara} já ${comCara>1?'personalizadas':'personalizada'})`:''}.</p>
       </div>`;
   }
-  if(qual==='categorias'||qual==='tipos'||qual==='locais'){
-    const lista=cfg[qual]||[];const rot={categorias:'categoria',tipos:'tipo',locais:'local'}[qual];
-    const titulo={categorias:'Categorias',tipos:'Tipos',locais:'Locais'}[qual];
-    return `<div class="painel"><h3>${titulo}</h3>
+  if(qual==='categorias'||qual==='tipos'||qual==='locais'||qual==='canaisVenda'){
+    const lista=(qual==='canaisVenda'?canaisVenda():cfg[qual])||[];const rot={categorias:'categoria',tipos:'tipo',locais:'local',canaisVenda:'canal'}[qual];
+    const titulo={categorias:'Categorias',tipos:'Tipos',locais:'Locais',canaisVenda:'Canais de venda'}[qual];
+    return `<div class="painel"><h3>${titulo}${qual==='canaisVenda'?' '+ajuda('Onde a venda aconteceu: no presencial, pelo site, pelo WhatsApp, numa feira… Cada venda escolhe o canal (o padrão é o primeiro) e o Resumo mostra quanto cada canal vendeu no mês. As vendas do site entram sozinhas no canal do site.'):''}</h3>
       <ul class="cfg-lista">${lista.map(x=>`<li><span class="nm">${esc(x.nome)}</span>
         <button class="bt mini" onclick="editarCadItem('${qual}','${x.id}')">✎</button>
         <button class="bt mini perigo" onclick="removerCadItem('${qual}','${x.id}')">✕</button></li>`).join('')||'<li class="mut">Nenhum ainda.</li>'}</ul>
-      <div class="cfg-add"><input id="addNome" placeholder="Nova ${rot}..." onkeydown="if(event.key==='Enter'){addCadItem('${qual}');}"><button class="bt primario" onclick="addCadItem('${qual}')">Adicionar</button></div></div>`;
+      <div class="cfg-add"><input id="addNome" placeholder="${qual==='categorias'?'Nova':'Novo'} ${rot}..." onkeydown="if(event.key==='Enter'){addCadItem('${qual}');}"><button class="bt primario" onclick="addCadItem('${qual}')">Adicionar</button></div></div>`;
   }
   if(qual==='fornecedores'){
     return `<div class="painel"><h3>Fornecedores</h3>
@@ -3363,10 +3364,10 @@ function addCadItem(qual){
   const item={id:novoId(),nome:nm};
   // coleção nasce com os campos da vitrine, mesmo criada pelo atalho
   if(qual==='colecoes'){item.texto='';item.banner='';}
-  C()[qual].push(item);salvar();renderConfig();
+  (qual==='canaisVenda'?listaCanaisVenda():C()[qual]).push(item);salvar();renderConfig();
 }
 function editarCadItem(qual,id){
-  const it=acha(C()[qual],id);if(!it)return;
+  const it=acha(qual==='canaisVenda'?listaCanaisVenda():C()[qual],id);if(!it)return;
   pedir({titulo:'Renomear',campos:[{id:'nome',rotulo:'Nome',pergunta:'Editar:',valor:it.nome,obrigatorio:true}]},v=>{
     it.nome=v.nome.trim()||it.nome;salvar();renderConfig();
   });
@@ -3377,6 +3378,8 @@ function emUso(qual,id){
   if(qual==='tipos')return P.produtos.some(p=>p.tipoId===id);
   if(qual==='fornecedores')return P.produtos.some(p=>p.fornId===id)||P.movEstoque.some(m=>m.fornId===id);
   if(qual==='locais')return P.vendas.some(v=>v.localId===id)||P.clientes.some(c=>c.localId===id);
+  // o Presencial e o do site são os padrões (venda antiga e venda do site caem neles)
+  if(qual==='canaisVenda')return id==='cv-presencial'||id==='cv-site'||P.vendas.some(v=>canalVendaDe(v)===id);
   if(qual==='formas')return P.vendas.some(v=>v.formaId===id);
   if(qual==='contas')return P.lancamentos.some(l=>l.contaId===id||l.contraId===id)||C().formas.some(f=>f.contaId===id);
   if(qual==='catFin')return P.lancamentos.some(l=>l.catId===id);
@@ -3408,6 +3411,7 @@ function removerCadItem(qual,id){
     });
     return;
   }
+  if(qual==='canaisVenda')listaCanaisVenda();
   if(emUso(qual,id)){avisar('Já existe registro usando este item, então ele não pode ser removido. Você pode renomear no ✎.',{titulo:'Não dá para remover'});return;}
   const nmItem=(acha(C()[qual],id)||{}).nome||'este item';
   confirmar('Remover "'+nmItem+'"?',{titulo:'Remover',ok:'Remover',perigo:true},()=>{
@@ -6304,8 +6308,32 @@ function planoDaVenda(v){
   const p=recParcelas(v).find(x=>x.planoId);
   return p?p.planoId:null;
 }
+/* ---- canal de venda (11/11/2026, pedido do Luan: "rastreamento das vendas por canal de venda,
+   ex.: presencial, Site 1001 (Mercado Pago)") — onde a venda aconteceu. Não confundir com
+   `canais()`, que são as maquininhas/links do cartão. Os padrões têm id fixo: dois aparelhos
+   criando a lista ao mesmo tempo não duplicam nada. Ler NÃO cria a lista (quem grava usa
+   listaCanaisVenda) — senão só abrir uma tela já mexeria na configuração. ---- */
+const CANAIS_VENDA_PADRAO=[{id:'cv-presencial',nome:'Presencial'},{id:'cv-site',nome:''},
+  {id:'cv-whats',nome:'WhatsApp / Instagram'},{id:'cv-feira',nome:'Feira / evento'}];
+function nomeCanalSite(){
+  const p=String(nomeDaLoja()).trim().split(/\s+/)[0]||'';
+  return 'Site '+(p&&p.length<=8&&p!=='Minha'?p:'da loja')+' (Mercado Pago)';
+}
+function canaisVenda(){
+  const l=C().canaisVenda;
+  if(l&&l.length)return l;
+  return CANAIS_VENDA_PADRAO.map(c=>({id:c.id,nome:c.id==='cv-site'?nomeCanalSite():c.nome}));
+}
+function listaCanaisVenda(){
+  if(!C().canaisVenda||!C().canaisVenda.length)C().canaisVenda=canaisVenda().map(c=>Object.assign({},c));
+  return C().canaisVenda;
+}
+// venda antiga (sem o campo) = Presencial; a que veio de pedido do site = o canal do site
+function canalVendaDe(v){return (v&&v.canalVendaId)||(v&&v.pedidoOnline?'cv-site':'cv-presencial');}
+function nomeCanalVenda(id){const c=canaisVenda().find(x=>x.id===id);return c?c.nome:(id==='cv-site'?nomeCanalSite():'Presencial');}
 function preencherSelectsVenda(){
   $('vLocal').innerHTML='<option value="">—</option>'+opcoes(C().locais);
+  if($('vCanalVenda'))$('vCanalVenda').innerHTML=opcoes(canaisVenda());
   $('vForma').innerHTML=opcoes(C().formas);
   $('vCanal').innerHTML=opcoes(canais());
   const cp=canalPadrao();if(cp)$('vCanal').value=cp.id;
@@ -6353,6 +6381,7 @@ function vCanalMudou(){
 function abrirNovaVenda(){
   window.VENDA_DO_PEDIDO=null;   // V15: só a venda aberta por "Registrar venda" do pedido online leva o vínculo
   $('formVenda').reset();preencherSelectsVenda();
+  if($('vCanalVenda'))$('vCanalVenda').value='cv-presencial';
   $('dlgVendaTitulo').textContent='Nova venda';$('vId').value='';$('vData').value=hoje();$('vDesconto').value=0;$('vDescontoTipo').value='valor';marcarCupomVenda('');
   $('vAjuste').value=0;$('vAjusteTipo').value='valor';
   itensVenda=[{nome:'',produtoId:null,qtd:1,preco:0,custo:0}];parcelasVenda=[];
@@ -6370,6 +6399,7 @@ function editarVenda(id){
   $('formVenda').reset();preencherSelectsVenda();
   $('dlgVendaTitulo').textContent='Editar venda';$('vId').value=v.id;$('vData').value=v.data;V_VENC_AUTO='';
   $('vCliente').value=v.clienteNome||'';$('vLocal').value=v.localId||'';$('vForma').value=v.formaId;$('vObs').value=v.obs||'';
+  if($('vCanalVenda'))$('vCanalVenda').value=canalVendaDe(v);
   $('vDescontoTipo').value=v.descontoTipo==='perc'?'perc':'valor';marcarCupomVenda(v.cupom||'');
   $('vDesconto').value=v.descontoTipo==='perc'?(+v.descontoValor||0):(v.desconto||0);
   $('vAjuste').value=v.ajusteValor||0;$('vAjusteTipo').value=v.ajusteTipo||'valor';
@@ -6803,6 +6833,8 @@ function registrarEntrada(o){
   const bandeiraId=canalId?(o.bandeiraId||(bandeiraPadrao(canalId)||{}).id||null):null;
   const parcC=forma.tipoCartao==='credito'?Math.max(1,parseInt(o.parcelasCartao)||1):1;
   const d=destinoDe(o.formaId,canalId),conta=d.conta,prazo=d.prazo;
+  // o dia em que o dinheiro fica livre, quando quem recebeu disse (Mercado Pago: money_release_date)
+  const previsto=o.previsto&&o.previsto>o.data?o.previsto:null;
   // taxa: o valor que cai digitado na venda (V11) > a % ajustada (vendas antigas) > a da tabela
   let perc,tx;
   if(o.liquido!=null&&o.liquido!==''){
@@ -6814,8 +6846,8 @@ function registrarEntrada(o){
   }
   const rot=(forma.nome||'')+(parcC>1?' '+parcC+'x':'')+(canalId?' · '+nomeDe(canais(),canalId,''):'')
     +(bandeiraId?' · '+nomeDe(bandeirasDe(canalId),bandeiraId,''):'');
-  if(prazo>0){
-    const rec={id:novoId(),origem:o.origem,refId:o.refId||null,data:o.data,previsto:addDiasUteis(o.data,prazo),
+  if(prazo>0||previsto){
+    const rec={id:novoId(),origem:o.origem,refId:o.refId||null,data:o.data,previsto:previsto||addDiasUteis(o.data,prazo),
       bruto:r2(o.valor),taxaPerc:perc,taxa:tx,liquido:r2(o.valor-tx),formaId:o.formaId,canalId,bandeiraId,parcelasCartao:parcC,contaId:conta,
       rotulo:rot,descricao:o.descricao,recebido:false,recebidoEm:null,lancId:null,lancTaxaId:null};
     recebiveis().push(rec);
@@ -7118,6 +7150,7 @@ function salvarVenda(){
   const sub=subtotalVenda(),desc=descontoVenda(),dsc=descontoVendaBruto();
   const aj=ajusteVendaBruto(),ajValor=calcAjuste(r2(sub-desc),aj.tipo,aj.n),total=r2(Math.max(0,sub-desc+ajValor));
   const dv={data:$('vData').value,clienteId:cliente?cliente.id:null,clienteNome:nome,localId,formaId:forma.id,
+    canalVendaId:($('vCanalVenda')&&$('vCanalVenda').value)||'cv-presencial',
     canalId:canalSelecionado(),bandeiraId:bandeiraSelecionada(),parcelasCartao:parcCartaoSel(),taxaPercManual:null,
     liquidoManual:$('vTaxaBox').hidden?null:liquidoManualVenda(),
     itens:itensVenda.map(i=>({produtoId:i.produtoId,variacaoId:i.variacaoId||null,tamanho:i.tamanho||'',nome:i.nome.trim(),qtd:+i.qtd||0,preco:r2(i.preco),custo:r2(i.custo),status:i.status||'ok'})),
@@ -7225,7 +7258,7 @@ function salvarVenda(){
 }
 function lancarVendaAvista(v,forma){
   const r=registrarEntrada({data:v.data,valor:v.total,formaId:forma.id,canalId:v.canalId,bandeiraId:v.bandeiraId,parcelasCartao:v.parcelasCartao,
-    taxaPerc:v.taxaPercManual,liquido:v.liquidoManual,descricao:'Venda'+(v.clienteNome?' — '+v.clienteNome:''),origem:'venda',refId:v.id});
+    taxaPerc:v.taxaPercManual,liquido:v.liquidoManual,previsto:v.liberacao||null,descricao:'Venda'+(v.clienteNome?' — '+v.clienteNome:''),origem:'venda',refId:v.id});
   v.lancId=r.lancId;v.lancTaxaId=r.lancTaxaId;v.recebivelId=r.recebivelId;v.taxaValor=r.taxa;
 }
 function excluirVenda(id){
@@ -7241,6 +7274,8 @@ function excluirVenda(id){
     removerRecebiveisDe(v.id);
     aplicarEstoque(v,-1);
     dados.vendas=dados.vendas.filter(x=>x.id!==id);
+    // venda de pedido do site apagada de propósito: o painel não registra de novo sozinho
+    if(v.pedidoOnline&&typeof pedidoSemVenda==='function')pedidoSemVenda(v);
     salvar();renderTudo();toast('Venda excluída');
   });
 }
@@ -7270,6 +7305,7 @@ function renderVendas(){
     ${nf?`<button class="bt mini" onclick="limparFiltrosVendas()">limpar filtros</button>`:''}
   </div>
   <div class="p-filtros v-filtros"${aberto?'':' hidden'}><div class="barra">
+    <select onchange="ui.v.canal=this.value;renderVendas()" aria-label="Canal de venda"><option value="">Canal: todos</option>${opcoes(canaisVenda(),u.canal)}</select>
     <span class="mut" style="font-size:.8rem">Filtrar pelas peças vendidas:</span>
     <select onchange="ui.v.forn=this.value;renderVendas()"><option value="">Fornecedor: todos</option>${opcoes(C().fornecedores,u.forn)}</select>
     <select onchange="ui.v.cat=this.value;renderVendas()"><option value="">Material: todos</option>${opcoes(C().categorias,u.cat)}</select>
@@ -7279,7 +7315,7 @@ function renderVendas(){
   renderVendasTab();
   ativarBuscaSelects($('tab-vendas'));   // redesenho sem passar pelo renderTudo (filtro, dia, semana)
 }
-function nFiltrosVendas(){const u=ui.v;return [u.forn,u.tipo,u.cat,u.col].filter(Boolean).length;}
+function nFiltrosVendas(){const u=ui.v;return [u.canal,u.forn,u.tipo,u.cat,u.col].filter(Boolean).length;}
 /* abre/fecha sem redesenhar (os campos com busca continuam como estão) */
 function abrirFiltrosVendas(){
   ui.v.verFiltros=!ui.v.verFiltros;
@@ -7344,12 +7380,13 @@ function totalItensFiltrados(vs){
   }));
   return r2(t);
 }
-function limparFiltrosVendas(){ui.v.forn='';ui.v.tipo='';ui.v.cat='';ui.v.col='';renderVendas();}
+function limparFiltrosVendas(){ui.v.canal='';ui.v.forn='';ui.v.tipo='';ui.v.cat='';ui.v.col='';renderVendas();}
 function vendasFiltradas(){
   const u=ui.v,[ini,fim]=periodoDe(u),termos=termosBusca(u.busca);
   // acha pelo cliente, pelas peças da venda e pela observação
   return dados.vendas.filter(v=>noPeriodo(v.data,ini,fim)
       &&casaBusca([v.clienteNome,(v.itens||[]).map(i=>i.nome).join(' '),v.obs],termos)
+      &&(!u.canal||canalVendaDe(v)===u.canal)
       &&vendaCasaAtributos(v,u))
     .sort(ORDEM_VENDAS[u.ordem]||ORDEM_VENDAS.recentes);
 }
@@ -9657,6 +9694,21 @@ function vendasCategoriasTipos(ini,fim){
   const ord=o=>Object.entries(o).sort((a,b)=>b[1]-a[1]).map(([rot,val])=>({rot,val}));
   return {cats:ord(porCat),tipos:ord(porTipo),locs:ord(porLoc),forns:ord(porForn),cols:ord(porCol)};
 }
+/* ---- vendas por canal (11/11/2026): presencial, site, WhatsApp, feira… ---- */
+function vendasPorCanal(ini,fim){
+  const m={};
+  dados.vendas.filter(v=>noPeriodo(v.data,ini,fim)).forEach(v=>{
+    const k=canalVendaDe(v),o=m[k]||(m[k]={id:k,val:0,n:0});
+    o.val=r2(o.val+(+v.total||0));o.n++;
+  });
+  return Object.values(m).sort((a,b)=>b.val-a.val||b.n-a.n);
+}
+function painelCanaisVendaHTML(ini,fim){
+  const l=vendasPorCanal(ini,fim);if(!l.length)return '';
+  const tot=l.reduce((s,x)=>s+x.val,0),max=Math.max(0.01,l[0].val);
+  return `<div class="painel r-canais"><h2>Vendas por canal ${ajuda('Onde cada venda aconteceu. Quem registra a venda escolhe o canal (o padrão é Presencial); as vendas pagas no site entram sozinhas no canal do site. Os canais ficam em Configurações → Canais de venda.')}</h2>
+    <div class="vis-orig">${l.map(x=>`<div><span>${esc(nomeCanalVenda(x.id))} <span class="mut2">· ${x.n} venda${x.n>1?'s':''}</span></span><span class="tr"><i style="width:${Math.max(2,Math.round(x.val/max*100))}%"></i></span><b>${fmt(x.val)}</b><span class="mut2">${tot>0?Math.round(x.val/tot*100):0}%</span></div>`).join('')}</div></div>`;
+}
 function snapshotPeriodo(ini,fim){
   const g=vendasCategoriasTipos(ini,fim);
   return {dre:calcDRE(ini,fim),cx:calcCaixa(ini,fim),
@@ -9812,6 +9864,7 @@ function renderResumo(){
     <div class="painel">${painelLucroSimples(d,custom)}</div>
     <div class="painel">${painelCaixaSimples(cx,atual)}</div>
   </div>
+  ${painelCanaisVendaHTML(ini,fim)}
   ${typeof painelVisitasHTML==='function'?painelVisitasHTML(ini,fim,atual):''}
   <div class="grade2">
     <div class="painel"><h2>Entradas × Saídas de caixa (6 meses)</h2>${grafDuplo(meses)}<div class="legenda"><span><i style="background:var(--verde)"></i>Entradas</span><span><i style="background:var(--vermelho)"></i>Saídas</span></div></div>
@@ -12933,7 +12986,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-11-10 15:48';
+const VERSAO_APP='2026-11-11 01:14';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -13541,7 +13594,7 @@ function appDesatualizado(meta){
 
 /* as listas de cadastro que, se sumirem, deixam o resto do sistema órfão */
 // promocoes e cupons (V10) sincronizam item a item como os outros cadastros
-const CADASTROS=['contas','catFin','categorias','tipos','formas','fornecedores','locais','canais','colecoes','insumos','promocoes','cupons'];
+const CADASTROS=['contas','catFin','categorias','tipos','formas','fornecedores','locais','canais','colecoes','insumos','promocoes','cupons','canaisVenda'];
 /* Quantos registros ficariam SEM CADASTRO com esta configuração. Serve de
    aviso depois da juntada: se alguém apagou uma categoria no outro aparelho e
    aqui existe produto usando ela, a pessoa precisa saber. */
@@ -15854,6 +15907,8 @@ function formaDoSite(tipo){
   const c=cfgCheckout(),fs=(C().formas||[]).filter(f=>!f.ehFiado);
   const id=tipo==='pix'?c.formaPix:c.formaCartao;
   if(id&&fs.some(f=>f.id===id))return id;
+  const mp=tipo==='pix'?'forma-mp-pix':'forma-mp-cartao';
+  if(provedorCheckout(c)==='mp'&&fs.some(f=>f.id===mp))return mp;
   const f=tipo==='pix'?fs.find(f=>/pix/i.test(f.nome))
     :(fs.find(f=>f.tipoCartao==='credito')||fs.find(f=>/cr[eé]dito/i.test(f.nome)));
   return f?f.id:((fs[0]||{}).id||'');
@@ -15895,7 +15950,7 @@ function painelCheckout(){
       <label class="campo">Taxa de entrega (R$) <input id="ckTaxa" inputmode="decimal" value="${+c.taxaEntrega>0?fmtNum(c.taxaEntrega):''}" placeholder="vazio = grátis"></label>
       <label class="campo span2">Recado da entrega <input id="ckEntTxt" value="${esc(c.entregaTexto||'')}" placeholder="ex.: só em Limeira, em até 2 dias úteis" maxlength="120"></label>
     </div>
-    <h4 style="margin-top:1rem">Quando o pedido vira venda ${ajuda('O pedido pago entra nesta forma de pagamento ao registrar a venda aqui no painel. O dinheiro do site cai na conta do Mercado Pago (ou da InfinitePay): se quiser separar no Financeiro, crie uma forma "Pix do site" ligada a essa conta e escolha aqui.')}</h4>
+    <h4 style="margin-top:1rem">Quando o pedido vira venda ${ajuda('O pedido pago vira venda sozinho, no canal do site, nesta forma de pagamento — e o estoque baixa na hora. Com o Mercado Pago o painel cria a conta "Mercado Pago" e as formas "Pix (Mercado Pago)" e "Cartão (Mercado Pago)": o dinheiro do site fica separado do banco no Financeiro, e a taxa é a que o Mercado Pago cobrou de verdade.')}</h4>
     <div class="fgrid">
       <label class="campo">Pix do site <select id="ckFormaPix">${opF(formaDoSite('pix'))}</select></label>
       <label class="campo">Cartão do site <select id="ckFormaCartao">${opF(formaDoSite('cartao'))}</select></label>
@@ -15983,7 +16038,7 @@ async function salvarCheckout(){
     retirada:$('ckRet').checked,retiradaTexto:$('ckRetTxt').value.trim().slice(0,120),
     entrega:$('ckEnt').checked,taxaEntrega:Math.max(0,r2(numDigitado($('ckTaxa').value)||0)),
     entregaTexto:$('ckEntTxt').value.trim().slice(0,120),
-    formaPix:$('ckFormaPix').value||'',formaCartao:$('ckFormaCartao').value||''};
+    formaPix:$('ckFormaPix').value||'',formaCartao:$('ckFormaCartao').value||'',mpFinanceiro:!!ant.mpFinanceiro};
   if(novo.ativo&&provSel==='infinitepay'&&!novo.handle){avisar('Escreva a sua InfiniteTag — o nome que começa com $ no app da InfinitePay.',{titulo:'Falta a InfiniteTag'});return;}
   if(novo.ativo&&provSel==='mp'){
     if(!chaveMPValida(novo.chavePublica)){avisar('Cole a chave pública do Mercado Pago (começa com APP_USR-). Ela fica em mercadopago.com.br/developers → Suas integrações → Credenciais de produção.',{titulo:'Falta a chave pública'});return;}
@@ -16000,7 +16055,7 @@ async function salvarCheckout(){
       return;
     }
   }
-  l.checkout=novo;salvar();renderConfig();
+  l.checkout=novo;garantirFinanceiroSite();salvar();renderConfig();
   toast(novo.ativo?(ant.ativo?'Pagamento online salvo ✓':'Pagamento online ligado ✓ — o botão de pagar aparece na loja em instantes')
     :(ant.ativo?'Pagamento online desligado — a loja volta a só mandar o pedido pelo WhatsApp':'Salvo ✓'));
   if(novo.ativo)lojaOn().ultimaBusca=0;
@@ -16033,7 +16088,10 @@ async function carregarPedidos(forcar){
     if(e&&e.status===404){L.semSql=true;L.pedidos=[];L.erro='';}
     else L.erro=erroDeRede(e)?'Sem internet — os pedidos aparecem quando a conexão voltar.':'Não consegui buscar os pedidos agora.';
   }finally{L.carregando=false;L.ultimaBusca=Date.now();}
+  // conta e formas do Mercado Pago (uma vez, só quem pode mexer nas Configurações)
+  if(garantirFinanceiroSite())salvar();
   if(L.pedidos&&L.pedidos.length)await conferirPagamentos();
+  if(L.pedidos&&L.pedidos.length)await registrarVendasDoSite();
   avisarPedidosNovos();
   pintarBadgePedidos();pintarPedidos();
 }
@@ -16195,7 +16253,7 @@ function foneBonito(t){
 }
 function cartaoPedidoHTML(p){
   const d=p.dados||{},cli=d.cliente||{},ent=d.entrega||{},pg=p.pagamento||{},conf=pg.conferido||{};
-  const v=vendaDoPedido(p),pode=podeEscrever('vendas'),fone=foneWa(cli.telefone);
+  const v=vendaDoPedido(p),pode=podeEscrever('vendas'),fone=foneWa(cli.telefone),outro=!v&&vendaEmOutroAparelho(p);
   const st=p.status==='pago'?`<span class="bd ok">✓ ${esc(formaPagaTexto(p))}</span>`
     :p.status==='entregue'?'<span class="bd">entregue</span>'
     :p.status==='cancelado'?'<span class="bd sai">cancelado</span>'
@@ -16207,13 +16265,13 @@ function cartaoPedidoHTML(p){
   const ac=[];
   if(fone)ac.push(`<a class="bt mini" href="${esc(linkWhats(fone,mensagemPedidoCliente(p)))}" target="_blank" rel="noopener">📲 WhatsApp</a>`);
   if(p.status==='pago'&&pode){
-    ac.push(v?`<button class="bt mini" onclick="editarVenda('${v.id}')">🧾 ver a venda</button>`
-      :`<button class="bt mini primario" onclick="registrarVendaDoPedido('${p.id}')">🧾 Registrar venda</button>`);
+    if(v)ac.push(`<button class="bt mini" onclick="editarVenda('${v.id}')">🧾 ver a venda</button>`);
+    else if(!outro)ac.push(`<button class="bt mini primario" onclick="registrarVendaDoPedido('${p.id}')">🧾 Registrar venda</button>`);
     ac.push(`<button class="bt mini" onclick="marcarPedidoEntregue('${p.id}')">✓ Entregue</button>`);
   }
   if(p.status==='aguardando'&&pode)ac.push(`<button class="bt mini" onclick="marcarPedidoPago('${p.id}')">já recebi</button>`);
   if((p.status==='aguardando'||p.status==='pago')&&pode)ac.push(`<button class="bt mini perigo" onclick="cancelarPedido('${p.id}')">✕ cancelar</button>`);
-  if(p.status==='entregue'&&pode&&!v)ac.push(`<button class="bt mini" onclick="registrarVendaDoPedido('${p.id}')">🧾 registrar venda</button>`);
+  if(p.status==='entregue'&&pode&&!v&&!outro)ac.push(`<button class="bt mini" onclick="registrarVendaDoPedido('${p.id}')">🧾 registrar venda</button>`);
   return `<div class="ped ${esc(p.status)}">
     <header><b class="num">nº ${p.numero}</b><b>${esc(cli.nome||'—')}</b><span class="mut2">${quandoPedido(p.criado)}</span>${st}
       <span class="tot">${fmt(+d.total||0)}</span></header>
@@ -16221,7 +16279,8 @@ function cartaoPedidoHTML(p){
       ${cli.telefone?' · 📱 '+esc(foneBonito(cli.telefone)):''}${conta.length?' · '+conta.join(' · '):''}</div>
     ${conf.faltou>0?`<div class="info" style="color:var(--vermelho)">⚠️ ${pg.provedor==='mp'?'O Mercado Pago':'A InfinitePay'} mostra ${fmt(conf.pago)} pagos — faltam ${fmt(conf.faltou)} do pedido.</div>`:''}
     ${pg.estornado?`<div class="info" style="color:var(--vermelho)">⚠️ Este pagamento foi devolvido ou contestado no Mercado Pago — confira lá antes de entregar.</div>`:''}
-    ${v?`<div class="info">✓ Venda registrada${v.data?' em '+fmtData(v.data):''}</div>`:''}
+    ${v?`<div class="info">✓ Venda registrada${v.data?' em '+fmtData(v.data):''}${(p.painel||{}).vendaAuto?' (sozinha, quando o pagamento caiu)':''}</div>`
+      :outro?'<div class="info">✓ Venda registrada em outro aparelho — aparece aqui na próxima sincronização</div>':''}
     <ul class="pecas">${pecas}</ul>
     ${pg.receipt_url&&/^https:\/\//i.test(pg.receipt_url)?`<div class="info"><a href="${esc(pg.receipt_url)}" target="_blank" rel="noopener">ver o comprovante da InfinitePay</a></div>`:''}
     ${ac.length?`<div class="acoes">${ac.join('')}</div>`:''}
@@ -16259,6 +16318,7 @@ function registrarVendaDoPedido(id){
   const cartao=/credit|card|cart/i.test(metodo);
   abrirNovaVenda();
   window.VENDA_DO_PEDIDO=p.id;
+  if($('vCanalVenda'))$('vCanalVenda').value='cv-site';
   // cliente: a já cadastrada com o mesmo telefone; senão, o nome que ela escreveu
   const tel=String(cli.telefone||''),fim=tel.replace(/\D/g,'').slice(-9);
   const ex=fim.length>=8?dados.clientes.find(c=>String(c.tel||'').replace(/\D/g,'').slice(-9)===fim):null;
@@ -16296,8 +16356,146 @@ function registrarVendaDoPedido(id){
 /* chamado pelo salvarVenda (part4) quando a venda nasceu de um pedido */
 function vendaDoPedidoSalva(v){
   const p=pedidoPorId(v.pedidoOnline);if(!p)return;
-  p.painel=Object.assign({},p.painel||{},{vendaId:v.id,vendaEm:new Date().toISOString()});
+  p.painel=Object.assign({},p.painel||{},{vendaId:v.id,vendaEm:new Date().toISOString(),semVenda:false});
   chamarApi('/rest/v1/pedidos_online?id=eq.'+encodeURIComponent(p.id),{metodo:'PATCH',
+    corpo:{painel:p.painel,alterado:new Date().toISOString()},headers:{Prefer:'return=minimal'}}).catch(()=>{});
+  setTimeout(pintarPedidos,0);
+}
+/* ============================================================
+   VENDA DO SITE ENTRA SOZINHA (11/11/2026) — pedido do Luan depois do 1º Pix de
+   verdade: "tem que ver como isso vai refletir no financeiro" e "tem que ter o
+   registro da venda". Escolha dele: registrar SOZINHA.
+   - Pedido pago (conferido no Mercado Pago/InfinitePay, nunca pelo navegador da
+     cliente) → venda no canal do site, com as peças, a cliente, o cupom, a entrega
+     e o estoque baixando na hora.
+   - Dinheiro: na conta "Mercado Pago" (forma "Pix (Mercado Pago)" / "Cartão
+     (Mercado Pago)"), com a taxa que o MP cobrou de verdade (valor − o que caiu).
+   - Dois aparelhos abertos: só um registra. Antes de criar a venda o painel
+     "pega" o pedido no banco (PATCH só onde painel->>vendaId ainda é nulo); quem
+     não conseguiu, não cria nada.
+   - Venda apagada de propósito (pedido de teste) não volta: painel.semVenda.
+   ============================================================ */
+function contaMP(){
+  const cs=C().contas||[];
+  return cs.find(x=>x.id==='conta-mp')||cs.find(x=>x.tipo!=='aplicacao'&&/mercado\s*pago/i.test(x.nome||''));
+}
+/* cria (uma vez) a conta e as formas do Mercado Pago e faz o site entrar nelas.
+   Ids fixos: dois aparelhos criando ao mesmo tempo não duplicam nada. */
+function garantirFinanceiroSite(){
+  const c=cfgCheckout();
+  if(!c.ativo||provedorCheckout(c)!=='mp'||!podeEscrever('config'))return false;
+  const cfg=C();let mudou=false;
+  let conta=contaMP();
+  if(!conta){conta={id:'conta-mp',nome:'Mercado Pago',tipo:'banco'};cfg.contas.push(conta);mudou=true;}
+  const poe=f=>{const i=cfg.formas.findIndex(x=>x.ehFiado);cfg.formas.splice(i<0?cfg.formas.length:i,0,f);mudou=true;};
+  const base={entraCaixa:true,contaId:conta.id,ehFiado:false,usaCanal:false,taxas:{}};
+  // a taxa daqui só vale quando o Mercado Pago não disser quanto caiu (ele sempre diz)
+  if(!formaDe('forma-mp-pix'))poe(Object.assign({id:'forma-mp-pix',nome:'Pix (Mercado Pago)',taxa:0.99,prazoDias:0,tipoCartao:null},base));
+  if(!formaDe('forma-mp-cartao'))poe(Object.assign({id:'forma-mp-cartao',nome:'Cartão (Mercado Pago)',taxa:4.98,prazoDias:0,tipoCartao:'credito'},base));
+  // uma vez só: antes o site entrava no Pix comum (que cai no banco). Depois, quem manda é a escolha da loja.
+  if(!c.mpFinanceiro){cfg.loja.checkout=Object.assign({},c,{formaPix:'forma-mp-pix',formaCartao:'forma-mp-cartao',mpFinanceiro:true});mudou=true;}
+  return mudou;
+}
+function diaLocalDe(iso){
+  const d=new Date(iso||'');if(isNaN(d))return hoje();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+/* a venda pega por outro aparelho ainda não chegou aqui (só nos 2 primeiros dias:
+   depois disso, sem a venda, é porque ela foi apagada e o banco não ficou sabendo) */
+function vendaEmOutroAparelho(p){
+  const pn=p.painel||{};
+  return !!(pn.vendaId&&!pn.semVenda&&!vendaPorId(pn.vendaId)&&Date.now()-new Date(pn.vendaEm||0).getTime()<2*864e5);
+}
+function metodoDoPedido(p){
+  const d=p.dados||{},pg=p.pagamento||{},conf=pg.conferido||{};
+  return String(conf.forma||pg.capture_method||(d.pagamento==='pix'?'pix':'')||'');
+}
+// os pedidos de antes desta versão (testes da InfinitePay) não viram venda sozinhos
+function pedidoParaRegistrar(p){
+  const pn=p.painel||{};
+  return p.status==='pago'&&!pn.vendaId&&!pn.semVenda&&!(p.pagamento||{}).estornado
+    &&String(p.criado||'')>='2026-11-11'&&!vendaDoPedido(p);
+}
+/* a venda, montada do jeito que o salvarVenda grava (part4) */
+function montarVendaDoPedido(p,vid,forma){
+  const d=p.dados||{},pg=p.pagamento||{},conf=pg.conferido||{},cli=d.cliente||{},ent=d.entrega||{};
+  const cartao=/credit|debit|card|cart/i.test(metodoDoPedido(p));
+  // cliente: a já cadastrada com o mesmo telefone; senão, pelo nome (cria se não houver)
+  const tel=String(cli.telefone||''),fim=tel.replace(/\D/g,'').slice(-9);
+  const loc=(C().locais||[]).find(l=>/online|site|internet|virtual/i.test(l.nome||''));
+  let c=fim.length>=8?dados.clientes.find(x=>String(x.tel||'').replace(/\D/g,'').slice(-9)===fim):null;
+  if(!c)c=acharOuCriarCliente(String(cli.nome||'').trim()||'Cliente do site',loc?loc.id:null,tel);
+  const itens=(d.itens||[]).map(it=>{
+    const pr=it.id?prodPorId(it.id):null;
+    const o={produtoId:pr?pr.id:null,variacaoId:null,tamanho:'',nome:String(it.nome||(pr&&pr.nome)||'Peça do site').trim(),
+      qtd:Math.max(1,+it.qtd||1),preco:r2(+it.preco||0),custo:r2(pr&&pr.custo!=null?+pr.custo:0),status:'ok'};
+    if(pr&&temGrade(pr)){
+      const vr=(pr.variacoes||[]).find(x=>chaveBusca(x.rotulo)===chaveBusca(it.tamanho||''));
+      if(vr){o.variacaoId=vr.id;o.tamanho=vr.rotulo;}else o.tamanho=String(it.tamanho||'');
+    }
+    return o;
+  });
+  const sub=r2(itens.reduce((s,i)=>s+i.qtd*i.preco,0));
+  const desc=d.cupom&&+d.cupom.desconto>0?Math.min(sub,r2(+d.cupom.desconto)):0;
+  let ajuste=r2(+d.frete||0),total=r2(Math.max(0,sub-desc+ajuste));
+  // o que entrou de verdade manda: se o pagamento deu diferente, a diferença vira ajuste
+  const pago=conf.pago!=null&&+conf.pago>0?r2(+conf.pago):null;
+  if(pago!=null&&Math.abs(pago-total)>0.009){ajuste=r2(pago-(sub-desc));total=pago;}
+  const liq=conf.liquido!=null&&conf.liquido!==''&&isFinite(+conf.liquido)?r2(Math.min(total,+conf.liquido)):null;
+  const canalId=cartao&&formaUsaCanal(forma.id)?(canalDoSite()||null):null;
+  return {id:vid,seq:novaSeq(),origem:'site',lancId:null,
+    data:diaLocalDe(conf.em||p.criado),clienteId:c?c.id:null,clienteNome:c?c.nome:'',localId:loc?loc.id:(c&&c.localId)||null,
+    formaId:forma.id,canalVendaId:'cv-site',canalId,bandeiraId:null,parcelasCartao:cartao?Math.max(1,+conf.parcelas||1):1,
+    taxaPercManual:null,liquidoManual:liq,liberacao:conf.liberacao?diaLocalDe(conf.liberacao):null,
+    itens,totalBruto:sub,desconto:desc,descontoTipo:'valor',descontoValor:desc,cupom:(d.cupom&&d.cupom.codigo)||'',
+    ajusteTipo:'valor',ajusteValor:ajuste,ajuste,total,
+    custoTotal:r2(itens.reduce((s,i)=>s+i.qtd*(+i.custo||0),0)),custoInsumos:custoInsumosDaVenda(itens),taxaValor:0,
+    obs:'Pedido online nº '+p.numero+(ent.tipo==='entrega'?' · entrega':' · retirada'),pedidoOnline:p.id};
+}
+async function registrarVendasDoSite(){
+  const L=lojaOn();
+  if(L.registrando||!nuvemOn()||!podeEscrever('vendas'))return 0;
+  const pend=(L.pedidos||[]).filter(pedidoParaRegistrar);
+  if(!pend.length)return 0;
+  L.registrando=true;
+  const feitas=[];let outroPegou=false;
+  try{
+    garantirFinanceiroSite();
+    for(const p of pend){
+      const forma=formaDe(formaDoSite(/credit|debit|card|cart/i.test(metodoDoPedido(p))?'cartao':'pix'));
+      if(!forma||forma.ehFiado)continue;
+      const vid=novoId(),painel=Object.assign({},p.painel||{},{vendaId:vid,vendaEm:new Date().toISOString(),vendaAuto:true});
+      let r;
+      try{
+        r=await chamarApi('/rest/v1/pedidos_online?id=eq.'+encodeURIComponent(p.id)+'&painel->>vendaId=is.null',
+          {metodo:'PATCH',corpo:{painel,alterado:new Date().toISOString()},headers:{Prefer:'return=representation'}});
+      }catch(e){continue;}     // sem internet / erro: tenta de novo na próxima busca
+      if(!Array.isArray(r)||!r.length){outroPegou=true;continue;}
+      p.painel=painel;
+      if(vendaDoPedido(p)&&vendaDoPedido(p).id!==vid)continue;
+      const v=montarVendaDoPedido(p,vid,forma);
+      dados.vendas.push(v);
+      lancarVendaAvista(v,forma);
+      aplicarEstoque(v,1);
+      feitas.push(v);
+    }
+  }finally{L.registrando=false;}
+  if(feitas.length){
+    salvar();renderTudo();
+    const t=feitas.length===1?'Venda do site registrada: '+(feitas[0].clienteNome||'pedido')+' — '+fmt(feitas[0].total)
+      :feitas.length+' vendas do site registradas ('+fmt(feitas.reduce((s,v)=>s+v.total,0))+')';
+    toast(t+' ✓');
+  }
+  // outro aparelho registrou: busca a venda dele agora (senão o pedido fica sem venda aqui até a próxima sincronização)
+  if(outroPegou&&typeof talvezResincronizar==='function')talvezResincronizar(1);
+  return feitas.length;
+}
+/* chamado pelo excluirVenda (part4): apagou a venda do pedido → o painel não registra de novo
+   e o botão "Registrar venda" volta (para quem quiser registrar à mão) */
+function pedidoSemVenda(v){
+  const p=pedidoPorId(v.pedidoOnline);if(!p)return;
+  p.painel=Object.assign({},p.painel||{},{vendaId:null,semVenda:true});
+  if(nuvemOn())chamarApi('/rest/v1/pedidos_online?id=eq.'+encodeURIComponent(p.id),{metodo:'PATCH',
     corpo:{painel:p.painel,alterado:new Date().toISOString()},headers:{Prefer:'return=minimal'}}).catch(()=>{});
   setTimeout(pintarPedidos,0);
 }
