@@ -12986,7 +12986,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-11-11 01:14';
+const VERSAO_APP='2026-11-11 01:52';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -16092,6 +16092,7 @@ async function carregarPedidos(forcar){
   if(garantirFinanceiroSite())salvar();
   if(L.pedidos&&L.pedidos.length)await conferirPagamentos();
   if(L.pedidos&&L.pedidos.length)await registrarVendasDoSite();
+  if(L.pedidos&&L.pedidos.length)await desfazerEstornados();
   avisarPedidosNovos();
   pintarBadgePedidos();pintarPedidos();
 }
@@ -16254,9 +16255,11 @@ function foneBonito(t){
 function cartaoPedidoHTML(p){
   const d=p.dados||{},cli=d.cliente||{},ent=d.entrega||{},pg=p.pagamento||{},conf=pg.conferido||{};
   const v=vendaDoPedido(p),pode=podeEscrever('vendas'),fone=foneWa(cli.telefone),outro=!v&&vendaEmOutroAparelho(p);
+  // a venda deste pedido foi apagada de propósito (ex.: pedido de teste): não falta fazer nada
+  const apagada=!v&&!outro&&!!(p.painel||{}).semVenda;
   const st=p.status==='pago'?`<span class="bd ok">✓ ${esc(formaPagaTexto(p))}</span>`
     :p.status==='entregue'?'<span class="bd">entregue</span>'
-    :p.status==='cancelado'?'<span class="bd sai">cancelado</span>'
+    :p.status==='cancelado'?((p.painel||{}).estorno?'<span class="bd sai">💸 estornado</span>':'<span class="bd sai">cancelado</span>')
     :pg.transaction_nsu?'<span class="bd inv">conferindo o pagamento…</span>':'<span class="bd inv">não pagou ainda</span>';
   const pecas=(d.itens||[]).map(it=>`<li>${+it.qtd||1}× ${esc(it.nome||'')}${it.tamanho?' — '+esc(it.tamanho):''} <span class="mut2">${fmt((+it.preco||0)*(+it.qtd||1))}</span></li>`).join('');
   const conta=[];
@@ -16266,21 +16269,25 @@ function cartaoPedidoHTML(p){
   if(fone)ac.push(`<a class="bt mini" href="${esc(linkWhats(fone,mensagemPedidoCliente(p)))}" target="_blank" rel="noopener">📲 WhatsApp</a>`);
   if(p.status==='pago'&&pode){
     if(v)ac.push(`<button class="bt mini" onclick="editarVenda('${v.id}')">🧾 ver a venda</button>`);
-    else if(!outro)ac.push(`<button class="bt mini primario" onclick="registrarVendaDoPedido('${p.id}')">🧾 Registrar venda</button>`);
+    else if(!outro)ac.push(apagada?`<button class="bt mini" onclick="registrarVendaDoPedido('${p.id}')">registrar de novo</button>`
+      :`<button class="bt mini primario" onclick="registrarVendaDoPedido('${p.id}')">🧾 Registrar venda</button>`);
     ac.push(`<button class="bt mini" onclick="marcarPedidoEntregue('${p.id}')">✓ Entregue</button>`);
   }
   if(p.status==='aguardando'&&pode)ac.push(`<button class="bt mini" onclick="marcarPedidoPago('${p.id}')">já recebi</button>`);
   if((p.status==='aguardando'||p.status==='pago')&&pode)ac.push(`<button class="bt mini perigo" onclick="cancelarPedido('${p.id}')">✕ cancelar</button>`);
-  if(p.status==='entregue'&&pode&&!v&&!outro)ac.push(`<button class="bt mini" onclick="registrarVendaDoPedido('${p.id}')">🧾 registrar venda</button>`);
+  if(p.status==='entregue'&&pode&&!v&&!outro)ac.push(`<button class="bt mini" onclick="registrarVendaDoPedido('${p.id}')">${apagada?'registrar de novo':'🧾 registrar venda'}</button>`);
   return `<div class="ped ${esc(p.status)}">
     <header><b class="num">nº ${p.numero}</b><b>${esc(cli.nome||'—')}</b><span class="mut2">${quandoPedido(p.criado)}</span>${st}
       <span class="tot">${fmt(+d.total||0)}</span></header>
     <div class="info">${ent.tipo==='entrega'?'🚚 Entrega: '+esc(enderecoTexto(ent.endereco)||'endereço não informado'):'🏬 Retirar com a loja'}
       ${cli.telefone?' · 📱 '+esc(foneBonito(cli.telefone)):''}${conta.length?' · '+conta.join(' · '):''}</div>
     ${conf.faltou>0?`<div class="info" style="color:var(--vermelho)">⚠️ ${pg.provedor==='mp'?'O Mercado Pago':'A InfinitePay'} mostra ${fmt(conf.pago)} pagos — faltam ${fmt(conf.faltou)} do pedido.</div>`:''}
-    ${pg.estornado?`<div class="info" style="color:var(--vermelho)">⚠️ Este pagamento foi devolvido ou contestado no Mercado Pago — confira lá antes de entregar.</div>`:''}
+    ${(p.painel||{}).estorno?`<div class="info">💸 Dinheiro devolvido no Mercado Pago${quandoPedido((p.painel||{}).estorno)?' ('+quandoPedido(p.painel.estorno)+')':''} — a venda foi desfeita e a peça voltou para o estoque.</div>`
+      :pg.mp_status==='charged_back'?`<div class="info" style="color:var(--vermelho)">⚠️ A cliente contestou esta compra com o banco do cartão e o Mercado Pago tirou o dinheiro. A venda continua registrada — confira no Mercado Pago e, se a peça não voltar, deixe como está.</div>`
+      :pg.estornado?`<div class="info" style="color:var(--vermelho)">⚠️ Este pagamento foi devolvido ou contestado no Mercado Pago — confira lá antes de entregar.</div>`:''}
     ${v?`<div class="info">✓ Venda registrada${v.data?' em '+fmtData(v.data):''}${(p.painel||{}).vendaAuto?' (sozinha, quando o pagamento caiu)':''}</div>`
-      :outro?'<div class="info">✓ Venda registrada em outro aparelho — aparece aqui na próxima sincronização</div>':''}
+      :outro?'<div class="info">✓ Venda registrada em outro aparelho — aparece aqui na próxima sincronização</div>'
+      :apagada?'<div class="info mut2">Venda apagada — este pedido não entra nas vendas nem no Resumo.</div>':''}
     <ul class="pecas">${pecas}</ul>
     ${pg.receipt_url&&/^https:\/\//i.test(pg.receipt_url)?`<div class="info"><a href="${esc(pg.receipt_url)}" target="_blank" rel="noopener">ver o comprovante da InfinitePay</a></div>`:''}
     ${ac.length?`<div class="acoes">${ac.join('')}</div>`:''}
@@ -16490,6 +16497,53 @@ async function registrarVendasDoSite(){
   if(outroPegou&&typeof talvezResincronizar==='function')talvezResincronizar(1);
   return feitas.length;
 }
+/* ---- estorno (11/11/2026, escolha do Luan: "desfaz sozinho") ----
+   Devolveu o dinheiro no Mercado Pago (pagamento "refunded" — o aviso do MP chega na
+   função loja-pagamento, que marca o pedido): o painel desfaz a venda do site (o dinheiro
+   sai da conta Mercado Pago, a peça volta ao estoque) e o pedido vira "cancelado/estornado".
+   Contestação (charged_back) NÃO desfaz: a peça normalmente não volta — só avisa.
+   Um aparelho "pega" o estorno no banco (painel->>estorno nulo), como na venda automática.
+   Quem tem a venda e vê o pedido já estornado (a venda chegou depois pela sincronização)
+   também desfaz. Devolução PARCIAL o Mercado Pago não marca como "refunded": ajuste à mão. */
+function pedidoDevolvido(p){const pg=p.pagamento||{};return pg.provedor==='mp'&&pg.mp_status==='refunded';}
+function desfazerVendaDoSite(v){
+  if(v.lancId)removerLanc(v.lancId);
+  if(v.lancTaxaId)removerLanc(v.lancTaxaId);
+  removerRecebiveisDe(v.id);
+  aplicarEstoque(v,-1);
+  dados.vendas=dados.vendas.filter(x=>x.id!==v.id);
+}
+async function desfazerEstornados(){
+  const L=lojaOn();
+  if(L.desfazendo||!nuvemOn()||!podeEscrever('vendas'))return 0;
+  L.desfazendo=true;const feitos=[];
+  try{
+    for(const p of (L.pedidos||[])){
+      if(!pedidoDevolvido(p))continue;
+      const pn=p.painel||{};
+      if(!pn.estorno){
+        const v=vendaDoPedido(p),agora=new Date().toISOString();
+        const painel=Object.assign({},pn,{estorno:agora,vendaDesfeita:v?v.id:(pn.vendaId||null)});
+        let r;
+        try{
+          r=await chamarApi('/rest/v1/pedidos_online?id=eq.'+encodeURIComponent(p.id)+'&painel->>estorno=is.null',
+            {metodo:'PATCH',corpo:{status:'cancelado',painel,alterado:agora},headers:{Prefer:'return=representation'}});
+        }catch(e){continue;}
+        if(!Array.isArray(r)||!r.length){if(typeof talvezResincronizar==='function')talvezResincronizar(1);continue;}
+        p.status='cancelado';p.painel=painel;
+      }
+      // a venda do pedido (a desta loja, ligada a ele) sai — aqui ou quando chegar de outro aparelho
+      const v=dados.vendas.find(x=>x.pedidoOnline===p.id);
+      if(v){desfazerVendaDoSite(v);feitos.push({p,v});}
+    }
+  }finally{L.desfazendo=false;}
+  if(feitos.length){
+    salvar();renderTudo();
+    toast(feitos.length===1?'Estorno do pedido nº '+feitos[0].p.numero+': a venda de '+fmt(feitos[0].v.total)+' foi desfeita e a peça voltou para o estoque'
+      :feitos.length+' estornos: as vendas foram desfeitas e as peças voltaram para o estoque');
+  }
+  return feitos.length;
+}
 /* chamado pelo excluirVenda (part4): apagou a venda do pedido → o painel não registra de novo
    e o botão "Registrar venda" volta (para quem quiser registrar à mão) */
 function pedidoSemVenda(v){
@@ -16503,7 +16557,7 @@ function marcarPedidoEntregue(id){
   const p=pedidoPorId(id);if(!p)return;
   const fazer=()=>gravarPedido(p,{status:'entregue',painel:Object.assign({},p.painel||{},{entregueEm:new Date().toISOString()})})
     .then(ok=>{if(ok)toast('Pedido nº '+p.numero+' entregue ✓');});
-  if(!vendaDoPedido(p)){
+  if(!vendaDoPedido(p)&&!(p.painel||{}).semVenda){
     confirmar('O pedido nº '+p.numero+' ainda não virou venda aqui no painel — o estoque não baixou e ele não entra no Resumo. Marcar como entregue mesmo assim?',
       {titulo:'Ainda sem venda registrada',ok:'Marcar entregue'},fazer);
     return;
@@ -16521,7 +16575,9 @@ function marcarPedidoPago(id){
 function cancelarPedido(id){
   const p=pedidoPorId(id);if(!p)return;
   confirmar(p.status==='pago'
-      ?'O pedido nº '+p.numero+' já foi pago. Cancelar aqui NÃO devolve o dinheiro: o estorno se faz no app da InfinitePay. Cancelar mesmo assim?'
+      ?'O pedido nº '+p.numero+' já foi pago. Cancelar aqui NÃO devolve o dinheiro: a devolução se faz '
+        +((p.pagamento||{}).provedor==='mp'?'no Mercado Pago (no app ou no site, abrindo a venda).':'no app da InfinitePay.')
+        +(vendaDoPedido(p)?' A venda dele continua em Vendas — apague lá se ela não aconteceu.':'')+' Cancelar mesmo assim?'
       :'Cancelar o pedido nº '+p.numero+'? A cliente não pagou — ele só sai da lista.',
     {titulo:'Cancelar o pedido',ok:'Cancelar o pedido',perigo:true},()=>{
       gravarPedido(p,{status:'cancelado',painel:Object.assign({},p.painel||{},{canceladoEm:new Date().toISOString()})})
