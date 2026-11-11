@@ -12986,7 +12986,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-11-11 01:52';
+const VERSAO_APP='2026-11-11 10:36';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -16091,6 +16091,7 @@ async function carregarPedidos(forcar){
   // conta e formas do Mercado Pago (uma vez, só quem pode mexer nas Configurações)
   if(garantirFinanceiroSite())salvar();
   if(L.pedidos&&L.pedidos.length)await conferirPagamentos();
+  if(L.pedidos&&L.pedidos.length)await reconferirPagosMP(forcar);
   if(L.pedidos&&L.pedidos.length)await registrarVendasDoSite();
   if(L.pedidos&&L.pedidos.length)await desfazerEstornados();
   avisarPedidosNovos();
@@ -16135,6 +16136,40 @@ async function conferirPedidoMP(p){
     }
   }catch(e){}
   return false;
+}
+/* Estorno sem depender do aviso do Mercado Pago (11/11/2026). Caso real: o Luan devolveu
+   a compra de teste no cartão e o painel não ficou sabendo — o aviso do Mercado Pago
+   levava "401" (a função publicada de novo voltou com a trava de login ligada).
+   Pedido do Mercado Pago pago (ou entregue) nos últimos 7 dias: o painel pergunta à
+   função, que relê o pagamento no Mercado Pago — no máximo 1× a cada 30 min por pedido
+   (30 s quando a pessoa toca em Atualizar), até 10 por rodada. Mudou (ex.: "refunded")?
+   Relê o pedido do banco; o desfazerEstornados faz o resto. */
+async function reconferirPagosMP(forcar){
+  const L=lojaOn();if(!L.reconferidoEm)L.reconferidoEm={};
+  const limite=Date.now()-7*86400000,intervalo=forcar?30000:1800000;
+  let n=0,mudou=false;
+  for(const p of (L.pedidos||[])){
+    const pg=p.pagamento||{};
+    if(pg.provedor!=='mp'||!pg.mp_id||!p.token)continue;
+    if(p.status!=='pago'&&p.status!=='entregue')continue;
+    if(pg.mp_status==='refunded'||pg.mp_status==='charged_back')continue;
+    const em=Date.parse((pg.conferido||{}).em||p.criado||'');
+    if(!(em>=limite))continue;
+    const ult=Math.max(L.reconferidoEm[p.id]||0,L.conferidoEm[p.id]||0);
+    if(Date.now()-ult<intervalo)continue;
+    if(n>=10)break;
+    L.reconferidoEm[p.id]=Date.now();n++;
+    try{
+      const resp=await fetch(NUVEM_URL+'/functions/v1/loja-pagamento',{method:'POST',cache:'no-store',
+        headers:{'Content-Type':'application/json',apikey:NUVEM_KEY},body:JSON.stringify({acao:'status',id:p.id,token:p.token})});
+      const r=await resp.json();
+      if(r&&r.mp_status&&r.mp_status!==pg.mp_status){
+        const l=await chamarApi('/rest/v1/pedidos_online?select=status,pagamento,painel&id=eq.'+encodeURIComponent(p.id));
+        if(Array.isArray(l)&&l[0]){Object.assign(p,l[0]);mudou=true;}
+      }
+    }catch(e){}
+  }
+  return mudou;
 }
 async function conferirUmPagamento(p,h){
   const pg=p.pagamento||{};let r=null;
