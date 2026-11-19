@@ -820,6 +820,14 @@ main.larga{max-width:1480px}
 .vis-b{flex:1 1 0;min-width:0;display:flex;align-items:flex-end;justify-content:center;background:none;border:0;padding:0;margin:0;cursor:pointer;border-radius:0}
 .vis-b i{display:block;width:100%;max-width:28px;height:var(--h);background:var(--acento);border-radius:4px 4px 0 0;transition:background .12s}
 .vis-b.zero i{height:0}
+/* V16 (pedido do Luan): o número em cima de cada barra — o eixo do lado sai */
+.vis-graf.nums{grid-template-columns:minmax(0,1fr)}
+.vis-graf.nums .vis-y{display:none}
+.vis-graf.nums .vis-b{flex-direction:column;align-items:center;justify-content:flex-end}
+.vis-graf.nums .vis-b i{height:calc(var(--h) * .84)}
+.vis-b em{font-style:normal;font-size:.66rem;font-weight:600;line-height:1;margin-bottom:2px;color:var(--texto);
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.vis-graf.apertado .vis-b em{font-size:.56rem;letter-spacing:-.03em}
 .vis-b.hoje i{background:color-mix(in srgb,var(--acento) 55%,var(--painel))}
 .vis-b:hover i,.vis-b.on i,.vis-b:focus-visible i{background:var(--acento2)}
 .vis-b:focus-visible{outline:2px solid var(--acento);outline-offset:1px}
@@ -9011,7 +9019,22 @@ function specReciboFiado(nome,sel){
   const compras=[...vs.values()].sort(cmpDataAsc(gD,gId));
   const pecas=compras.map(v=>{const its=itensCobrados(v),q=its.reduce((s,i)=>s+(+i.qtd||1),0);
     return {e:dia(v.data).slice(0,5)+' · '+its.map(i=>nomeItem(i)+((+i.qtd||1)>1?' ('+i.qtd+'×)':'')).join(', ')+(q>1?' ('+q+' peças)':''),d:fmt(v.total)};});
-  if(pecas.length>1)pecas.push({e:'Total',d:fmt(r2(compras.reduce((s,v)=>s+(+v.total||0),0))),tot:true});
+  /* docx V16, item 6 (recibo da Kelly): "Total R$ 170" nas peças e "esta cobrança R$ 130" sem dizer
+     por quê — ela já tinha pago parte antes de juntar as compras. Quando a soma das peças não bate
+     com o que falta, a conta aparece embaixo: acréscimo do parcelamento, já pago, desconto, falta. */
+  const somaV=r2(compras.reduce((s,v)=>s+(+v.total||0),0));
+  let tParc=0,jaPago=0,descs=0,falta=0;
+  compras.forEach(v=>recParcelas(v).forEach(p=>{tParc+=+p.valor||0;jaPago+=+p.recebido||0;descs+=parcDesconto(p);falta+=parcAberto(p);}));
+  tParc=r2(tParc);jaPago=r2(jaPago);descs=r2(descs);falta=r2(falta);
+  const explica=Math.abs(somaV-falta)>0.005;
+  if(pecas.length>1||explica)pecas.push({e:'Total',d:fmt(somaV),tot:true});
+  if(explica){
+    const aj=r2(tParc-somaV);
+    if(Math.abs(aj)>0.005)pecas.push({e:aj>0?'Acréscimo no parcelamento':'Ajuste no parcelamento',d:(aj>0?'+ ':'− ')+fmt(Math.abs(aj))});
+    if(jaPago>0.005)pecas.push({e:'Já pago',d:'− '+fmt(jaPago),ok:true});
+    if(descs>0.005)pecas.push({e:'Desconto',d:'− '+fmt(descs),ok:true});
+    pecas.push({e:'Falta pagar',d:fmt(falta),tot:true});
+  }
   const secoes=[{tit:'Sua conta',linhas:conta},{tit:'Peças',linhas:pecas}];
   return {cliente:nomeNoRecibo(nome),destaque:{rot:'Esta cobrança',linha:um?um.rot+(um.venc?' · vence '+dia(um.venc):''):k.itens.length+' parcelas',valor:fmt(k.valor)},
     secoes,pix:(C().loja&&C().loja.pix)||'',arquivo:'recibo-'+nomeArquivoRecibo(nome)};
@@ -10211,6 +10234,10 @@ function catalogoLoja(embutir){
   /* V15: com a nuvem, a loja sempre leva o apelido (é por ele que ela conta as visitas e
      cria os pedidos no banco) e, com o pagamento online ligado, o jeito de pagar e entregar */
   if(typeof nuvemLigada==='function'&&nuvemLigada()&&typeof slugDaLoja==='function')cat.slug=slugDaLoja();
+  /* V16: a loja busca a vitrine pela identidade da LOJA (não muda se o nome mudar). Antes ela lia
+     "a vitrine" sem dizer de quem — com a 2ª loja publicando, o site da 1001 podia mostrar as
+     peças da outra. */
+  if(typeof nuvemLigada==='function'&&nuvemLigada()&&typeof lojaId==='function'&&lojaId())cat.lojaId=lojaId();
   if(typeof checkoutParaLoja==='function'){const ck=checkoutParaLoja();if(ck)cat.checkout=ck;}
   return cat;
 }
@@ -12346,7 +12373,11 @@ var LOJA_APP = __LOJA_APP__;
          que não conhece como filtro de coluna e devolve erro 400 — a loja
          ficava presa na lista embutida na página (aconteceu em 22/09/2026).
          Quem evita o cache é o cache:"no-store", que é para isso mesmo. */
-      fetch(N.url+"/rest/v1/catalogo?id=eq.unico&select=dados",{cache:"no-store",headers:{apikey:N.chave}})
+      /* V16: só a vitrine DESTA loja (pela identidade dela; página antiga, sem ela, pelo apelido) —
+         com mais de uma loja no banco, ler "a vitrine" sem filtro podia trazer a de outra */
+      var deQuem=CATALOGO.lojaId?"&dono=eq."+encodeURIComponent(CATALOGO.lojaId)
+        :(CATALOGO.slug?"&slug=eq."+encodeURIComponent(CATALOGO.slug):"");
+      fetch(N.url+"/rest/v1/catalogo?id=eq.unico"+deQuem+"&select=dados",{cache:"no-store",headers:{apikey:N.chave}})
       .then(function(r){return r.ok?r.json():null;})
       .then(function(linhas){
         buscando=false;
@@ -12986,7 +13017,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-11-11 10:36';
+const VERSAO_APP='2026-11-19 00:20';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -16673,15 +16704,16 @@ function corpoVisitas(r,ini,fim,atual){
   if(!visitas){
     h+=`<p class="mut" style="font-size:.85rem">Nenhuma visita registrada ${atual?'neste mês':'neste período'}.${atual?' A contagem é nova: os números aparecem conforme as clientes entram no site.':''}</p>`;
   }else{
+    // V16 (pedido do Luan): "De onde vieram" logo abaixo dos números; os gráficos depois
+    const ori=Object.keys(r.origens||{}).map(o=>({o,v:+r.origens[o]||0})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
+    const so=ori.reduce((s,x)=>s+x.v,0);
+    if(ori.length)h+=`<h4 style="margin-top:.8rem">De onde vieram ${ajuda('Pelo caminho que a pessoa usou para chegar: Instagram, WhatsApp, Google… "Link direto" é quem digitou o endereço ou abriu um link que não conta de onde veio (o WhatsApp às vezes não conta). Para saber de um post, use o link da peça ou da coleção.')}</h4>
+      <div class="vis-orig">${ori.map(x=>`<div><span>${esc(nomeOrigem(x.o))}</span><span class="tr"><i style="width:${Math.max(2,Math.round(x.v/ori[0].v*100))}%"></i></span><b>${numVis(x.v)}</b><span class="mut2">${Math.round(x.v/so*100)}%</span></div>`).join('')}</div>`;
     if(dias.length>1&&dias.length<=62){
-      h+='<h4 style="margin-top:.7rem">Pessoas por dia</h4>'+graficoBarras(dias.map(x=>({val:x.p,hoje:x.dia===h0,rot:fmtData(x.dia).slice(0,5),
+      h+='<h4 style="margin-top:.9rem">Pessoas por dia</h4>'+graficoBarras(dias.map(x=>({val:x.p,hoje:x.dia===h0,rot:fmtData(x.dia).slice(0,5),
         dica:diaSemanaVis(x.dia)+', '+fmtData(x.dia).slice(0,5)+' — '+nVis(x.p,'pessoa','pessoas')+' · '+nVis(x.v,'visita','visitas')})),
         melhor?'Melhor dia: '+diaSemanaVis(melhor.dia)+', '+fmtData(melhor.dia).slice(0,5)+' — '+nVis(melhor.p,'pessoa','pessoas')+'. Toque numa barra para ver o dia.':'');
     }
-    const ori=Object.keys(r.origens||{}).map(o=>({o,v:+r.origens[o]||0})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
-    const so=ori.reduce((s,x)=>s+x.v,0);
-    if(ori.length)h+=`<h4 style="margin-top:.9rem">De onde vieram ${ajuda('Pelo caminho que a pessoa usou para chegar: Instagram, WhatsApp, Google… "Link direto" é quem digitou o endereço ou abriu um link que não conta de onde veio (o WhatsApp às vezes não conta). Para saber de um post, use o link da peça ou da coleção.')}</h4>
-      <div class="vis-orig">${ori.map(x=>`<div><span>${esc(nomeOrigem(x.o))}</span><span class="tr"><i style="width:${Math.max(2,Math.round(x.v/ori[0].v*100))}%"></i></span><b>${numVis(x.v)}</b><span class="mut2">${Math.round(x.v/so*100)}%</span></div>`).join('')}</div>`;
   }
   // últimos 12 meses, até o mês de hoje (o mês fiscal 11→10 terminaria num mês que ainda não chegou)
   const NM=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
@@ -16701,14 +16733,17 @@ function corpoVisitas(r,ini,fim,atual){
    ao passar o mouse ou tocar (com poucas barras, cada uma tem o nome embaixo) */
 function graficoBarras(itens,padrao){
   const max=Math.max(1,...itens.map(i=>+i.val||0)),n=itens.length,cada=n<=12;
+  // V16 (pedido do Luan): o total em número em cima de cada barra (até um mês de barras; mais que
+  // isso não cabe — fica o eixo do lado e o toque na barra)
+  const nums=n<=31;
   const bars=itens.map(i=>{
     const pc=i.val>0?Math.max(3,Math.round(i.val/max*100)):0;
     return `<button type="button" class="vis-b${i.val?'':' zero'}${i.hoje?' hoje':''}" style="--h:${pc}%" data-dica="${esc(i.dica)}" aria-label="${esc(i.dica)}"
-      onmouseenter="visDica(this)" onfocus="visDica(this)" onclick="visDica(this)" onmouseleave="visDica(null,this)"><i></i></button>`;
+      onmouseenter="visDica(this)" onfocus="visDica(this)" onclick="visDica(this)" onmouseleave="visDica(null,this)">${nums&&i.val>0?`<em>${numVis(i.val)}</em>`:''}<i></i></button>`;
   }).join('');
   const xs=cada?itens.map(i=>`<span>${esc(i.rot)}</span>`).join('')
     :[0,Math.floor((n-1)/2),n-1].map(k=>`<span>${esc(itens[k].rot)}</span>`).join('');
-  return `<div class="vis-graf"><div class="vis-y"><span>${numVis(max)}</span><span>0</span></div>
+  return `<div class="vis-graf${nums?' nums':''}${n>16?' apertado':''}"><div class="vis-y"><span>${numVis(max)}</span><span>0</span></div>
     <div class="vis-barras">${bars}</div><div></div><div class="vis-x${cada?' cada':''}">${xs}</div>
     <div class="vis-dica" data-padrao="${esc(padrao||'')}">${esc(padrao||'')}</div></div>`;
 }
