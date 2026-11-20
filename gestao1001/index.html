@@ -351,6 +351,14 @@ button.bd-clica:hover{filter:brightness(.95);text-decoration:underline}
 .f-parc .vl{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
 .f-parc .vl small{display:block;font-weight:400}
 .f-parc-ac{display:flex;align-items:center;gap:.35rem;justify-content:flex-end}
+/* V16: janela "Fiado de ..." depois de salvar a venda */
+#cfSub{margin:.15rem 0 .75rem;line-height:1.45}
+.cf-nums{justify-content:flex-start;margin:.2rem 0 .1rem}
+.cf-nums .f-num{align-items:flex-start}
+.cf-dica{font-size:.78rem;margin:.5rem 0 .1rem}
+.f-parc.nova{background:color-mix(in srgb,var(--acento) 12%,transparent);border-radius:8px;padding-left:.35rem;padding-right:.35rem}
+.bd.cf-nova{border-color:var(--acento2);color:var(--acento2)}
+.cf-acoes{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.7rem;padding-top:.6rem;border-top:1px dashed var(--borda)}
 .f-pecas{margin-top:.35rem;font-size:.8rem;color:var(--texto2)}
 .f-pecas>summary{cursor:pointer;color:var(--acento2);font-weight:600;list-style:none}
 .f-pecas>summary::-webkit-details-marker{display:none}
@@ -1628,6 +1636,16 @@ try{
     <button type="button" class="bt" onclick="cobrarRecibo()">🧾 Recibo</button>
     <button type="button" class="bt" onclick="cobrarCopiar()">📋 Copiar</button>
     <button type="button" class="bt primario" id="cobBtWhats" onclick="cobrarWhats()">📲 Abrir no WhatsApp</button>
+  </div>
+</dialog>
+<!-- V16 (caso da Vilma): compra nova no fiado de quem já devia — a conta dela abre para ajustar -->
+<dialog id="dlgContaFiado">
+  <h3 id="cfTitulo">Fiado</h3>
+  <p class="mut2" id="cfSub"></p>
+  <div id="cfCorpo" class="cf-corpo"></div>
+  <div class="rodape">
+    <button type="button" class="bt" onclick="cfAbrirNoFiado()">Abrir no Fiado</button>
+    <button type="button" class="bt primario" onclick="dlgContaFiado.close()">Pronto</button>
   </div>
 </dialog>
 <!-- V14: recibo em imagem (venda e fiado) — baixar ou mandar quando a cliente pedir -->
@@ -2929,6 +2947,8 @@ function renderTudo(){
     fin:renderFin,clientes:renderClientes,config:renderConfig})[ui.tab]();
   // quem só pode consultar esta tela precisa saber disso ANTES de tentar mexer
   if(typeof avisoSomenteLeitura==='function')avisoSomenteLeitura();
+  // V16: a janela "Fiado de ..." (depois de salvar a venda) acompanha o que mudou
+  if(typeof pintarContaFiado==='function')pintarContaFiado();
   ativarBuscaSelects(document);
 }
 function renderDatalists(){
@@ -7222,6 +7242,7 @@ function salvarVenda(){
   concluir();
   }
   function concluir(){
+  let contaDe=null;
   if(id){
     const v=vendaPorId(id);if(!v)return;
     const totalAntigo=r2(v.total),tinhaLanc=!!v.lancId;
@@ -7251,6 +7272,8 @@ function salvarVenda(){
   }else{
     const v=Object.assign({id:novoId(),seq:novaSeq(),origem:'app',lancId:null},dv);
     if(receber)v.receber=receber;
+    // docx V16 item 2: fiado novo de quem já devia → abre a conta dela para ajustar (abrirContaFiado)
+    if(forma.ehFiado&&nome&&vendasEmAbertoDe(nome).length&&podeEscrever('fiado'))contaDe={nome,id:v.id};
     // V15: venda aberta pelo "Registrar venda" de um pedido online fica ligada a ele
     if(window.VENDA_DO_PEDIDO){v.pedidoOnline=window.VENDA_DO_PEDIDO;if(typeof vendaDoPedidoSalva==='function')vendaDoPedidoSalva(v);window.VENDA_DO_PEDIDO=null;}
     dados.vendas.push(v);
@@ -7262,7 +7285,68 @@ function salvarVenda(){
   }
   if(criados.length)setTimeout(()=>toast('Cadastrei no estoque: '+criados.join(', ')+'. Ajuste a categoria depois em Produtos.'),1400);
   acFechar();salvar();dlgVenda.close();renderTudo();
+  if(contaDe&&vendasEmAbertoDe(contaDe.nome).length>1)abrirContaFiado(contaDe.nome,contaDe.id);
   }
+}
+/* ---- docx V16 item 2 (caso da Vilma): compra nova no fiado de quem já tinha conta ----
+   "seria legal só aparecer o fiado da pessoa para eu ajustar da forma que eu quiser, sem
+   precisar salvar e depois ir pro Fiado". Ao salvar uma venda NOVA no fiado de quem já devia,
+   a conta dela abre numa janela — a mesma do Fiado: tocar na data muda o vencimento, "Dividir
+   em parcelas iguais" junta tudo, dá para editar as parcelas de uma compra ou desfazer o
+   parcelamento. Fechar deixa como está (ajusta depois no Fiado). As linhas da compra nova
+   ficam marcadas. Toda tela que redesenha (renderTudo/renderFiado) repinta a janela. */
+var CONTA_FIADO={nome:'',vendaId:''};
+function abrirContaFiado(nome,vendaId){
+  CONTA_FIADO.nome=nome;CONTA_FIADO.vendaId=vendaId||'';
+  pintarContaFiado(true);
+  const d=$('dlgContaFiado');
+  if(d&&!d.open)d.showModal();
+}
+function pintarContaFiado(forcar){
+  const d=$('dlgContaFiado');if(!d||(!d.open&&!forcar)||!CONTA_FIADO.nome)return;
+  const n=CONTA_FIADO.nome,vid=CONTA_FIADO.vendaId,v=vid?vendaPorId(vid):null;
+  const pode=podeEscrever('fiado'),abertas=parcelasAbertasDoCliente(n),px=abertas[0]||null,h=hoje();
+  const tot=totalEmAbertoDe(n),atras=!!(px&&px.venc&&px.venc<=h);
+  const quando=!px?'':(!px.venc?'sem data':px.venc<h?'atrasada desde '+fmtData(px.venc).slice(0,5):px.venc===h?'vence hoje':'vence '+fmtData(px.venc).slice(0,5));
+  $('cfTitulo').textContent='Fiado de '+n;
+  $('cfSub').innerHTML=v?`A compra de <b>${fmt(v.total)}</b> entrou na conta, junto com o que já estava em aberto. Ajuste como quiser — ou feche e ajuste depois no Fiado.`
+    :'Ajuste como quiser — ou feche e ajuste depois no Fiado.';
+  const temPlano=Object.keys(planosDoCliente(n)).length>0,nSoltas=vendasSoltasDe(n).length;
+  const bts=[];
+  if(pode&&nSoltas)bts.push(`<button type="button" class="bt mini" onclick="editarParcelasCliente(CONTA_FIADO.nome)">✎ Editar as parcelas de uma compra</button>`);
+  if(pode&&temPlano)bts.push(`<button type="button" class="bt mini" onclick="cfDesfazerPlano()">↩ Desfazer o parcelamento</button>`);
+  const c=dados.clientes.find(x=>x.nome===n);
+  if(pode)bts.push(`<button type="button" class="bt mini" onclick="editarDiaPaga(CONTA_FIADO.nome)">💰 ${c&&diaPagaDe(c)?esc(diaPagaTexto(c)):'Anotar o dia que paga'}</button>`);
+  $('cfCorpo').innerHTML=!abertas.length?'<p class="mut2">Nada em aberto agora.</p>'
+    :`<div class="f-nums cf-nums">
+        <span class="f-num f-prox${atras?' atras':''}"><small>Próxima parcela</small><b>${px?fmt(px.valor):'—'}</b><span>${quando}</span></span>
+        <span class="f-num f-total"><small>Total da conta</small><b>${fmt(tot)}</b><span>${abertas.length+(abertas.length===1?' parcela em aberto':' parcelas em aberto')}</span></span>
+      </div>
+      <p class="mut2 cf-dica">Toque na data de uma parcela para mudar o dia.</p>
+      ${detalheFiadoHTML(n,'todos')}
+      ${bts.length?`<div class="cf-acoes">${bts.join('')}</div>`:''}`;
+  // as linhas que são SÓ da compra que acabou de entrar (juntou num parcelamento: deixa de ser "nova")
+  if(vid)$('cfCorpo').querySelectorAll('.f-parc .f-data[onclick]').forEach(b=>{
+    const m=/mudarVencParcela\('([^']*)'\)/.exec(String(b.getAttribute('onclick')||''));
+    const ps=m?m[1].split(',').filter(Boolean):[];
+    if(!ps.length||!ps.every(s=>s.indexOf(vid+':')===0))return;
+    const pv=vendaPorId(vid);
+    if(!pv||ps.some(s=>{const p=recParcelas(pv).find(x=>x.id===s.slice(vid.length+1));return !p||p.planoId;}))return;
+    const l=b.closest('.f-parc');if(!l||l.classList.contains('nova'))return;
+    l.classList.add('nova');
+    const ds=l.querySelector('.f-desc');if(ds)ds.insertAdjacentHTML('beforeend',' <span class="bd cf-nova">nova</span>');
+  });
+}
+function cfDesfazerPlano(){
+  const n=CONTA_FIADO.nome,pid=Object.keys(planosDoCliente(n))[0];
+  if(pid)cliqueDesfazerPlano(encodeURIComponent(n),pid);
+}
+function cfAbrirNoFiado(){
+  const n=CONTA_FIADO.nome;
+  $('dlgContaFiado').close();
+  if(!n)return;
+  ui.f.abertos[n]=true;ui.f.filtro='todos';ui.f.busca='';
+  trocarTab('fiado');
 }
 function lancarVendaAvista(v,forma){
   const r=registrarEntrada({data:v.data,valor:v.total,formaId:forma.id,canalId:v.canalId,bandeiraId:v.bandeiraId,parcelasCartao:v.parcelasCartao,
@@ -7559,6 +7643,7 @@ function textoResumoCobranca(){
 function renderFiado(){
   $('tab-fiado').innerHTML=cabFiado()+`<div id="fiadoCorpo"></div>`;
   renderFiadoCorpo();
+  pintarContaFiado();
 }
 function cabFiado(){
   return `<div class="barra"><h2 style="margin:0">Fiado</h2><span class="esp"></span>
@@ -10552,6 +10637,8 @@ a{color:inherit}
 .ck-erro[hidden]{display:none}
 .ck-seguro{font-size:.74rem;color:var(--texto2);text-align:center;margin:.6rem 0 0}
 .ck-campo small{font-weight:400;color:var(--texto2)}
+.ck-cep-st{display:block;font-size:.76rem;margin-top:.25rem;color:var(--texto2);min-height:0}
+.ck-cep-st:empty{display:none}
 .ck-pix-val{font-size:1.5rem;font-weight:800;text-align:center;margin:.2rem 0 .5rem}
 .ck-pix-qr{display:block;width:220px;max-width:70vw;height:auto;margin:0 auto .6rem;background:#fff;border-radius:10px;padding:8px}
 .ck-pix-cod{width:100%;font-family:monospace;font-size:.74rem;background:var(--fundo2,rgba(255,255,255,.05));color:inherit;border:1px solid var(--linha,rgba(255,255,255,.15));border-radius:8px;padding:.5rem;resize:none;margin-bottom:.5rem}
@@ -10733,7 +10820,7 @@ html.lg-esperando body::after{content:"";position:fixed;top:50%;left:50%;width:3
         <div class="ck-sec">Como você quer receber?</div>
         <div class="ck-opcoes" id="lgCkEntrega"></div>
         <div id="lgCkEndereco" hidden>
-          <label class="ck-campo">CEP<input id="lgCkCep" inputmode="numeric" autocomplete="postal-code" placeholder="opcional"></label>
+          <label class="ck-campo">CEP <small>(preenche o endereço sozinho)</small><input id="lgCkCep" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000" maxlength="9"><span class="ck-cep-st" id="lgCkCepSt" aria-live="polite"></span></label>
           <label class="ck-campo">Rua<input id="lgCkRua" autocomplete="address-line1"></label>
           <div class="ck-dupla"><label class="ck-campo">Número<input id="lgCkNum"></label><label class="ck-campo">Complemento<input id="lgCkComp" placeholder="opcional"></label></div>
           <div class="ck-dupla"><label class="ck-campo">Bairro<input id="lgCkBairro"></label><label class="ck-campo">Cidade<input id="lgCkCidade" autocomplete="address-level2"></label></div>
@@ -12061,6 +12148,32 @@ var LOJA_APP = __LOJA_APP__;
   $("lgCheckoutOverlay").addEventListener("click",function(e){if(e.target===this)fecharCheckout();});
   $("lgCkEntrega").addEventListener("click",function(e){var b=e.target.closest(".ck-op");if(!b)return;ckEntrega=b.getAttribute("data-op").slice(4);erroCk("");renderCheckout();});
   $("lgCkPag").addEventListener("click",function(e){var b=e.target.closest(".ck-op");if(!b)return;ckPag=b.getAttribute("data-op").slice(4);erroCk("");renderCheckout();});
+  /* docx V16, item 3 (1º degrau do frete): o CEP preenche rua, bairro e cidade (ViaCEP —
+     grátis, sem chave, aceita chamada do navegador). Só escreve em campo vazio ou que ele
+     mesmo preencheu (data-auto); o que a cliente digitou fica. Sem internet / CEP que não
+     existe: avisa e ela preenche à mão, como antes. */
+  var CEP_URL="https://viacep.com.br/ws/",cepVez="";
+  function cepDigitado(){
+    var el=$("lgCkCep"),d=el.value.replace(/[^0-9]/g,"").slice(0,8),st=$("lgCkCepSt");
+    var bonito=d.length>5?d.slice(0,5)+"-"+d.slice(5):d;
+    if(el.value!==bonito)el.value=bonito;
+    if(d.length<8){st.textContent="";cepVez="";return;}
+    if(cepVez===d)return;
+    cepVez=d;st.textContent="Procurando o endereço…";
+    fetch(CEP_URL+d+"/json/").then(function(r){return r.ok?r.json():null;}).then(function(j){
+      if(cepVez!==d)return;
+      if(!j||j.erro){st.textContent="Não achei esse CEP — confira ou preencha o endereço abaixo.";return;}
+      var cid=j.localidade?j.localidade+(j.uf?" - "+j.uf:""):"";
+      var pares=[["lgCkRua",j.logradouro],["lgCkBairro",j.bairro],["lgCkCidade",cid]];
+      for(var i=0;i<pares.length;i++){var c=$(pares[i][0]);
+        if(pares[i][1]&&(!c.value.trim()||c.getAttribute("data-auto")==="1")){c.value=pares[i][1];c.setAttribute("data-auto","1");}}
+      st.textContent=j.logradouro?"✓ Endereço encontrado — falta só o número.":"✓ Cidade encontrada — escreva a rua e o bairro.";
+      var alvo=j.logradouro?$("lgCkNum"):$("lgCkRua");
+      if(alvo&&!alvo.value.trim())try{alvo.focus();}catch(x){}
+    }).catch(function(){if(cepVez===d){cepVez="";st.textContent="";}});
+  }
+  $("lgCkCep").addEventListener("input",cepDigitado);
+  ["lgCkRua","lgCkBairro","lgCkCidade"].forEach(function(id){$(id).addEventListener("input",function(){this.removeAttribute("data-auto");});});
   function centavos(v){return Math.round((+v||0)*100);}
   /* o que vai para a InfinitePay: as peças uma a uma (+ a entrega). Com cupom, o
      desconto não cabe nas linhas — vai uma linha só com o total do pedido. */
@@ -13017,7 +13130,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-11-19 00:20';
+const VERSAO_APP='2026-11-19 23:11';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
