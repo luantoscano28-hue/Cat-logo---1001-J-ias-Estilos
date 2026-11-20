@@ -351,6 +351,32 @@ button.bd-clica:hover{filter:brightness(.95);text-decoration:underline}
 .f-parc .vl{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
 .f-parc .vl small{display:block;font-weight:400}
 .f-parc-ac{display:flex;align-items:center;gap:.35rem;justify-content:flex-end}
+/* V16 (item 4): Configurações → Onde você vende */
+.ov-grupo{border:1px solid var(--borda);border-radius:12px;padding:.6rem .8rem;margin-top:.75rem;background:var(--painel)}
+.ov-gcab{display:flex;align-items:center;gap:.6rem;padding-bottom:.45rem;border-bottom:1px solid var(--borda);margin-bottom:.15rem}
+.ov-gcab .esp{flex:1}
+.ov-loc{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto auto;gap:.45rem;align-items:center;padding:.38rem 0;border-bottom:1px dashed var(--borda);font-size:.88rem}
+.ov-loc:last-of-type{border-bottom:none}
+.ov-loc .nm{min-width:0;overflow-wrap:anywhere}
+.ov-add{margin-top:.5rem}
+@media(max-width:700px){.ov-loc{grid-template-columns:minmax(0,1fr) auto auto auto}.ov-loc>.mut2{display:none}.ov-grupo{padding:.55rem .65rem}}
+.combo-grupo{font-size:.64rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--acento2);padding:.5rem .5rem .25rem;border-bottom:1px solid var(--borda);background:var(--painel2)}
+.combo-itens .ac-item.no-grupo{padding-left:1rem}
+/* V16 (item 4): Resumo "Onde você vendeu" — grupo com a barra grande, os locais embaixo */
+.r-onde-g{border-top:1px solid var(--borda);padding:.45rem 0 .3rem}
+.r-onde-g:first-of-type{border-top:none}
+.r-onde-g>summary{list-style:none;cursor:pointer}
+.r-onde-g>summary::-webkit-details-marker{display:none}
+.r-onde-tit{display:flex;align-items:baseline;gap:.5rem;font-size:.92rem}
+.r-onde-tit::before{content:"▸";color:var(--texto2);font-size:.8rem}
+.r-onde-g[open] .r-onde-tit::before{content:"▾"}
+.r-onde-tit .esp{flex:1}
+.r-onde-tit .pc{min-width:2.4rem;text-align:right}
+.r-onde .tr.grande{display:block;height:10px;margin:.35rem 0 .15rem;background:var(--painel3);border-radius:5px;overflow:hidden}
+.r-onde .tr.grande i{display:block;height:100%;background:var(--acento);border-radius:5px}
+.r-onde-sub{margin:.35rem 0 .1rem 1.1rem;font-size:.8rem}
+.r-onde-sub .tr i{background:color-mix(in srgb,var(--acento) 55%,var(--painel3))}
+@media(max-width:700px){.r-onde-sub{margin-left:.5rem}}
 /* V16: janela "Fiado de ..." depois de salvar a venda */
 #cfSub{margin:.15rem 0 .75rem;line-height:1.45}
 .cf-nums{justify-content:flex-start;margin:.2rem 0 .1rem}
@@ -849,18 +875,83 @@ main.larga{max-width:1480px}
 .vis-orig b{font-variant-numeric:tabular-nums}
 .vis-orig .mut2{text-align:right;font-variant-numeric:tabular-nums}
 /* V15: pedidos da loja (Vendas) e configuração do pagamento online */
-.ped-box h3{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
-.ped{border:1px solid var(--borda);border-radius:12px;padding:.65rem .8rem;margin-top:.55rem;background:var(--painel)}
-.ped.pago{border-color:color-mix(in srgb,var(--verde) 40%,var(--borda));background:color-mix(in srgb,var(--verde) 5%,var(--painel))}
-.ped.cancelado{opacity:.7}
-.ped header{display:flex;flex-wrap:wrap;align-items:center;gap:.25rem .6rem}
-.ped header .num{color:var(--acento2)}
-.ped header .tot{margin-left:auto;font-weight:800;font-variant-numeric:tabular-nums}
-.ped .info{font-size:.82rem;color:var(--texto2);margin-top:.25rem;line-height:1.45}
-.ped .pecas{font-size:.84rem;margin:.35rem 0 0 1.1rem;padding:0}
-.ped .pecas li{margin:.1rem 0}
-.ped .acoes{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.55rem}
-.ped-grupo>summary{cursor:pointer;font-size:.85rem;color:var(--texto2);margin-top:.8rem}
+/* Aba Pedidos (V16, rascunho aprovado em 19/11/2026) */
+.pd-cards .card.escolhido{border-color:var(--acento);box-shadow:0 0 0 1px var(--acento) inset}
+.pd-sub{font-size:.84rem;color:var(--texto2);margin:-.4rem 0 .2rem}
+.pd{border:1px solid var(--borda);border-radius:14px;background:var(--painel);margin-top:.8rem;overflow:hidden;box-shadow:var(--sombra)}
+.pd.pago{border-left:4px solid var(--verde)}
+.pd.aguardando{border-left:4px solid var(--laranja)}
+.pd-topo{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;padding:.85rem 1rem .7rem}
+.pd-meta{font-size:.74rem;color:var(--texto2);letter-spacing:.02em}
+.pd-num{font-weight:700;color:var(--acento2)}
+.pd-nome{font-family:"Literata",Georgia,serif;font-size:1.14rem;font-weight:600;margin:.12rem 0 .1rem;line-height:1.25}
+.pd-contato{font-size:.82rem;color:var(--texto2)}
+.pd-valor{display:flex;flex-direction:column;align-items:flex-end;gap:.35rem;flex:none}
+.pd-valor b{font-size:1.32rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.pd-meio{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:1.2rem;padding:.75rem 1rem .8rem;border-top:1px solid var(--borda)}
+.pd-rot{font-size:.64rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--texto2);margin-bottom:.3rem}
+.pd-it{display:grid;grid-template-columns:2.1em minmax(0,1fr) auto;gap:.45rem;font-size:.87rem;padding:.24rem 0;align-items:baseline}
+.pd-it .q{color:var(--texto2);font-variant-numeric:tabular-nums}
+.pd-it .n small{display:block;color:var(--texto2);font-size:.76rem}
+.pd-it .v{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.pd-it.extra{color:var(--texto2);font-size:.8rem;border-top:1px dashed var(--borda);margin-top:.15rem;padding-top:.35rem}
+.pd-it.extra+.pd-it.extra{border-top:none;margin-top:0;padding-top:.1rem}
+.pd-entrega{font-size:.84rem;line-height:1.45;background:var(--painel2);border-radius:10px;padding:.65rem .8rem;align-self:start}
+.pd-entrega .mut2{font-size:.78rem}
+.pd-entrega a{font-size:.78rem}
+.pd-passos{display:flex;list-style:none;margin:0;padding:.6rem 1rem;border-top:1px solid var(--borda);font-size:.78rem;color:var(--texto2)}
+.pd-passos li{flex:1;display:flex;align-items:center;gap:.4rem;min-width:0;white-space:nowrap}
+.pd-passos li:last-child{flex:none}
+.pd-passos li::before{content:"";flex:none;width:16px;height:16px;border-radius:50%;border:2px solid var(--texto2);box-sizing:border-box;opacity:.55}
+.pd-passos li.ok{color:var(--texto);font-weight:600}
+.pd-passos li.ok::before{content:"✓";opacity:1;border-color:var(--verde);background:var(--verde);color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center}
+.pd-passos li.agora{color:var(--texto);font-weight:600}
+.pd-passos li.agora::before{opacity:1;border-color:var(--laranja);background:color-mix(in srgb,var(--laranja) 25%,transparent)}
+.pd-passos li:not(:last-child)::after{content:"";flex:1;height:2px;background:var(--borda);margin:0 .55rem;min-width:12px}
+.pd-passos li.ok:not(:last-child)::after{background:var(--verde)}
+.pd-alerta{margin:0 1rem .75rem;padding:.6rem .75rem;border-radius:10px;font-size:.82rem;line-height:1.45;background:color-mix(in srgb,var(--vermelho) 10%,var(--painel));border:1px solid color-mix(in srgb,var(--vermelho) 30%,var(--borda))}
+.pd-nota{margin:0 1rem .75rem;font-size:.8rem;color:var(--texto2)}
+.pd-acoes{display:flex;flex-wrap:wrap;align-items:center;gap:.45rem;padding:.6rem 1rem;border-top:1px solid var(--borda);background:var(--painel2)}
+.pd-acoes .esp{flex:1}
+.pd-acoes a.bt{text-decoration:none}
+.pd-vazio{text-align:center;padding:1.6rem 1rem;color:var(--texto2);font-size:.9rem}
+.pd-vazio .big{font-size:1.8rem;margin-bottom:.3rem}
+/* histórico: uma linha por pedido; tocar abre */
+.pd-hist{margin-top:.8rem;border:1px solid var(--borda);border-radius:14px;background:var(--painel);overflow:hidden}
+.pd-linha{border-top:1px solid var(--borda)}
+.pd-linha:first-child{border-top:none}
+.pd-linha>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:3.2em minmax(0,1fr) auto auto 1em;gap:.7rem;align-items:center;padding:.62rem 1rem;font-size:.86rem}
+.pd-linha>summary::-webkit-details-marker{display:none}
+.pd-linha>summary:hover{background:var(--hover)}
+.pd-linha>summary .n b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pd-linha>summary .n small{color:var(--texto2);font-size:.76rem}
+.pd-linha>summary .v{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+.pd-linha>summary .seta{color:var(--texto2);transition:transform .15s}
+.pd-linha[open]>summary .seta{transform:rotate(90deg)}
+.pd-linha[open]>summary{background:var(--painel2)}
+.pd-linha .pd-meio{border-top:1px solid var(--borda)}
+.pd-linha.cancelado>summary .n b{color:var(--texto2)}
+.pd-st-cel{display:none}
+@media(max-width:700px){
+  .cards.pd-cards{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .pd-cards .card{padding:.6rem .55rem}
+  .pd-cards .card .rotulo{font-size:.56rem;letter-spacing:.04em}
+  .pd-cards .card .extra{font-size:.62rem}
+  .pd-topo{padding:.75rem .85rem .6rem}
+  .pd-meio{grid-template-columns:1fr;gap:.65rem;padding:.65rem .85rem .75rem}
+  .pd-passos{padding:.55rem .85rem;font-size:.74rem}
+  .pd-passos li:not(:last-child)::after{margin:0 .35rem}
+  .pd-acoes{padding:.6rem .85rem}
+  .pd-acoes .esp{display:none}
+  .pd-acoes .bt{flex:1 1 auto;justify-content:center}
+  .pd-acoes .bt.primario{flex-basis:100%;order:-1;padding:.7rem}
+  .pd-acoes .bt-tres{flex:none}
+  .pd-linha>summary{grid-template-columns:2.6em minmax(0,1fr) auto 1em;padding:.6rem .85rem}
+  .pd-linha>summary .bd{display:none}
+  .pd-linha>summary .n small .pd-st-cel{display:inline}
+  .pd-alerta,.pd-nota{margin-left:.85rem;margin-right:.85rem}
+}
+.pd-comp{font-size:.78rem;margin-top:.35rem}
 .ck-campos{border:0;padding:0;margin:0;min-width:0}
 .ck-provs{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.7rem}
 .ck-provs .linha{align-items:flex-start;line-height:1.4}
@@ -1147,8 +1238,6 @@ main.larga{max-width:1480px}
   /* V15: visitas e pedidos da loja */
   .vis-barras{height:96px}
   .vis-orig>div{grid-template-columns:minmax(0,7.5rem) minmax(0,1fr) auto auto}
-  .ped .tot{flex-basis:auto}
-  .ped .acoes .bt{flex:1 1 auto;justify-content:center}
   /* Produtos (V13): topo numa linha, avisos deslizando e a peça num cartão baixo */
   .so-pc{display:none}
   .so-cel{display:inline}
@@ -1392,8 +1481,7 @@ try{
     <label class="campo" id="vParcCartaoBox" hidden>Parcelado no cartão em <select id="vParcCartao" onchange="vTaxaPadraoMudou()"></select></label>
     <label class="campo" id="vTaxaBox" hidden>Vai cair na conta (R$) <input id="vLiquido" inputmode="decimal" autocomplete="off" oninput="recalcVenda()"><small class="mut" id="vTaxaDica" style="font-size:.7rem"></small></label>
     <label class="campo">Cliente <input id="vCliente" placeholder="digite pra buscar ou criar" autocomplete="off" oninput="vClienteMudou();acClientes(this,vClienteMudou)" onfocus="acClientes(this,vClienteMudou)" onkeydown="acTeclas(event,()=>acClientes(this,vClienteMudou))" onblur="acBlur()"><small id="vClienteHint" style="font-size:.72rem;min-height:.9rem;display:block"></small></label>
-    <label class="campo">Local <span class="sel-add"><select id="vLocal"></select><button type="button" class="bt mini" title="novo local" onclick="novoCadInline('locais','vLocal')">+</button></span></label>
-    <label class="campo">Canal de venda <select id="vCanalVenda"></select></label>
+    <label class="campo">Onde vendeu <span class="sel-add"><select id="vLocal" aria-label="Onde vendeu"></select><button type="button" class="bt mini" title="novo local" onclick="novoCadInline('locais','vLocal')">+</button></span></label>
     <label class="campo span2" id="vTelBox" hidden>Telefone do novo cliente (opcional, ajuda na cobrança) <input id="vTelNovo" placeholder="(11) 9...."></label>
   </div>
   <h4 class="mt">Itens da venda</h4>
@@ -2510,7 +2598,8 @@ function estruturaInicial(){
       colecoes:[], apagados:[], seqCod:0,
       tipos:idfy([{nome:'Brinco'},{nome:'Colar'},{nome:'Anel'},{nome:'Pulseira'},{nome:'Bracelete'},{nome:'Conjunto'},{nome:'Choker'},{nome:'Pingente'},{nome:'Corrente'},{nome:'Tornozeleira'}]),
       fornecedores:idfy([{nome:'Limeira',contato:'',obs:''},{nome:'25 de Março',contato:'',obs:''},{nome:'Brás',contato:'',obs:''}]),
-      locais:idfy([{nome:'Jovita'},{nome:'Heitor'},{nome:'Floresta'},{nome:'Feira Augusta'},{nome:'Online'}]),
+      // V16: os locais presenciais são de cada loja (nada de bairro da 1001); os da Internet já vêm prontos (locaisTodos)
+      locais:[],
       contas:[cxCaixa,cxBanco,cxInfinity,cxRdb], contaCartaoAjustada:true,
       formas:[
         {id:novoId(),nome:'Pix',entraCaixa:true,contaId:cxBanco.id,ehFiado:false,taxa:0,prazoDias:0,usaCanal:false,taxas:{},tipoCartao:null},
@@ -2820,7 +2909,7 @@ function nomeDe(lista,id,vazio){const x=acha(lista,id);return x?x.nome:(vazio||'
 function catNome(id){return nomeDe(C().categorias,id);}
 function tipoNome(id){return nomeDe(C().tipos,id);}
 function fornNome(id){return nomeDe(C().fornecedores,id,'');}
-function localNome(id){return nomeDe(C().locais,id,'');}
+function localNome(id){return nomeDe(typeof locaisTodos==='function'?locaisTodos(true):C().locais,id,'');}
 function formaDe(id){return acha(C().formas,id);}
 function contaNome(id){return nomeDe(C().contas,id);}
 function catFinDe(id){return acha(C().catFin,id);}
@@ -3079,11 +3168,16 @@ function abrirCombo(sel,bt){
   let mostrando=[],marcado=0;
   function desenhar(){
     const termos=termosBusca(campo.value);
-    mostrando=Array.prototype.filter.call(sel.options,o=>casaBusca(o.textContent,termos));
+    mostrando=Array.prototype.filter.call(sel.options,o=>casaBusca([o.textContent,o.parentNode&&o.parentNode.tagName==='OPTGROUP'?o.parentNode.label:''],termos));
     marcado=Math.max(0,mostrando.findIndex(o=>o.value===sel.value));
+    // V16: <optgroup> (ex.: "Onde vendeu" — Presencial / Internet) vira um cabeçalho na lista
+    let grupoAntes=null;
     lista.innerHTML=mostrando.length
-      ? mostrando.map((o,k)=>`<div class="ac-item${k===marcado?' hl':''}" data-k="${k}">
-          <span class="ac-nome">${o.dataset.cor?`<span class="cor-bolha mini" style="background:${esc(o.dataset.cor)}"></span>`:''}${esc(o.textContent)}</span>${o.value===sel.value?'<span class="ac-cat">em uso</span>':''}</div>`).join('')
+      ? mostrando.map((o,k)=>{
+          const g=o.parentNode&&o.parentNode.tagName==='OPTGROUP'?o.parentNode.label:'';
+          const cab=g&&g!==grupoAntes?`<div class="combo-grupo">${esc(g)}</div>`:'';grupoAntes=g;
+          return cab+`<div class="ac-item${k===marcado?' hl':''}${g?' no-grupo':''}" data-k="${k}">
+          <span class="ac-nome">${o.dataset.cor?`<span class="cor-bolha mini" style="background:${esc(o.dataset.cor)}"></span>`:''}${esc(o.textContent)}</span>${o.value===sel.value?'<span class="ac-cat">em uso</span>':''}</div>`;}).join('')
       : '<div class="ac-item"><span class="ac-nome mut">Nada com esse nome.</span></div>';
   }
   function escolher(k){
@@ -3104,8 +3198,9 @@ function abrirCombo(sel,bt){
       e.preventDefault();
       const n=mostrando.length;if(!n)return;
       marcado=(marcado+(e.key==='ArrowDown'?1:-1)+n)%n;
-      Array.prototype.forEach.call(lista.children,(c,k)=>c.classList.toggle('hl',k===marcado));
-      const at=lista.children[marcado];if(at&&at.scrollIntoView)at.scrollIntoView({block:'nearest'});
+      const its=lista.querySelectorAll('.ac-item');   // (os cabeçalhos de grupo não contam)
+      Array.prototype.forEach.call(its,(c,k)=>c.classList.toggle('hl',k===marcado));
+      const at=its[marcado];if(at&&at.scrollIntoView)at.scrollIntoView({block:'nearest'});
     }else if(e.key==='Enter'){e.preventDefault();escolher(marcado);}
     else if(e.key==='Escape'){e.stopPropagation();fecharCombo();bt.focus();}
   };
@@ -3153,9 +3248,10 @@ function opcoes(lista,sel,rotulo){
    CONFIGURAÇÕES (cadastros personalizáveis)
    ============================================================ */
 function renderConfig(){
+  if(ui.cfgTab==='canaisVenda')ui.cfgTab='locais';   // V16: "Canais de venda" virou os grupos de "Onde você vende"
   // Site da loja não é mais uma das abas daqui: tem página própria, pelo menu (V8)
   const abas=[['geral','Geral / Loja'],['categorias','Categorias'],['colecoes','Coleções'],['tipos','Tipos'],['fornecedores','Fornecedores'],
-    ['locais','Locais'],['canaisVenda','Canais de venda'],['formas','Formas de pagamento'],['canais','Canais (maquininha/link)'],['insumos','Embalagem / insumos'],['contas','Contas'],['catFin','Categorias financeiras'],['promocoes','Promoções e cupons'],['dados','Conta e dados']];
+    ['locais','Onde você vende'],['formas','Formas de pagamento'],['canais','Canais (maquininha/link)'],['insumos','Embalagem / insumos'],['contas','Contas'],['catFin','Categorias financeiras'],['promocoes','Promoções e cupons'],['dados','Conta e dados']];
   let corpo='';
   const cfg=C();
   if(ui.cfgTab==='geral'){
@@ -3267,6 +3363,7 @@ function salvarGeral(){
 
 /* cadastro genérico de lista simples (categorias, tipos, locais) e especiais */
 function painelCadastro(qual){
+  if(qual==='locais'||qual==='canaisVenda')return painelOndeVende();   // V16 (item 4)
   const cfg=C();
   if(qual==='colecoes'){
     const lista=cfg.colecoes||[];
@@ -3407,7 +3504,7 @@ function emUso(qual,id){
   if(qual==='fornecedores')return P.produtos.some(p=>p.fornId===id)||P.movEstoque.some(m=>m.fornId===id);
   if(qual==='locais')return P.vendas.some(v=>v.localId===id)||P.clientes.some(c=>c.localId===id);
   // o Presencial e o do site são os padrões (venda antiga e venda do site caem neles)
-  if(qual==='canaisVenda')return id==='cv-presencial'||id==='cv-site'||P.vendas.some(v=>canalVendaDe(v)===id);
+  if(qual==='canaisVenda')return grupoPadrao(id)||locaisTodos().some(l=>grupoDoLocal(l)===id);
   if(qual==='formas')return P.vendas.some(v=>v.formaId===id);
   if(qual==='contas')return P.lancamentos.some(l=>l.contaId===id||l.contraId===id)||C().formas.some(f=>f.contaId===id);
   if(qual==='catFin')return P.lancamentos.some(l=>l.catId===id);
@@ -4005,13 +4102,18 @@ function novaCatFinInline(selId){
 function novoCadInline(qual,selId){
   const rot={categorias:'categoria',tipos:'tipo',fornecedores:'fornecedor',locais:'local'}[qual]||'item';
   const titulo={categorias:'Nova categoria',tipos:'Novo tipo',fornecedores:'Novo fornecedor',locais:'Novo local'}[qual]||'Novo item';
-  pedir({titulo,ok:'Criar',campos:[{id:'nome',rotulo:'Nome',pergunta:'Nome do novo '+rot+':',obrigatorio:true}]},v=>{
+  const campos=[{id:'nome',rotulo:'Nome',pergunta:'Nome do novo '+rot+':',obrigatorio:true}];
+  // V16 (item 4): o local nasce dentro de um grupo (Presencial, Internet…)
+  if(qual==='locais')campos.push({id:'grupo',tipo:'lista',rotulo:'Grupo',opcoes:canaisVenda().map(g=>[g.id,g.nome]),valor:GRUPO_PRESENCIAL,pergunta:'Grupo:'});
+  pedir({titulo,ok:'Criar',campos},v=>{
     const nm=String(v.nome||'').trim();if(!nm)return;
     const item={id:novoId(),nome:nm};
     if(qual==='fornecedores'){item.contato='';item.obs='';}
+    if(qual==='locais')item.grupo=canaisVenda().some(g=>g.id===v.grupo)?v.grupo:GRUPO_PRESENCIAL;
+    if(!Array.isArray(C()[qual]))C()[qual]=[];
     C()[qual].push(item);salvar();
     const sel=$(selId),temVazio=(qual!=='categorias');
-    sel.innerHTML=(temVazio?'<option value="">—</option>':'')+opcoes(C()[qual]);
+    sel.innerHTML=(temVazio?'<option value="">—</option>':'')+(qual==='locais'?opcoesLocais(item.id):opcoes(C()[qual]));
     sel.value=item.id;
     if(typeof atualizarBotaoCombo==='function')atualizarBotaoCombo(sel);
     if(selId==='pTipo')pTipoMudou();
@@ -5726,7 +5828,7 @@ function acaoCliente(acao){
   else if(acao==='juntar')juntarClientes(id);
 }
 function abrirCliente(id){
-  $('formCliente').reset();$('cLocal').innerHTML='<option value="">—</option>'+opcoes(C().locais);
+  $('formCliente').reset();$('cLocal').innerHTML='<option value="">—</option>'+opcoesLocais(id?(clientePorId(id)||{}).localId:'');
   if(id){const c=clientePorId(id);$('cId').value=c.id;$('cNome').value=c.nome;$('cApelido').value=c.apelido||'';$('cTel').value=c.tel||'';$('cLocal').value=c.localId||'';$('cObs').value=c.obs||'';}
   else $('cId').value='';
   const dp=id?diaPagaDe(clientePorId(id)):null;
@@ -6336,32 +6438,91 @@ function planoDaVenda(v){
   const p=recParcelas(v).find(x=>x.planoId);
   return p?p.planoId:null;
 }
-/* ---- canal de venda (11/11/2026, pedido do Luan: "rastreamento das vendas por canal de venda,
-   ex.: presencial, Site 1001 (Mercado Pago)") — onde a venda aconteceu. Não confundir com
-   `canais()`, que são as maquininhas/links do cartão. Os padrões têm id fixo: dois aparelhos
-   criando a lista ao mesmo tempo não duplicam nada. Ler NÃO cria a lista (quem grava usa
-   listaCanaisVenda) — senão só abrir uma tela já mexeria na configuração. ---- */
-const CANAIS_VENDA_PADRAO=[{id:'cv-presencial',nome:'Presencial'},{id:'cv-site',nome:''},
-  {id:'cv-whats',nome:'WhatsApp / Instagram'},{id:'cv-feira',nome:'Feira / evento'}];
-function nomeCanalSite(){
-  const p=String(nomeDaLoja()).trim().split(/\s+/)[0]||'';
-  return 'Site '+(p&&p.length<=8&&p!=='Minha'?p:'da loja')+' (Mercado Pago)';
-}
+/* ---- Onde vendeu (docx V16 item 4 — rascunho aprovado em 19/11/2026) ----
+   "Local" e "Canal de venda" (v35) diziam quase a mesma coisa. Agora é UM campo, "Onde vendeu":
+   os LOCAIS (Jovita, Heitor, Instagram, Site da loja…) ficam em GRUPOS (Presencial, Internet e os
+   que a loja criar). O grupo é o "canal" do Resumo e do filtro de Vendas.
+   - Grupos = config.canaisVenda (o mesmo cadastro da v35, que já sincroniza item a item). Os
+     padrões Presencial e Internet existem sem gravar; ids da v35 que eram "canal" (cv-site,
+     cv-whats, cv-feira) não são grupos.
+   - local.grupo = id do grupo (sem grupo, ou grupo que sumiu = Presencial).
+   - Locais padrão da Internet (Instagram, WhatsApp, Facebook, Site da loja) existem SEM gravar,
+     com id fixo (dois aparelhos não duplicam nada). Renomear / mudar de grupo / tirar grava em
+     config.locais; tirar um padrão = gravar com oculto:true (senão ele voltaria). O "Site da
+     loja" não sai: a venda do site cai nele.
+   - O grupo de uma venda sai do local NA HORA de ler: mudar um local de grupo leva as vendas
+     antigas junto (é o que se espera de um relatório). Venda sem local usa o canal da v35. ---- */
+const GRUPO_PRESENCIAL='cv-presencial',GRUPO_INTERNET='cv-internet',LOCAL_SITE='loc-site';
+const GRUPOS_PADRAO=[{id:GRUPO_PRESENCIAL,nome:'Presencial'},{id:GRUPO_INTERNET,nome:'Internet'}];
+const LOCAIS_PADRAO=[{id:'loc-insta',nome:'Instagram',grupo:GRUPO_INTERNET},{id:'loc-whats',nome:'WhatsApp',grupo:GRUPO_INTERNET},
+  {id:'loc-face',nome:'Facebook',grupo:GRUPO_INTERNET},{id:LOCAL_SITE,nome:'Site da loja',grupo:GRUPO_INTERNET}];
+const CANAIS_VELHOS=['cv-site','cv-whats','cv-feira'];
+function grupoPadrao(id){return id===GRUPO_PRESENCIAL||id===GRUPO_INTERNET;}
+// os grupos, na ordem: Presencial, Internet e os da loja (ler NÃO cria a lista)
 function canaisVenda(){
-  const l=C().canaisVenda;
-  if(l&&l.length)return l;
-  return CANAIS_VENDA_PADRAO.map(c=>({id:c.id,nome:c.id==='cv-site'?nomeCanalSite():c.nome}));
+  const l=(C().canaisVenda||[]).filter(c=>c&&CANAIS_VELHOS.indexOf(c.id)<0);
+  const out=GRUPOS_PADRAO.map(g=>Object.assign({},g,l.find(x=>x.id===g.id)||{}));
+  l.forEach(c=>{if(!out.some(x=>x.id===c.id))out.push(c);});
+  return out;
 }
+// quem GRAVA (criar, renomear grupo): a lista da loja, já com os dois padrões
 function listaCanaisVenda(){
-  if(!C().canaisVenda||!C().canaisVenda.length)C().canaisVenda=canaisVenda().map(c=>Object.assign({},c));
-  return C().canaisVenda;
+  const c=C();if(!Array.isArray(c.canaisVenda))c.canaisVenda=[];
+  GRUPOS_PADRAO.forEach(g=>{if(!c.canaisVenda.some(x=>x.id===g.id))c.canaisVenda.push(Object.assign({},g));});
+  return c.canaisVenda;
 }
-// venda antiga (sem o campo) = Presencial; a que veio de pedido do site = o canal do site
-function canalVendaDe(v){return (v&&v.canalVendaId)||(v&&v.pedidoOnline?'cv-site':'cv-presencial');}
-function nomeCanalVenda(id){const c=canaisVenda().find(x=>x.id===id);return c?c.nome:(id==='cv-site'?nomeCanalSite():'Presencial');}
-function preencherSelectsVenda(){
-  $('vLocal').innerHTML='<option value="">—</option>'+opcoes(C().locais);
-  if($('vCanalVenda'))$('vCanalVenda').innerHTML=opcoes(canaisVenda());
+function nomeCanalVenda(id){const g=canaisVenda().find(x=>x.id===id);return g?g.nome:'Presencial';}
+// todos os locais: os da loja + os padrões da Internet que ela ainda não mexeu (sem os tirados)
+function locaisTodos(comOcultos){
+  const reais=C().locais||[],out=reais.slice();
+  LOCAIS_PADRAO.forEach(p=>{if(!reais.some(x=>x.id===p.id))out.push(Object.assign({},p));});
+  return comOcultos?out:out.filter(l=>!l.oculto);
+}
+function grupoDoLocal(l){
+  if(typeof l==='string')l=locaisTodos(true).find(x=>x.id===l);
+  const g=l&&l.grupo;
+  return g&&canaisVenda().some(x=>x.id===g)?g:GRUPO_PRESENCIAL;
+}
+// mexer num local padrão: ele passa a morar em config.locais (é a partir daí que ele sincroniza)
+function materializarLocal(id){
+  const c=C();if(!Array.isArray(c.locais))c.locais=[];
+  let l=c.locais.find(x=>x.id===id);
+  if(!l){const p=LOCAIS_PADRAO.find(x=>x.id===id);if(!p)return null;l=Object.assign({},p);c.locais.push(l);}
+  return l;
+}
+// grupo de uma venda (o "canal" do Resumo e do filtro)
+function canalVendaDe(v){
+  if(!v)return GRUPO_PRESENCIAL;
+  const c=v.canalVendaId;
+  if(c==='cv-site'||c==='cv-whats')return GRUPO_INTERNET;          // vendas da v35, com o canal escolhido
+  if(v.localId&&locaisTodos(true).some(l=>l.id===v.localId))return grupoDoLocal(v.localId);
+  if(v.pedidoOnline)return GRUPO_INTERNET;
+  if(c&&canaisVenda().some(g=>g.id===c))return c;
+  return GRUPO_PRESENCIAL;
+}
+// <option>s agrupadas por grupo (no celular/com busca, o cabeçalho de cada grupo aparece na lista)
+function opcoesLocais(sel){
+  const ls=locaisTodos();
+  let h=canaisVenda().map(g=>{const its=ls.filter(l=>grupoDoLocal(l)===g.id);
+    return its.length?`<optgroup label="${esc(g.nome)}">${its.map(l=>`<option value="${esc(l.id)}"${l.id===sel?' selected':''}>${esc(l.nome)}</option>`).join('')}</optgroup>`:'';}).join('');
+  // local já tirado da lista, mas que esta venda/cliente usa: continua aparecendo
+  if(sel&&!ls.some(l=>l.id===sel)){const o=locaisTodos(true).find(l=>l.id===sel);if(o)h+=`<option value="${esc(o.id)}" selected>${esc(o.nome)}</option>`;}
+  return h;
+}
+/* filtro "Onde" de Vendas: o grupo inteiro ("g:id") ou um local ("l:id").
+   Valor sem prefixo = grupo (filtro guardado da v35). */
+function opcoesFiltroOnde(sel){
+  const ls=locaisTodos(true);
+  return canaisVenda().map(g=>{const its=ls.filter(l=>grupoDoLocal(l)===g.id&&(!l.oculto||sel==='l:'+l.id));
+    return `<optgroup label="${esc(g.nome)}"><option value="g:${esc(g.id)}"${sel==='g:'+g.id||sel===g.id?' selected':''}>${esc(g.nome)} — todos</option>${its.map(l=>`<option value="l:${esc(l.id)}"${sel==='l:'+l.id?' selected':''}>${esc(l.nome)}</option>`).join('')}</optgroup>`;}).join('');
+}
+function vendaNoOnde(v,f){
+  if(!f)return true;
+  if(f.indexOf('l:')===0)return v.localId===f.slice(2);
+  return canalVendaDe(v)===(f.indexOf('g:')===0?f.slice(2):f);
+}
+function preencherSelectsVenda(localSel){
+  $('vLocal').innerHTML='<option value="">—</option>'+opcoesLocais(localSel);
   $('vForma').innerHTML=opcoes(C().formas);
   $('vCanal').innerHTML=opcoes(canais());
   const cp=canalPadrao();if(cp)$('vCanal').value=cp.id;
@@ -6409,7 +6570,6 @@ function vCanalMudou(){
 function abrirNovaVenda(){
   window.VENDA_DO_PEDIDO=null;   // V15: só a venda aberta por "Registrar venda" do pedido online leva o vínculo
   $('formVenda').reset();preencherSelectsVenda();
-  if($('vCanalVenda'))$('vCanalVenda').value='cv-presencial';
   $('dlgVendaTitulo').textContent='Nova venda';$('vId').value='';$('vData').value=hoje();$('vDesconto').value=0;$('vDescontoTipo').value='valor';marcarCupomVenda('');
   $('vAjuste').value=0;$('vAjusteTipo').value='valor';
   itensVenda=[{nome:'',produtoId:null,qtd:1,preco:0,custo:0}];parcelasVenda=[];
@@ -6424,10 +6584,9 @@ function editarVenda(id){
   window.VENDA_DO_PEDIDO=null;
   const v=vendaPorId(id);if(!v)return;
   if(v.receber&&recParcelas(v).some(parcTocada)){avisar('Este fiado já tem valor recebido ou desconto aplicado. Ajuste em "✎ parcelas" na aba Fiado, ou desfaça o recebimento primeiro.');return;}
-  $('formVenda').reset();preencherSelectsVenda();
+  $('formVenda').reset();preencherSelectsVenda(v.localId);
   $('dlgVendaTitulo').textContent='Editar venda';$('vId').value=v.id;$('vData').value=v.data;V_VENC_AUTO='';
   $('vCliente').value=v.clienteNome||'';$('vLocal').value=v.localId||'';$('vForma').value=v.formaId;$('vObs').value=v.obs||'';
-  if($('vCanalVenda'))$('vCanalVenda').value=canalVendaDe(v);
   $('vDescontoTipo').value=v.descontoTipo==='perc'?'perc':'valor';marcarCupomVenda(v.cupom||'');
   $('vDesconto').value=v.descontoTipo==='perc'?(+v.descontoValor||0):(v.desconto||0);
   $('vAjuste').value=v.ajusteValor||0;$('vAjusteTipo').value=v.ajusteTipo||'valor';
@@ -7178,7 +7337,8 @@ function salvarVenda(){
   const sub=subtotalVenda(),desc=descontoVenda(),dsc=descontoVendaBruto();
   const aj=ajusteVendaBruto(),ajValor=calcAjuste(r2(sub-desc),aj.tipo,aj.n),total=r2(Math.max(0,sub-desc+ajValor));
   const dv={data:$('vData').value,clienteId:cliente?cliente.id:null,clienteNome:nome,localId,formaId:forma.id,
-    canalVendaId:($('vCanalVenda')&&$('vCanalVenda').value)||'cv-presencial',
+    // V16 (item 4): o grupo sai do local; o canal da v35 só fica em venda antiga sem local
+    canalVendaId:localId?null:(($('vId').value&&(vendaPorId($('vId').value)||{}).canalVendaId)||null),
     canalId:canalSelecionado(),bandeiraId:bandeiraSelecionada(),parcelasCartao:parcCartaoSel(),taxaPercManual:null,
     liquidoManual:$('vTaxaBox').hidden?null:liquidoManualVenda(),
     itens:itensVenda.map(i=>({produtoId:i.produtoId,variacaoId:i.variacaoId||null,tamanho:i.tamanho||'',nome:i.nome.trim(),qtd:+i.qtd||0,preco:r2(i.preco),custo:r2(i.custo),status:i.status||'ok'})),
@@ -7397,7 +7557,7 @@ function renderVendas(){
     ${nf?`<button class="bt mini" onclick="limparFiltrosVendas()">limpar filtros</button>`:''}
   </div>
   <div class="p-filtros v-filtros"${aberto?'':' hidden'}><div class="barra">
-    <select onchange="ui.v.canal=this.value;renderVendas()" aria-label="Canal de venda"><option value="">Canal: todos</option>${opcoes(canaisVenda(),u.canal)}</select>
+    <select onchange="ui.v.canal=this.value;renderVendas()" aria-label="Onde vendeu"><option value="">Onde: todos</option>${opcoesFiltroOnde(u.canal)}</select>
     <span class="mut" style="font-size:.8rem">Filtrar pelas peças vendidas:</span>
     <select onchange="ui.v.forn=this.value;renderVendas()"><option value="">Fornecedor: todos</option>${opcoes(C().fornecedores,u.forn)}</select>
     <select onchange="ui.v.cat=this.value;renderVendas()"><option value="">Material: todos</option>${opcoes(C().categorias,u.cat)}</select>
@@ -7478,7 +7638,7 @@ function vendasFiltradas(){
   // acha pelo cliente, pelas peças da venda e pela observação
   return dados.vendas.filter(v=>noPeriodo(v.data,ini,fim)
       &&casaBusca([v.clienteNome,(v.itens||[]).map(i=>i.nome).join(' '),v.obs],termos)
-      &&(!u.canal||canalVendaDe(v)===u.canal)
+      &&vendaNoOnde(v,u.canal)
       &&vendaCasaAtributos(v,u))
     .sort(ORDEM_VENDAS[u.ordem]||ORDEM_VENDAS.recentes);
 }
@@ -7887,7 +8047,7 @@ function renderFiadoCorpo(){
   <div class="barra f-filtros">
     <div class="filtro-chips">${chip('todos','Todos')}${chip('vencidos','Atrasados')}${chip('7dias','Esta semana')}${chip('mes',usaMesFiscal()?'Este mês fiscal':'Este mês')}</div>
     <span class="esp"></span>
-    <label class="linha">📍 <select onchange="ui.f.local=this.value;renderFiadoCorpo()" aria-label="Local"><option value="">todos os locais</option>${opcoes(C().locais,loc)}</select></label>
+    <label class="linha">📍 <select onchange="ui.f.local=this.value;renderFiadoCorpo()" aria-label="Local"><option value="">todos os locais</option>${opcoesLocais(loc)}</select></label>
     ${ordemSelHTML(ord,ORDENS_FIADO,"ui.f.ordem=this.value;renderFiadoCorpo()")}
   </div>
   ${(modo!=='todos'||loc)?`<p class="mut" style="margin-bottom:.6rem">Filtro ativo — mostrando <b>${fmt(totFiltro)}</b> de ${fmt(totGeral)} em aberto. <button class="bt mini" onclick="ui.f.filtro='todos';ui.f.local='';renderFiadoCorpo()">limpar filtros</button></p>`:''}
@@ -9207,6 +9367,90 @@ function fallbackCopia(txt){
   avisar('',{titulo:'Copie a mensagem',ok:'Fechar',
     html:`<p style="margin:0 0 .5rem">Toque no texto, selecione tudo e copie:</p><textarea readonly style="width:100%;min-height:220px;font-size:.85rem" onfocus="this.select()">${esc(txt)}</textarea>`});
 }
+/* Configurações → "Onde você vende" (docx V16 item 4): os grupos, cada um com os seus locais.
+   Presencial e Internet sempre existem (dá para renomear); a loja cria os grupos que quiser. */
+function painelOndeVende(){
+  const gs=canaisVenda(),ls=locaisTodos();
+  const nV=id=>dados.vendas.filter(v=>v.localId===id).length;
+  const grupo=g=>{
+    const its=ls.filter(l=>grupoDoLocal(l)===g.id),outro=gs.length===2?gs.find(x=>x.id!==g.id):null;
+    return `<div class="ov-grupo"><div class="ov-gcab"><b>${esc(g.nome)}</b><span class="mut2">${its.length} ${its.length===1?'local':'locais'}</span><span class="esp"></span>
+        <button class="bt mini" onclick="renomearGrupoOnde('${g.id}')">✎ renomear</button>${grupoPadrao(g.id)?'':`<button class="bt mini perigo" title="tirar o grupo" onclick="removerGrupoOnde('${g.id}')">✕</button>`}</div>
+      ${its.map(l=>{const n=nV(l.id);return `<div class="ov-loc"><span class="nm">${esc(l.nome)}${l.id===LOCAL_SITE?' <span class="bd">vendas do site caem aqui</span>':''}</span>
+        <span class="mut2">${n?n+(n===1?' venda':' vendas'):''}</span>
+        <button class="bt mini" title="mudar de grupo" onclick="moverLocalOnde('${l.id}')">⇄ ${outro?esc(outro.nome):'grupo'}</button>
+        <button class="bt mini" title="renomear" aria-label="Renomear ${esc(l.nome)}" onclick="renomearLocalOnde('${l.id}')">✎</button>
+        ${l.id===LOCAL_SITE?'<span></span>':`<button class="bt mini perigo" title="tirar da lista" aria-label="Tirar ${esc(l.nome)} da lista" onclick="removerLocalOnde('${l.id}')">✕</button>`}</div>`;}).join('')
+        ||'<p class="mut2" style="font-size:.84rem;margin:.4rem 0">Nenhum local ainda.</p>'}
+      <button class="bt mini ov-add" onclick="addLocalOnde('${g.id}')">+ adicionar em ${esc(g.nome)}</button></div>`;
+  };
+  return `<div class="painel"><h3>Onde você vende ${ajuda('Cada venda guarda onde aconteceu ("Onde vendeu"). Os locais ficam em grupos — Presencial, Internet e os que você criar — e o Resumo mostra o total de cada grupo e de cada local. A mesma lista aparece no cadastro da cliente.')}</h3>
+    <p class="mut" style="font-size:.85rem;margin-top:-.2rem">É a lista do campo "Onde vendeu" da venda e do cadastro da cliente.</p>
+    ${gs.map(grupo).join('')}
+    <button class="bt mini" style="margin-top:.7rem" onclick="addGrupoOnde()">+ novo grupo</button></div>`;
+}
+function addLocalOnde(gid){
+  const g=canaisVenda().find(x=>x.id===gid);if(!g)return;
+  pedir({titulo:'Novo local em '+g.nome,ok:'Adicionar',campos:[{id:'nome',rotulo:'Nome',pergunta:'Nome do local:',obrigatorio:true}]},v=>{
+    const nm=String(v.nome||'').trim();if(!nm)return;
+    if(!Array.isArray(C().locais))C().locais=[];
+    C().locais.push({id:novoId(),nome:nm,grupo:gid});salvar();renderConfig();
+    toast('"'+nm+'" adicionado em '+g.nome+' ✓');
+  });
+}
+function renomearLocalOnde(id){
+  const l=locaisTodos(true).find(x=>x.id===id);if(!l)return;
+  pedir({titulo:'Renomear',campos:[{id:'nome',rotulo:'Nome',pergunta:'Editar:',valor:l.nome,obrigatorio:true}]},v=>{
+    const nm=String(v.nome||'').trim();if(!nm)return;
+    materializarLocal(id).nome=nm;salvar();renderConfig();
+  });
+}
+function moverLocalOnde(id){
+  const l=locaisTodos(true).find(x=>x.id===id);if(!l)return;
+  const gs=canaisVenda(),atual=grupoDoLocal(l);
+  const mover=gid=>{if(!gs.some(g=>g.id===gid)||gid===atual)return;
+    materializarLocal(id).grupo=gid;salvar();renderConfig();toast('"'+l.nome+'" agora está em '+nomeCanalVenda(gid)+' ✓');};
+  if(gs.length===2){mover(gs.find(g=>g.id!==atual).id);return;}
+  pedir({titulo:'Mudar "'+l.nome+'" de grupo',campos:[{id:'grupo',tipo:'lista',rotulo:'Grupo',opcoes:gs.map(g=>[g.id,g.nome]),valor:atual,pergunta:'Grupo:'}]},v=>mover(v.grupo));
+}
+function removerLocalOnde(id){
+  if(id===LOCAL_SITE){avisar('As vendas pagas no site entram em "Site da loja" — ele não sai da lista. Dá para renomear no ✎.',{titulo:'Esse fica'});return;}
+  const l=locaisTodos(true).find(x=>x.id===id);if(!l)return;
+  const usado=emUso('locais',id),padrao=LOCAIS_PADRAO.some(p=>p.id===id);
+  confirmar(usado?'Tirar "'+l.nome+'" da lista?\n\nAs vendas e clientes que já usam esse local continuam com ele (no Resumo também). Ele só deixa de aparecer para escolher.'
+      :'Tirar "'+l.nome+'" da lista?',{titulo:'Tirar da lista',ok:'Tirar',perigo:true},()=>{
+    // usado (ou padrão, que voltaria sozinho): fica guardado, escondido; senão sai de vez
+    if(usado||padrao)materializarLocal(id).oculto=true;
+    else{registrarApagado('locais',id);C().locais=(C().locais||[]).filter(x=>x.id!==id);}
+    salvar();renderConfig();toast('"'+l.nome+'" saiu da lista');
+  });
+}
+function addGrupoOnde(){
+  pedir({titulo:'Novo grupo',ok:'Criar',campos:[{id:'nome',rotulo:'Nome do grupo',dica:'ex.: Feiras, Revendedoras, Eventos',pergunta:'Nome do grupo:',obrigatorio:true}]},v=>{
+    const nm=String(v.nome||'').trim();if(!nm)return;
+    listaCanaisVenda().push({id:novoId(),nome:nm});salvar();renderConfig();
+    toast('Grupo "'+nm+'" criado — agora adicione os locais dele ✓');
+  });
+}
+function renomearGrupoOnde(gid){
+  const g=canaisVenda().find(x=>x.id===gid);if(!g)return;
+  pedir({titulo:'Renomear o grupo',campos:[{id:'nome',rotulo:'Nome',pergunta:'Editar:',valor:g.nome,obrigatorio:true}]},v=>{
+    const nm=String(v.nome||'').trim();if(!nm)return;
+    const it=listaCanaisVenda().find(x=>x.id===gid);if(it)it.nome=nm;salvar();renderConfig();
+  });
+}
+function removerGrupoOnde(gid){
+  if(grupoPadrao(gid))return;
+  const g=canaisVenda().find(x=>x.id===gid);if(!g)return;
+  const its=locaisTodos(true).filter(l=>l.grupo===gid);
+  confirmar('Tirar o grupo "'+g.nome+'"?'+(its.length?'\n\n'+(its.length===1?'O local dele vai':'Os '+its.length+' locais dele vão')+' para "'+nomeCanalVenda(GRUPO_PRESENCIAL)+'".':''),
+    {titulo:'Tirar o grupo',ok:'Tirar',perigo:true},()=>{
+      its.forEach(l=>{materializarLocal(l.id).grupo=GRUPO_PRESENCIAL;});
+      registrarApagado('canaisVenda',gid);
+      C().canaisVenda=(C().canaisVenda||[]).filter(x=>x.id!==gid);salvar();renderConfig();
+      toast('Grupo "'+g.nome+'" tirado');
+    });
+}
 
 /* ============================================================
    RAZÃO FINANCEIRO (fonte única do dinheiro real)
@@ -9811,11 +10055,34 @@ function vendasPorCanal(ini,fim){
   });
   return Object.values(m).sort((a,b)=>b.val-a.val||b.n-a.n);
 }
+/* "Onde você vendeu" (docx V16 item 4): cada grupo (Presencial, Internet…) com a barra do total
+   e, dentro dele, cada local. Substitui o "Vendas por canal" (v35) e o "Por local" que ficava
+   escondido no fim de "Vendas por material". */
+function vendasPorLocal(ini,fim){
+  const m={};
+  dados.vendas.filter(v=>noPeriodo(v.data,ini,fim)).forEach(v=>{
+    const k=v.localId&&localNome(v.localId)?v.localId:'',o=m[k]||(m[k]={id:k,val:0,n:0,grupo:canalVendaDe(v)});
+    o.val=r2(o.val+(+v.total||0));o.n++;
+  });
+  return Object.values(m);
+}
 function painelCanaisVendaHTML(ini,fim){
-  const l=vendasPorCanal(ini,fim);if(!l.length)return '';
-  const tot=l.reduce((s,x)=>s+x.val,0),max=Math.max(0.01,l[0].val);
-  return `<div class="painel r-canais"><h2>Vendas por canal ${ajuda('Onde cada venda aconteceu. Quem registra a venda escolhe o canal (o padrão é Presencial); as vendas pagas no site entram sozinhas no canal do site. Os canais ficam em Configurações → Canais de venda.')}</h2>
-    <div class="vis-orig">${l.map(x=>`<div><span>${esc(nomeCanalVenda(x.id))} <span class="mut2">· ${x.n} venda${x.n>1?'s':''}</span></span><span class="tr"><i style="width:${Math.max(2,Math.round(x.val/max*100))}%"></i></span><b>${fmt(x.val)}</b><span class="mut2">${tot>0?Math.round(x.val/tot*100):0}%</span></div>`).join('')}</div></div>`;
+  const porLocal=vendasPorLocal(ini,fim);if(!porLocal.length)return '';
+  const grupos=canaisVenda().map(g=>{
+    const its=porLocal.filter(x=>x.id&&x.grupo===g.id).sort((a,b)=>b.val-a.val||b.n-a.n);
+    const sem=porLocal.find(x=>!x.id&&x.grupo===g.id);
+    return {g,its,sem,val:r2(its.reduce((s,x)=>s+x.val,0)+(sem?sem.val:0)),n:its.reduce((s,x)=>s+x.n,0)+(sem?sem.n:0)};
+  }).filter(x=>x.n);
+  const tot=grupos.reduce((s,x)=>s+x.val,0),max=Math.max(0.01,...grupos.map(x=>x.val));
+  const pc=v=>tot>0?Math.round(v/tot*100):0,vendas=n=>n+(n===1?' venda':' vendas');
+  const barra=(v,cl)=>`<span class="tr${cl?' '+cl:''}"><i style="width:${Math.max(2,Math.round(v/max*100))}%"></i></span>`;
+  // só um grupo e um local (ou nenhum): não há o que comparar
+  if(grupos.length===1&&grupos[0].its.length<=1&&!grupos[0].sem)return '';
+  return `<div class="painel r-canais r-onde"><h2>Onde você vendeu ${ajuda('Total de cada grupo (Presencial, Internet…) e, dentro dele, de cada local. Quem registra a venda escolhe "Onde vendeu"; as vendas pagas no site entram sozinhas em "Site da loja". Os locais e os grupos ficam em Configurações → Onde você vende.')}</h2>
+    ${grupos.map(x=>`<details class="r-onde-g" open><summary><span class="r-onde-tit"><b>${esc(x.g.nome)}</b><span class="mut2">${vendas(x.n)}</span><span class="esp"></span><b>${fmt(x.val)}</b><span class="mut2 pc">${pc(x.val)}%</span></span>${barra(x.val,'grande')}</summary>
+      <div class="vis-orig r-onde-sub">${x.its.map(it=>`<div><span>${esc(localNome(it.id))} <span class="mut2">· ${it.n}</span></span>${barra(it.val)}<span>${fmt(it.val)}</span><span class="mut2">${pc(it.val)}%</span></div>`).join('')}
+        ${x.sem?`<div><span class="mut2">sem local anotado · ${x.sem.n}</span>${barra(x.sem.val)}<span>${fmt(x.sem.val)}</span><span class="mut2">${pc(x.sem.val)}%</span></div>`:''}</div></details>`).join('')}
+  </div>`;
 }
 function snapshotPeriodo(ini,fim){
   const g=vendasCategoriasTipos(ini,fim);
@@ -9977,8 +10244,7 @@ function renderResumo(){
   <div class="grade2">
     <div class="painel"><h2>Entradas × Saídas de caixa (6 meses)</h2>${grafDuplo(meses)}<div class="legenda"><span><i style="background:var(--verde)"></i>Entradas</span><span><i style="background:var(--vermelho)"></i>Saídas</span></div></div>
     <div class="painel"><h2>Vendas por material</h2>${cats.length?grafBarrasH(cats,'var(--acento)'):'<p class="centro">Sem vendas no período.</p>'}
-      ${tipos.length?`<h4 class="mt">Por tipo de peça</h4>${grafBarrasH(tipos,'var(--roxo)')}`:''}
-      ${locs.length>1?`<h4 class="mt">Por local</h4>${grafBarrasH(locs,'var(--azul)')}`:''}</div>
+      ${tipos.length?`<h4 class="mt">Por tipo de peça</h4>${grafBarrasH(tipos,'var(--roxo)')}`:''}</div>
   </div>
   ${(forns.length||cols.length)?`<div class="grade2">
     ${forns.length?`<div class="painel"><h2>Vendas por fornecedor</h2>${grafBarrasH(forns,'var(--verde)')}
@@ -13130,7 +13396,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-11-19 23:11';
+const VERSAO_APP='2026-11-20 00:12';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -13749,7 +14015,8 @@ function orfaosCom(cfg){
   (dados.produtos||[]).forEach(p=>{if(!achou('categorias',p.catId))n++;});
   (dados.lancamentos||[]).forEach(l=>{if(!achou('contas',l.contaId)||!achou('catFin',l.catId))n++;});
   (dados.vendas||[]).forEach(v=>{if(!achou('formas',v.forma))n++;});
-  (dados.clientes||[]).forEach(c=>{if(!achou('locais',c.localId))n++;});
+  // os locais padrão da Internet (Instagram, Site da loja…) existem sem estar gravados (V16)
+  (dados.clientes||[]).forEach(c=>{if(!achou('locais',c.localId)&&!(typeof LOCAIS_PADRAO!=='undefined'&&LOCAIS_PADRAO.some(p=>p.id===c.localId)))n++;});
   return n;
 }
 function resumoConfig(c){
@@ -16380,25 +16647,21 @@ function pintarBadgePedidos(){
   if(on&&!L.carregando&&Date.now()-L.ultimaBusca>180000)setTimeout(()=>carregarPedidos(false),0);
 }
 function pintarPedidos(){if(ui.tab==='pedidos')renderPedidos();}
+/* Aba Pedidos (V16 — "parece muito jogado e confuso", rascunho aprovado em 19/11/2026):
+   três cartões que FILTRAM (como no Fiado): Para entregar · Não pagaram · Histórico.
+   Pedido em blocos (cliente e valor / peças + entrega / Pago → Venda → Entregue / ações),
+   uma ação principal por vez; histórico em linhas que abrem ao tocar. */
 function renderPedidos(){
   const sec=$('tab-pedidos');if(!sec)return;
-  const L=lojaOn(),ps=L.pedidos||[];
-  const cab=`<div class="barra"><h2 style="margin:0">Pedidos da loja</h2>${ajuda('Pedidos que as clientes fizeram e pagaram no site. O painel confere cada pagamento antes de mostrar como pago. Registrar a venda baixa o estoque e entra no Resumo; depois de entregar, toque em "Entregue".')}
+  const L=lojaOn();
+  const cab=`<div class="barra"><h2 style="margin:0">Pedidos da loja</h2>${ajuda('Pedidos que as clientes fizeram e pagaram no site. O painel confere cada pagamento antes de mostrar como pago e registra a venda sozinho. Depois de entregar, toque em "Marcar como entregue".')}
     <span class="esp"></span><button class="bt" onclick="carregarPedidos(true)">↻ Atualizar</button></div>`;
   if(!pedidosLigados()||L.semSql){
     sec.innerHTML=cab+`<div class="painel vazio-inicio"><div class="big">🛒</div><p>A loja ainda não está recebendo pedidos pagos pelo site.</p>
       <p class="mut" style="font-size:.85rem">Para ligar: Site da loja → Pagamento online na loja.</p></div>`;
     return;
   }
-  const soma=l=>r2(l.reduce((s,p)=>s+(+((p.dados||{}).total)||0),0));
-  const pagos=ps.filter(p=>p.status==='pago'),espera=ps.filter(p=>p.status==='aguardando');
-  const de=isoAddDias(hoje(),-30);
-  const entregues=ps.filter(p=>p.status==='entregue'&&String(p.criado||'').slice(0,10)>=de);
-  sec.innerHTML=cab+`<div class="cards">
-      <div class="card"><div class="rotulo">Para entregar</div><div class="valor ${pagos.length?'pos':''}">${pagos.length}</div><div class="extra">${pagos.length?fmt(soma(pagos))+' já pagos':'nenhum esperando'}</div></div>
-      <div class="card"><div class="rotulo">Começaram e não pagaram</div><div class="valor">${espera.length}</div><div class="extra">${espera.length?fmt(soma(espera))+' parados':'—'}</div></div>
-      <div class="card"><div class="rotulo">Entregues em 30 dias</div><div class="valor">${entregues.length}</div><div class="extra">${entregues.length?fmt(soma(entregues)):'—'}</div></div>
-    </div>`+painelPedidosHTML();
+  sec.innerHTML=cab+painelPedidosHTML();
 }
 /* hora do pedido em texto curto: "hoje 14:32", "ontem 09:10", "28/10 18:05" */
 function quandoPedido(iso){
@@ -16431,69 +16694,155 @@ function foneBonito(t){
   const d=String(t||'').replace(/\D/g,'').replace(/^55(?=\d{10,11}$)/,'');
   return d.length===11?'('+d.slice(0,2)+') '+d.slice(2,7)+'-'+d.slice(7):d.length===10?'('+d.slice(0,2)+') '+d.slice(2,6)+'-'+d.slice(6):String(t||'');
 }
-function cartaoPedidoHTML(p){
-  const d=p.dados||{},cli=d.cliente||{},ent=d.entrega||{},pg=p.pagamento||{},conf=pg.conferido||{};
-  const v=vendaDoPedido(p),pode=podeEscrever('vendas'),fone=foneWa(cli.telefone),outro=!v&&vendaEmOutroAparelho(p);
-  // a venda deste pedido foi apagada de propósito (ex.: pedido de teste): não falta fazer nada
-  const apagada=!v&&!outro&&!!(p.painel||{}).semVenda;
-  const st=p.status==='pago'?`<span class="bd ok">✓ ${esc(formaPagaTexto(p))}</span>`
-    :p.status==='entregue'?'<span class="bd">entregue</span>'
+function nPecas(n){return n+(n===1?' peça':' peças');}
+/* selo do pedido (pago no Pix / não pagou / estornado...) */
+function seloPedido(p){
+  const pg=p.pagamento||{};
+  return p.status==='pago'?`<span class="bd ok">✓ ${esc(formaPagaTexto(p))}</span>`
+    :p.status==='entregue'?'<span class="bd ok">✓ entregue</span>'
     :p.status==='cancelado'?((p.painel||{}).estorno?'<span class="bd sai">💸 estornado</span>':'<span class="bd sai">cancelado</span>')
     :pg.transaction_nsu?'<span class="bd inv">conferindo o pagamento…</span>':'<span class="bd inv">não pagou ainda</span>';
-  const pecas=(d.itens||[]).map(it=>`<li>${+it.qtd||1}× ${esc(it.nome||'')}${it.tamanho?' — '+esc(it.tamanho):''} <span class="mut2">${fmt((+it.preco||0)*(+it.qtd||1))}</span></li>`).join('');
-  const conta=[];
-  if(d.cupom&&+d.cupom.desconto>0)conta.push('cupom '+esc(d.cupom.codigo||'')+' −'+fmt(d.cupom.desconto));
-  if(+d.frete>0)conta.push('entrega '+fmt(d.frete));
-  const ac=[];
-  if(fone)ac.push(`<a class="bt mini" href="${esc(linkWhats(fone,mensagemPedidoCliente(p)))}" target="_blank" rel="noopener">📲 WhatsApp</a>`);
-  if(p.status==='pago'&&pode){
-    if(v)ac.push(`<button class="bt mini" onclick="editarVenda('${v.id}')">🧾 ver a venda</button>`);
-    else if(!outro)ac.push(apagada?`<button class="bt mini" onclick="registrarVendaDoPedido('${p.id}')">registrar de novo</button>`
-      :`<button class="bt mini primario" onclick="registrarVendaDoPedido('${p.id}')">🧾 Registrar venda</button>`);
-    ac.push(`<button class="bt mini" onclick="marcarPedidoEntregue('${p.id}')">✓ Entregue</button>`);
-  }
-  if(p.status==='aguardando'&&pode)ac.push(`<button class="bt mini" onclick="marcarPedidoPago('${p.id}')">já recebi</button>`);
-  if((p.status==='aguardando'||p.status==='pago')&&pode)ac.push(`<button class="bt mini perigo" onclick="cancelarPedido('${p.id}')">✕ cancelar</button>`);
-  if(p.status==='entregue'&&pode&&!v&&!outro)ac.push(`<button class="bt mini" onclick="registrarVendaDoPedido('${p.id}')">${apagada?'registrar de novo':'🧾 registrar venda'}</button>`);
-  return `<div class="ped ${esc(p.status)}">
-    <header><b class="num">nº ${p.numero}</b><b>${esc(cli.nome||'—')}</b><span class="mut2">${quandoPedido(p.criado)}</span>${st}
-      <span class="tot">${fmt(+d.total||0)}</span></header>
-    <div class="info">${ent.tipo==='entrega'?'🚚 Entrega: '+esc(enderecoTexto(ent.endereco)||'endereço não informado'):'🏬 Retirar com a loja'}
-      ${cli.telefone?' · 📱 '+esc(foneBonito(cli.telefone)):''}${conta.length?' · '+conta.join(' · '):''}</div>
-    ${conf.faltou>0?`<div class="info" style="color:var(--vermelho)">⚠️ ${pg.provedor==='mp'?'O Mercado Pago':'A InfinitePay'} mostra ${fmt(conf.pago)} pagos — faltam ${fmt(conf.faltou)} do pedido.</div>`:''}
-    ${(p.painel||{}).estorno?`<div class="info">💸 Dinheiro devolvido no Mercado Pago${quandoPedido((p.painel||{}).estorno)?' ('+quandoPedido(p.painel.estorno)+')':''} — a venda foi desfeita e a peça voltou para o estoque.</div>`
-      :pg.mp_status==='charged_back'?`<div class="info" style="color:var(--vermelho)">⚠️ A cliente contestou esta compra com o banco do cartão e o Mercado Pago tirou o dinheiro. A venda continua registrada — confira no Mercado Pago e, se a peça não voltar, deixe como está.</div>`
-      :pg.estornado?`<div class="info" style="color:var(--vermelho)">⚠️ Este pagamento foi devolvido ou contestado no Mercado Pago — confira lá antes de entregar.</div>`:''}
-    ${v?`<div class="info">✓ Venda registrada${v.data?' em '+fmtData(v.data):''}${(p.painel||{}).vendaAuto?' (sozinha, quando o pagamento caiu)':''}</div>`
-      :outro?'<div class="info">✓ Venda registrada em outro aparelho — aparece aqui na próxima sincronização</div>'
-      :apagada?'<div class="info mut2">Venda apagada — este pedido não entra nas vendas nem no Resumo.</div>':''}
-    <ul class="pecas">${pecas}</ul>
-    ${pg.receipt_url&&/^https:\/\//i.test(pg.receipt_url)?`<div class="info"><a href="${esc(pg.receipt_url)}" target="_blank" rel="noopener">ver o comprovante da InfinitePay</a></div>`:''}
-    ${ac.length?`<div class="acoes">${ac.join('')}</div>`:''}
-  </div>`;
 }
-/* a lista da aba Pedidos (renderPedidos): pagos em cima, o resto recolhido */
+/* peças + entrega: o miolo do pedido (também no histórico aberto) */
+function miolePedidoHTML(p){
+  const d=p.dados||{},ent=d.entrega||{},e=ent.endereco||{};
+  const its=(d.itens||[]).map(it=>`<div class="pd-it"><span class="q">${+it.qtd||1}×</span><span class="n">${esc(it.nome||'')}${it.tamanho?`<small>tamanho ${esc(it.tamanho)}</small>`:''}</span><span class="v">${fmt((+it.preco||0)*(+it.qtd||1))}</span></div>`).join('');
+  const ext=[];
+  if(+d.frete>0)ext.push(`<div class="pd-it extra"><span class="q"></span><span class="n">Entrega</span><span class="v">${fmt(d.frete)}</span></div>`);
+  if(d.cupom&&+d.cupom.desconto>0)ext.push(`<div class="pd-it extra"><span class="q"></span><span class="n">Cupom ${esc(d.cupom.codigo||'')}</span><span class="v">− ${fmt(d.cupom.desconto)}</span></div>`);
+  const l1=[[e.rua,e.numero].filter(Boolean).join(', '),e.complemento].filter(Boolean).join(' — ');
+  const l2=[e.bairro,e.cidade,e.cep?'CEP '+e.cep:''].filter(Boolean).join(' · ');
+  const mapa=l1?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent([l1,e.bairro,e.cidade,e.cep].filter(Boolean).join(', ')):'';
+  const entHTML=ent.tipo==='entrega'
+    ?`<div class="pd-rot">🚚 Entregar em</div><div>${esc(l1||'endereço não informado')}</div>${l2?`<div class="mut2">${esc(l2)}</div>`:''}${mapa?`<a href="${esc(mapa)}" target="_blank" rel="noopener">abrir no mapa</a>`:''}`
+    :`<div class="pd-rot">🏬 Retirar com a loja</div><div class="mut2">Combine o dia pelo WhatsApp.</div>`;
+  const pg=p.pagamento||{};
+  const comp=pg.receipt_url&&/^https:\/\//i.test(pg.receipt_url)?`<div class="pd-comp"><a href="${esc(pg.receipt_url)}" target="_blank" rel="noopener">ver o comprovante da InfinitePay</a></div>`:'';
+  return `<div class="pd-meio"><div><div class="pd-rot">Peças</div>${its}${ext.join('')}${comp}</div><div class="pd-entrega">${entHTML}</div></div>`;
+}
+/* o que aconteceu de diferente: estorno, contestação, dinheiro a menos */
+function alertaPedidoHTML(p){
+  const pg=p.pagamento||{},conf=pg.conferido||{},pn=p.painel||{};
+  if(pn.estorno)return `<div class="pd-alerta">💸 <b>Dinheiro devolvido no Mercado Pago</b>${quandoPedido(pn.estorno)?' ('+quandoPedido(pn.estorno)+')':''} — a venda foi desfeita e a peça voltou para o estoque.</div>`;
+  if(pg.mp_status==='charged_back')return `<div class="pd-alerta">⚠️ <b>A cliente contestou esta compra</b> com o banco do cartão e o Mercado Pago tirou o dinheiro. A venda continua registrada — confira no Mercado Pago e, se a peça não voltar, deixe como está.</div>`;
+  if(pg.estornado)return `<div class="pd-alerta">⚠️ Este pagamento foi devolvido ou contestado no Mercado Pago — confira lá antes de entregar.</div>`;
+  if(conf.faltou>0)return `<div class="pd-alerta">⚠️ ${pg.provedor==='mp'?'O Mercado Pago':'A InfinitePay'} mostra ${fmt(conf.pago)} pagos — faltam ${fmt(conf.faltou)} do pedido.</div>`;
+  return '';
+}
+/* Pago → Venda registrada → Entregue (e um recado curto quando a venda está noutro lugar) */
+function passosPedidoHTML(p){
+  if(p.status==='cancelado')return '';
+  if(p.status==='aguardando')return `<ol class="pd-passos"><li class="agora">Esperando o pagamento</li><li>Venda registrada</li><li>Entregue</li></ol>`;
+  const v=vendaDoPedido(p),outro=!v&&vendaEmOutroAparelho(p),pn=p.painel||{},apagada=!v&&!outro&&!!pn.semVenda;
+  const reg=!!(v||outro);
+  const nota=v&&pn.vendaAuto?'A venda entrou sozinha, quando o pagamento caiu.'
+    :outro?'Venda registrada em outro aparelho — aparece aqui na próxima sincronização.'
+    :apagada?'Venda apagada — este pedido não entra nas vendas nem no Resumo.':'';
+  return `<ol class="pd-passos"><li class="ok">Pago</li><li class="${reg?'ok':apagada?'':'agora'}">${apagada?'Venda apagada':'Venda registrada'}</li><li class="${p.status==='entregue'?'ok':reg||apagada?'agora':''}">Entregue</li></ol>`
+    +(nota?`<p class="pd-nota">${nota}</p>`:'');
+}
+function acoesPedidoHTML(p){
+  const d=p.dados||{},cli=d.cliente||{},fone=foneWa(cli.telefone),pode=podeEscrever('vendas');
+  const v=vendaDoPedido(p),outro=!v&&vendaEmOutroAparelho(p),apagada=!v&&!outro&&!!(p.painel||{}).semVenda;
+  const ac=[],pri=[];
+  if(fone)ac.push(`<a class="bt mini" href="${esc(linkWhats(fone,mensagemPedidoCliente(p)))}" target="_blank" rel="noopener">📲 ${p.status==='aguardando'?'Chamar no WhatsApp':'WhatsApp'}</a>`);
+  if(v)ac.push(`<button class="bt mini" onclick="editarVenda('${v.id}')">🧾 Ver a venda</button>`);
+  if(pode&&p.status==='pago'){
+    if(!v&&!outro&&!apagada)pri.push(`<button class="bt primario" onclick="registrarVendaDoPedido('${p.id}')">🧾 Registrar a venda</button>`);
+    else pri.push(`<button class="bt primario" onclick="marcarPedidoEntregue('${p.id}')">✓ Marcar como entregue</button>`);
+  }
+  if(pode&&p.status==='entregue'&&!v&&!outro&&!apagada)ac.push(`<button class="bt mini" onclick="registrarVendaDoPedido('${p.id}')">🧾 registrar a venda</button>`);
+  if(pode&&p.status==='aguardando')ac.push(`<button class="bt mini" onclick="marcarPedidoPago('${p.id}')">Já recebi</button>`);
+  const menu=pode&&p.status!=='cancelado'&&itensMenuPedido(p).length
+    ?`<button class="bt mini bt-tres" title="mais ações" aria-label="Mais ações do pedido ${p.numero}" aria-haspopup="menu" onclick="abrirMenuPedido('${p.id}',this)">${IC_TRES_PONTOS}</button>`:'';
+  if(!ac.length&&!pri.length&&!menu)return '';
+  return `<div class="pd-acoes">${ac.join('')}<span class="esp"></span>${menu}${pri.join('')}</div>`;
+}
+function cartaoPedidoHTML(p){
+  const d=p.dados||{},cli=d.cliente||{};
+  const n=(d.itens||[]).reduce((s,it)=>s+(+it.qtd||1),0);
+  return `<article class="pd ${esc(p.status)}">
+    <div class="pd-topo">
+      <div class="pd-quem"><div class="pd-meta"><span class="pd-num">Nº ${p.numero}</span> · ${quandoPedido(p.criado)} · ${nPecas(n)}</div>
+        <div class="pd-nome">${esc(cli.nome||'—')}</div>
+        ${cli.telefone?`<div class="pd-contato">📱 ${esc(foneBonito(cli.telefone))}</div>`:''}</div>
+      <div class="pd-valor"><b>${fmt(+d.total||0)}</b>${seloPedido(p)}</div>
+    </div>
+    ${alertaPedidoHTML(p)}${miolePedidoHTML(p)}${passosPedidoHTML(p)}${acoesPedidoHTML(p)}
+  </article>`;
+}
+/* histórico: uma linha; tocar abre o pedido inteiro */
+function linhaPedidoHTML(p){
+  const d=p.dados||{},cli=d.cliente||{},n=(d.itens||[]).reduce((s,it)=>s+(+it.qtd||1),0);
+  const dia=quandoPedido(p.criado).split(' ')[0];
+  const st=p.status==='entregue'?'entregue':(p.painel||{}).estorno?'💸 estornado':'cancelado';
+  return `<details class="pd-linha ${esc(p.status)}"><summary>
+      <span class="pd-num">Nº ${p.numero}</span>
+      <span class="n"><b>${esc(cli.nome||'—')}</b><small>${dia} · ${nPecas(n)}<span class="pd-st-cel"> · ${st}</span></small></span>
+      ${seloPedido(p)}<span class="v">${fmt(+d.total||0)}</span><span class="seta">›</span></summary>
+    ${alertaPedidoHTML(p)}${miolePedidoHTML(p)}${p.status==='entregue'?passosPedidoHTML(p):''}${acoesPedidoHTML(p)}</details>`;
+}
+/* cartões + a lista do filtro escolhido (renderPedidos e testes) */
 function painelPedidosHTML(){
   if(!pedidosLigados())return '';
   const L=lojaOn();
   if(L.semSql)return '';
   if(Date.now()-L.ultimaBusca>60000&&!L.carregando)setTimeout(()=>carregarPedidos(false),0);
-  const ps=L.pedidos||[];
-  const pagos=ps.filter(p=>p.status==='pago');
-  const espera=ps.filter(p=>p.status==='aguardando');
-  const feitos=ps.filter(p=>p.status==='entregue'||p.status==='cancelado');
-  const cab=`<h3>Para entregar ${pagos.length?`<span class="bd ok">${pagos.length}</span>`:''}</h3>`;
-  let corpo='';
-  if(L.pedidos==null)corpo='<p class="mut" style="font-size:.85rem">Buscando os pedidos…</p>';
-  else if(!ps.length)corpo='<p class="mut" style="font-size:.85rem">Nenhum pedido pelo site ainda. Quando uma cliente pagar na loja, o pedido aparece aqui.</p>';
-  else{
-    corpo=pagos.length?pagos.map(cartaoPedidoHTML).join(''):'<p class="mut" style="font-size:.85rem">Nenhum pedido pago esperando entrega. 🎉</p>';
-    if(espera.length)corpo+=`<details class="ped-grupo"${L.verAguardando?' open':''} ontoggle="lojaOn().verAguardando=this.open">
-      <summary>⏳ Começaram e não pagaram (${espera.length}) — dá para chamar no WhatsApp</summary>${espera.map(cartaoPedidoHTML).join('')}</details>`;
-    if(feitos.length)corpo+=`<details class="ped-grupo"${L.verFeitos?' open':''} ontoggle="lojaOn().verFeitos=this.open">
-      <summary>Entregues e cancelados (${feitos.length})</summary>${feitos.map(cartaoPedidoHTML).join('')}</details>`;
+  const ps=L.pedidos||[],soma=l=>r2(l.reduce((s,p)=>s+(+((p.dados||{}).total)||0),0));
+  const pagos=ps.filter(p=>p.status==='pago'),espera=ps.filter(p=>p.status==='aguardando');
+  const hist=ps.filter(p=>p.status==='entregue'||p.status==='cancelado');
+  const f=['entregar','espera','hist'].indexOf(L.filtro)>=0?L.filtro:'entregar';
+  const qtos=(n,um,v)=>n+' '+(n===1?um:v);
+  const card=(id,rot,n,extra,cor)=>`<div class="card clicavel${f===id?' escolhido':''}" onclick="lojaOn().filtro='${id}';renderPedidos()">
+    <div class="rotulo">${rot}</div><div class="valor"${cor?` style="color:${cor}"`:''}>${n}</div><div class="extra">${extra}</div></div>`;
+  let lista='';
+  if(L.pedidos==null)lista='<p class="mut" style="font-size:.85rem">Buscando os pedidos…</p>';
+  else if(!ps.length)lista='<div class="pd-vazio"><div class="big">🛒</div>Nenhum pedido pelo site ainda. Quando uma cliente pagar na loja, o pedido aparece aqui.</div>';
+  else if(f==='entregar')lista=pagos.length?pagos.map(cartaoPedidoHTML).join('')
+    :`<div class="pd-vazio"><div class="big">🎉</div>Nenhum pedido esperando entrega.${espera.length?`<br><a href="#" onclick="event.preventDefault();lojaOn().filtro='espera';renderPedidos()">${espera.length===1?'1 cliente começou e não pagou':espera.length+' clientes começaram e não pagaram'}</a>`:''}</div>`;
+  else if(f==='espera')lista=espera.length?'<p class="pd-sub">Começaram a pagar e não terminaram. Uma mensagem costuma resolver.</p>'+espera.map(cartaoPedidoHTML).join('')
+    :'<div class="pd-vazio">Ninguém parado no meio do pagamento.</div>';
+  else lista=hist.length?`<div class="pd-hist">${hist.slice(0,L.verMaisHist?hist.length:25).map(linhaPedidoHTML).join('')}</div>`
+      +(hist.length>25&&!L.verMaisHist?`<p class="centro"><button class="bt mini" onclick="lojaOn().verMaisHist=true;renderPedidos()">ver os ${hist.length-25} mais antigos</button></p>`:'')
+    :'<div class="pd-vazio">Nenhum pedido entregue ou cancelado ainda.</div>';
+  return `<div class="cards pd-cards">
+      ${card('entregar','Para entregar',pagos.length,pagos.length?fmt(soma(pagos))+' já pagos':'nenhum esperando',pagos.length?'var(--verde)':'')}
+      ${card('espera','Não pagaram',espera.length,espera.length?fmt(soma(espera))+' parados':'—',espera.length?'var(--laranja)':'')}
+      ${card('hist','Histórico',hist.length,qtos(hist.filter(p=>p.status==='entregue').length,'entregue','entregues')+' · '+qtos(hist.filter(p=>p.status==='cancelado').length,'cancelado','cancelados'))}
+    </div>${L.erro?`<p class="mut" style="font-size:.82rem;color:var(--laranja)">${esc(L.erro)}</p>`:''}<div id="pedidosBox">${lista}</div>`;
+}
+/* ⋮ do pedido (o mesmo #menuProduto dos produtos, clientes e fiado) */
+function itensMenuPedido(p){
+  const v=vendaDoPedido(p),outro=!v&&vendaEmOutroAparelho(p),apagada=!v&&!outro&&!!(p.painel||{}).semVenda;
+  const e=((p.dados||{}).entrega||{}),out=[];
+  if(e.tipo==='entrega'&&enderecoTexto(e.endereco))out.push(['endereco','📋','Copiar o endereço']);
+  if(apagada&&(p.status==='pago'||p.status==='entregue'))out.push(['registrar','🧾','Registrar a venda de novo']);
+  if(p.status==='entregue')out.push(['naoEntregue','↩','Ainda não foi entregue']);
+  if(p.status==='aguardando'||p.status==='pago')out.push(['cancelar','✕','Cancelar o pedido']);
+  return out;
+}
+function abrirMenuPedido(id,btn){
+  const m=$('menuProduto'),p=pedidoPorId(id);if(!p)return;
+  if(!m.hidden&&m.dataset.id===id&&m.dataset.tipo==='ped'){fecharMenuProduto();return;}
+  m.dataset.id=id;m.dataset.tipo='ped';
+  m.innerHTML=`<div class="menu-cab">Pedido nº ${p.numero} — ${esc(((p.dados||{}).cliente||{}).nome||'')}</div>`
+    +itensMenuPedido(p).map(([a,ic,rot])=>`<button type="button" role="menuitem" onclick="acaoPedido('${a}')"><span class="ic-emoji" aria-hidden="true">${ic}</span><span>${rot}</span></button>`).join('');
+  m.hidden=false;$('menuProdutoFundo').hidden=false;
+  posicionarMenuProduto(m,btn);
+  const pri=m.querySelector('button');if(pri)try{pri.focus({preventScroll:true});}catch(e){}
+}
+function acaoPedido(a){
+  const id=$('menuProduto').dataset.id,p=pedidoPorId(id);
+  fecharMenuProduto();if(!p)return;
+  if(a==='endereco'){
+    const e=((p.dados||{}).entrega||{}).endereco||{},cli=(p.dados||{}).cliente||{};
+    const t=[cli.nome,[[e.rua,e.numero].filter(Boolean).join(', '),e.complemento].filter(Boolean).join(' — '),[e.bairro,e.cidade].filter(Boolean).join(' · '),e.cep?'CEP '+e.cep:''].filter(Boolean).join('\n');
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast('Endereço copiado 📋')).catch(()=>fallbackCopia(t));
+    else fallbackCopia(t);
   }
-  return `<div class="painel ped-box" id="pedidosBox">${cab}${L.erro?`<p class="mut" style="font-size:.82rem;color:var(--laranja)">${esc(L.erro)}</p>`:''}${corpo}</div>`;
+  else if(a==='registrar')registrarVendaDoPedido(id);
+  else if(a==='naoEntregue')gravarPedido(p,{status:'pago'}).then(ok=>{if(ok)toast('Pedido nº '+p.numero+' voltou para "Para entregar"');});
+  else if(a==='cancelar')cancelarPedido(id);
 }
 /* "Registrar venda": abre a venda já preenchida com o que a cliente pediu e pagou */
 function registrarVendaDoPedido(id){
@@ -16504,15 +16853,14 @@ function registrarVendaDoPedido(id){
   const cartao=/credit|card|cart/i.test(metodo);
   abrirNovaVenda();
   window.VENDA_DO_PEDIDO=p.id;
-  if($('vCanalVenda'))$('vCanalVenda').value='cv-site';
   // cliente: a já cadastrada com o mesmo telefone; senão, o nome que ela escreveu
   const tel=String(cli.telefone||''),fim=tel.replace(/\D/g,'').slice(-9);
   const ex=fim.length>=8?dados.clientes.find(c=>String(c.tel||'').replace(/\D/g,'').slice(-9)===fim):null;
   $('vCliente').value=ex?ex.nome:(cli.nome||'');
   vClienteMudou();
   if(!ex&&$('vTelNovo'))$('vTelNovo').value=tel;
-  const loc=(C().locais||[]).find(l=>/online|site|internet|virtual/i.test(l.nome));
-  if(loc&&!$('vLocal').value)$('vLocal').value=loc.id;
+  // V16 (item 4): a venda do site é "Onde vendeu: Site da loja" (grupo Internet), seja qual for o bairro da cliente
+  $('vLocal').value=LOCAL_SITE;if(typeof atualizarBotaoCombo==='function')atualizarBotaoCombo($('vLocal'));
   const fId=formaDoSite(cartao?'cartao':'pix');
   if(fId){$('vForma').value=fId;vFormaMudou();}
   if(cartao&&formaUsaCanal(fId)){
@@ -16608,7 +16956,7 @@ function montarVendaDoPedido(p,vid,forma){
   const cartao=/credit|debit|card|cart/i.test(metodoDoPedido(p));
   // cliente: a já cadastrada com o mesmo telefone; senão, pelo nome (cria se não houver)
   const tel=String(cli.telefone||''),fim=tel.replace(/\D/g,'').slice(-9);
-  const loc=(C().locais||[]).find(l=>/online|site|internet|virtual/i.test(l.nome||''));
+  const loc={id:LOCAL_SITE};   // V16 (item 4): onde vendeu = Site da loja
   let c=fim.length>=8?dados.clientes.find(x=>String(x.tel||'').replace(/\D/g,'').slice(-9)===fim):null;
   if(!c)c=acharOuCriarCliente(String(cli.nome||'').trim()||'Cliente do site',loc?loc.id:null,tel);
   const itens=(d.itens||[]).map(it=>{
@@ -16630,8 +16978,8 @@ function montarVendaDoPedido(p,vid,forma){
   const liq=conf.liquido!=null&&conf.liquido!==''&&isFinite(+conf.liquido)?r2(Math.min(total,+conf.liquido)):null;
   const canalId=cartao&&formaUsaCanal(forma.id)?(canalDoSite()||null):null;
   return {id:vid,seq:novaSeq(),origem:'site',lancId:null,
-    data:diaLocalDe(conf.em||p.criado),clienteId:c?c.id:null,clienteNome:c?c.nome:'',localId:loc?loc.id:(c&&c.localId)||null,
-    formaId:forma.id,canalVendaId:'cv-site',canalId,bandeiraId:null,parcelasCartao:cartao?Math.max(1,+conf.parcelas||1):1,
+    data:diaLocalDe(conf.em||p.criado),clienteId:c?c.id:null,clienteNome:c?c.nome:'',localId:LOCAL_SITE,
+    formaId:forma.id,canalVendaId:null,canalId,bandeiraId:null,parcelasCartao:cartao?Math.max(1,+conf.parcelas||1):1,
     taxaPercManual:null,liquidoManual:liq,liberacao:conf.liberacao?diaLocalDe(conf.liberacao):null,
     itens,totalBruto:sub,desconto:desc,descontoTipo:'valor',descontoValor:desc,cupom:(d.cupom&&d.cupom.codigo)||'',
     ajusteTipo:'valor',ajusteValor:ajuste,ajuste,total,
@@ -16745,7 +17093,7 @@ function marcarPedidoEntregue(id){
 }
 function marcarPedidoPago(id){
   const p=pedidoPorId(id);if(!p)return;
-  confirmar('Confira no app da InfinitePay se o pagamento de '+fmt(+(p.dados||{}).total||0)+' do pedido nº '+p.numero+' entrou. Só marque se o dinheiro já apareceu lá.',
+  confirmar('Confira no '+((p.pagamento||{}).provedor==='mp'||provedorCheckout(cfgCheckout())==='mp'?'Mercado Pago':'app da InfinitePay')+' se o pagamento de '+fmt(+(p.dados||{}).total||0)+' do pedido nº '+p.numero+' entrou. Só marque se o dinheiro já apareceu lá.',
     {titulo:'Marcar como pago?',ok:'Já recebi'},()=>{
       const pg=Object.assign({},p.pagamento||{},{conferido:{manual:true,em:new Date().toISOString(),por:emailDaConta()}});
       gravarPedido(p,{status:'pago',pagamento:pg}).then(ok=>{if(ok)toast('Pedido nº '+p.numero+' marcado como pago ✓');});
