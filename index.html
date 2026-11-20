@@ -277,6 +277,12 @@ a{color:inherit}
 .ck-campo small{font-weight:400;color:var(--texto2)}
 .ck-cep-st{display:block;font-size:.76rem;margin-top:.25rem;color:var(--texto2);min-height:0}
 .ck-cep-st:empty{display:none}
+.ck-fretes{margin-top:.2rem}
+.ck-frete-msg{font-size:.84rem;color:var(--texto2);margin:.4rem 0 .6rem}
+.ck-frete-msg.erro{color:var(--texto)}
+.ck-frete-de-novo{background:none;border:0;color:inherit;text-decoration:underline;cursor:pointer;font:inherit;padding:0}
+.ck-gratis-dica{font-size:.82rem;margin:.45rem 0 0;color:var(--texto2)}
+.ck-gratis-dica b{color:var(--texto)}
 .ck-pix-val{font-size:1.5rem;font-weight:800;text-align:center;margin:.2rem 0 .5rem}
 .ck-pix-qr{display:block;width:220px;max-width:70vw;height:auto;margin:0 auto .6rem;background:#fff;border-radius:10px;padding:8px}
 .ck-pix-cod{width:100%;font-family:monospace;font-size:.74rem;background:var(--fundo2,rgba(255,255,255,.05));color:inherit;border:1px solid var(--linha,rgba(255,255,255,.15));border-radius:8px;padding:.5rem;resize:none;margin-bottom:.5rem}
@@ -457,11 +463,13 @@ html.lg-esperando body::after{content:"";position:fixed;top:50%;left:50%;width:3
         <label class="ck-campo" id="lgCkEmailBox" hidden>E-mail <small>(o comprovante vai para ele)</small><input id="lgCkEmail" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com"></label>
         <div class="ck-sec">Como você quer receber?</div>
         <div class="ck-opcoes" id="lgCkEntrega"></div>
+        <p class="ck-gratis-dica" id="lgCkGratis" hidden></p>
         <div id="lgCkEndereco" hidden>
           <label class="ck-campo">CEP <small>(preenche o endereço sozinho)</small><input id="lgCkCep" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000" maxlength="9"><span class="ck-cep-st" id="lgCkCepSt" aria-live="polite"></span></label>
           <label class="ck-campo">Rua<input id="lgCkRua" autocomplete="address-line1"></label>
           <div class="ck-dupla"><label class="ck-campo">Número<input id="lgCkNum"></label><label class="ck-campo">Complemento<input id="lgCkComp" placeholder="opcional"></label></div>
           <div class="ck-dupla"><label class="ck-campo">Bairro<input id="lgCkBairro"></label><label class="ck-campo">Cidade<input id="lgCkCidade" autocomplete="address-level2"></label></div>
+          <div id="lgCkFretes" class="ck-fretes" hidden></div>
         </div>
         <div id="lgCkPagWrap" hidden><div class="ck-sec">Como vai pagar?</div><div class="ck-opcoes" id="lgCkPag"></div></div>
         <div class="ck-conta" id="lgCkConta"></div>
@@ -1718,6 +1726,8 @@ var LOJA_APP = true;
     var c=ck(),o=[];if(!c)return o;
     if(!c.retirada||c.retirada.ativo!==false)o.push({id:"retirada",rot:"Retirar com a loja",sub:(c.retirada&&c.retirada.texto)||"",taxa:0});
     if(c.entrega&&c.entrega.ativo)o.push({id:"entrega",rot:"Receber em casa",sub:c.entrega.texto||"",taxa:Math.max(0,+c.entrega.taxa||0)});
+    // V16 (item 3): pelo correio — o frete sai do CEP (Melhor Envio, pela função do servidor)
+    if(temEnvio())o.push({id:"envio",rot:"Receber pelo correio",sub:c.envio.texto||"frete calculado pelo CEP",taxa:0,correio:true});
     return o;
   }
   function contaCheckout(){
@@ -1725,8 +1735,10 @@ var LOJA_APP = true;
     for(i=0;i<cp.formas.length;i++)if(/pix/i.test(cp.formas[i].nome))pixF=cp.formas[i];
     var base=(pixF&&ckPag==="pix")?contaDoPedido(pixF.nome):cp,ent=null,ops=opcoesEntrega();
     for(i=0;i<ops.length;i++)if(ops[i].id===ckEntrega)ent=ops[i];
-    var frete=ent?ent.taxa:0;
-    return {c:base,normal:cp,pix:pixF,frete:frete,entrega:ent,total:Math.round((base.total+frete)*100)/100};
+    var frete=0,valor=Math.round(base.total*100)/100,op=null;
+    if(ent&&ent.id==="entrega")frete=freteGratisVale(valor)?0:ent.taxa;
+    else if(ent&&ent.id==="envio"){op=ckFrete.estado==="ok"&&ckFrete.valor===valor?opFreteEscolhida():null;frete=op?op.preco:0;}
+    return {c:base,normal:cp,pix:pixF,frete:frete,entrega:ent,frOp:op,total:Math.round((base.total+frete)*100)/100};
   }
   function opcaoHTML(id,on,rot,sub,vl){
     return "<button type='button' class='ck-op"+(on?" on":"")+"' data-op='"+id+"'><span class='bola'></span><span><b>"+esc(rot)+"</b>"+
@@ -1735,10 +1747,17 @@ var LOJA_APP = true;
   function renderCheckout(){
     var ops=opcoesEntrega(),i,h="";
     if(ops.length===1)ckEntrega=ops[0].id;
-    for(i=0;i<ops.length;i++)h+=opcaoHTML("ent:"+ops[i].id,ckEntrega===ops[i].id,ops[i].rot,ops[i].sub,ops[i].taxa>0?"+ "+fmtR(ops[i].taxa):(ops[i].id==="entrega"?"grátis":""));
+    var k=contaCheckout(),mpOn=ehMP(),valorPecas=Math.round(k.c.total*100)/100,gratisJa=freteGratisVale(valorPecas);
+    for(i=0;i<ops.length;i++){var vl=ops[i].correio?(ckEntrega==="envio"&&k.frOp?(k.frOp.gratis?"grátis":"+ "+fmtR(k.frOp.preco)):"pelo CEP")
+        :ops[i].id==="entrega"&&(gratisJa||!(ops[i].taxa>0))?"grátis":ops[i].taxa>0?"+ "+fmtR(ops[i].taxa):"";
+      h+=opcaoHTML("ent:"+ops[i].id,ckEntrega===ops[i].id,ops[i].rot,ops[i].sub,vl);}
     $("lgCkEntrega").innerHTML=h;
-    $("lgCkEndereco").hidden=ckEntrega!=="entrega";
-    var k=contaCheckout(),mpOn=ehMP();
+    $("lgCkEndereco").hidden=ckEntrega!=="entrega"&&ckEntrega!=="envio";
+    // frete grátis a partir de R$ X: quanto falta (só quando a cliente vai receber em casa)
+    var ga=gratisAcima(),gd=$("lgCkGratis");
+    gd.hidden=!(ga>0&&(ckEntrega==="entrega"||ckEntrega==="envio"));
+    gd.innerHTML=gd.hidden?"":(gratisJa?"🎁 <b>Frete grátis</b> neste pedido"+(ckEntrega==="envio"?" (na opção mais barata)":"")+".":"🎁 Faltam <b>"+fmtR(ga-valorPecas)+"</b> para o frete grátis (a partir de "+fmtR(ga)+").");
+    renderFretes(k);
     $("lgCkEmailBox").hidden=!mpOn;
     $("lgCkSeguro").textContent=mpOn?"🔒 Pagamento pelo Mercado Pago, aqui mesmo: Pix ou cartão em até 12x.":"🔒 O pagamento é feito na InfinitePay: Pix ou cartão em até 12x.";
     // promoção só no Pix: a cliente escolhe aqui (o preço do Pix vale pagando no Pix).
@@ -1752,7 +1771,8 @@ var LOJA_APP = true;
     var L="";
     if(k.c.cupom||k.frete>0)L+="<div class='carr-linha'><span>Peças ("+k.c.pecas+")</span><span>"+fmtR(k.c.subtotal)+"</span></div>";
     if(k.c.cupom)L+="<div class='carr-linha'><span>Cupom "+esc(k.c.cupom.codigo)+"</span><span>−"+fmtR(k.c.desconto)+"</span></div>";
-    if(k.frete>0)L+="<div class='carr-linha'><span>Entrega</span><span>"+fmtR(k.frete)+"</span></div>";
+    if(k.frete>0)L+="<div class='carr-linha'><span>"+(ckEntrega==="envio"?"Frete"+(k.frOp?" ("+esc(k.frOp.nome)+")":""):"Entrega")+"</span><span>"+fmtR(k.frete)+"</span></div>";
+    else if(ckEntrega==="envio"&&k.frOp&&k.frOp.gratis)L+="<div class='carr-linha'><span>Frete ("+esc(k.frOp.nome)+")</span><span>grátis</span></div>";
     L+="<div class='tot'><span>Total</span><span>"+fmtR(k.total)+"</span></div>";
     $("lgCkConta").innerHTML=L;
     $("lgCkResumo").textContent=k.c.pecas+(k.c.pecas===1?" peça":" peças")+" · "+fmtR(k.total);
@@ -1795,6 +1815,7 @@ var LOJA_APP = true;
     var el=$("lgCkCep"),d=el.value.replace(/[^0-9]/g,"").slice(0,8),st=$("lgCkCepSt");
     var bonito=d.length>5?d.slice(0,5)+"-"+d.slice(5):d;
     if(el.value!==bonito)el.value=bonito;
+    if(ckEntrega==="envio")renderCheckout();   // V16: o frete do correio segue o CEP
     if(d.length<8){st.textContent="";cepVez="";return;}
     if(cepVez===d)return;
     cepVez=d;st.textContent="Procurando o endereço…";
@@ -1812,6 +1833,54 @@ var LOJA_APP = true;
   }
   $("lgCkCep").addEventListener("input",cepDigitado);
   ["lgCkRua","lgCkBairro","lgCkCidade"].forEach(function(id){$(id).addEventListener("input",function(){this.removeAttribute("data-auto");});});
+  /* ---- frete pelo correio — Melhor Envio (docx V16, item 3, 20/11/2026) ----
+     "Receber pelo correio": a cliente digita o CEP e a loja pergunta à função do servidor
+     (acao "frete"), que pergunta ao Melhor Envio com a chave da loja. As opções voltam da mais
+     barata para a mais cara (com frete grátis, a mais barata vem de graça). O valor das peças
+     entra na pergunta (frete grátis e seguro): mudou o valor (Pix × cartão, cupom), pergunta de
+     novo. Na hora de pagar a função calcula DE NOVO — o que a página mostra é só para escolher. */
+  var ckFrete={cep:"",valor:-1,estado:"",opcoes:[],escolhido:0,erro:"",pedido:""};
+  function temEnvio(){var c=ck();return !!(c&&c.provedor==="mp"&&c.envio&&c.envio.ativo);}
+  function gratisAcima(){var c=ck();return c&&c.freteGratis&&+c.freteGratis.acima>0?+c.freteGratis.acima:0;}
+  function freteGratisVale(valor){var a=gratisAcima();return a>0&&valor>=a-0.005;}
+  function opFreteEscolhida(){for(var i=0;i<ckFrete.opcoes.length;i++)if(ckFrete.opcoes[i].id===ckFrete.escolhido)return ckFrete.opcoes[i];return null;}
+  function prazoTxt(p){return p?"até "+p+(p===1?" dia útil":" dias úteis"):"";}
+  function cotarFreteLoja(cep,valor){
+    var pedido=cep+"|"+valor;
+    ckFrete={cep:cep,valor:valor,estado:"carregando",opcoes:[],escolhido:ckFrete.escolhido,erro:"",pedido:pedido};
+    chamarPagamento({acao:"frete",loja:CATALOGO.slug,cep:cep,valor:valor}).then(function(r){
+      if(ckFrete.pedido!==pedido)return;
+      if(!r||r.erro||!r.opcoes){ckFrete.estado="erro";
+        ckFrete.erro=r&&r.erro==="cep"?"Confira o CEP.":"Não consegui calcular o frete agora. Tente de novo em instantes — ou escolha outro jeito de receber.";}
+      else if(!r.opcoes.length){ckFrete.estado="erro";ckFrete.erro="Nenhuma transportadora entrega nesse CEP. Confira o CEP — ou combine pelo WhatsApp.";}
+      else{ckFrete.estado="ok";ckFrete.opcoes=r.opcoes;
+        if(!opFreteEscolhida())ckFrete.escolhido=r.opcoes[0].id;}
+      renderCheckout();
+    }).catch(function(){
+      if(ckFrete.pedido!==pedido)return;
+      ckFrete.estado="erro";ckFrete.erro="Não consegui calcular o frete agora. Tente de novo em instantes — ou escolha outro jeito de receber.";
+      renderCheckout();
+    });
+  }
+  function renderFretes(k){
+    var box=$("lgCkFretes");
+    if(ckEntrega!=="envio"){box.hidden=true;box.innerHTML="";return;}
+    box.hidden=false;
+    var cep=$("lgCkCep").value.replace(/[^0-9]/g,""),valor=Math.round(k.c.total*100)/100;
+    if(cep.length!==8){box.innerHTML="<p class='ck-frete-msg'>📦 Digite o CEP para ver o frete.</p>";return;}
+    if(ckFrete.cep!==cep||ckFrete.valor!==valor)cotarFreteLoja(cep,valor);
+    if(ckFrete.estado==="carregando"){box.innerHTML="<p class='ck-frete-msg'>Calculando o frete…</p>";return;}
+    if(ckFrete.estado==="erro"){box.innerHTML="<p class='ck-frete-msg erro'>"+esc(ckFrete.erro)+" <button type='button' class='ck-frete-de-novo'>tentar de novo</button></p>";return;}
+    var h="<div class='ck-sec'>Escolha o frete</div><div class='ck-opcoes'>",i,o;
+    for(i=0;i<ckFrete.opcoes.length;i++){o=ckFrete.opcoes[i];
+      h+=opcaoHTML("frt:"+o.id,ckFrete.escolhido===o.id,o.nome+(o.empresa&&o.nome.indexOf(o.empresa)<0?" ("+o.empresa+")":""),prazoTxt(o.prazo),o.gratis?"grátis":fmtR(o.preco));}
+    box.innerHTML=h+"</div>";
+  }
+  $("lgCkFretes").addEventListener("click",function(e){
+    if(e.target.closest(".ck-frete-de-novo")){ckFrete.cep="";renderCheckout();return;}
+    var b=e.target.closest(".ck-op");if(!b)return;
+    ckFrete.escolhido=+b.getAttribute("data-op").slice(4);erroCk("");renderCheckout();
+  });
   function centavos(v){return Math.round((+v||0)*100);}
   /* o que vai para a InfinitePay: as peças uma a uma (+ a entrega). Com cupom, o
      desconto não cabe nas linhas — vai uma linha só com o total do pedido. */
@@ -1830,10 +1899,18 @@ var LOJA_APP = true;
   function irParaPagamento(){
     var nome=$("lgCkNome").value.trim(),fone=$("lgCkFone").value.replace(/[^0-9]/g,""),k=contaCheckout(),end=null;
     var erro=!nome?"Escreva o seu nome.":fone.length<10?"Escreva o seu WhatsApp com o DDD.":!ckEntrega?"Escolha como quer receber.":"";
-    if(!erro&&ckEntrega==="entrega"){
+    if(!erro&&(ckEntrega==="entrega"||ckEntrega==="envio")){
       end={cep:$("lgCkCep").value.trim(),rua:$("lgCkRua").value.trim(),numero:$("lgCkNum").value.trim(),
         complemento:$("lgCkComp").value.trim(),bairro:$("lgCkBairro").value.trim(),cidade:$("lgCkCidade").value.trim()};
       if(!end.rua||!end.numero||!end.bairro)erro="Para a entrega, preencha rua, número e bairro.";
+    }
+    // pelo correio: CEP, cidade e o frete escolhido (calculado para ESTE CEP e ESTE valor)
+    if(!erro&&ckEntrega==="envio"){
+      var cepE=end.cep.replace(/[^0-9]/g,"");
+      if(cepE.length!==8)erro="Para o correio, escreva o CEP (8 números).";
+      else if(!end.cidade)erro="Escreva a cidade.";
+      else if(ckFrete.estado==="carregando")erro="Espere o frete terminar de calcular.";
+      else if(!k.frOp||ckFrete.cep!==cepE)erro="Escolha o frete.";
     }
     var email=$("lgCkEmail").value.trim();
     if(!erro&&ehMP()&&!/^[^@ ]+@[^@ ]+[.][^@ ]+$/.test(email))erro="Escreva o seu e-mail — o Mercado Pago manda o comprovante para ele.";
@@ -1845,7 +1922,9 @@ var LOJA_APP = true;
     var bt=$("lgCkIr");bt.disabled=true;bt.textContent="Abrindo o pagamento…";
     var itens=[],i;
     for(i=0;i<k.c.itens.length;i++){var it=k.c.itens[i];itens.push({id:it.id,nome:it.nome,tamanho:it.tamanho||"",qtd:it.qtd,preco:it.preco});}
-    var dados={cliente:{nome:nome,telefone:fone},entrega:{tipo:ckEntrega,taxa:k.frete,endereco:end},itens:itens,
+    var entD={tipo:ckEntrega,taxa:k.frete,endereco:end};
+    if(ckEntrega==="envio"&&k.frOp)entD.servico={id:k.frOp.id,nome:k.frOp.nome,empresa:k.frOp.empresa||"",prazo:k.frOp.prazo||null};
+    var dados={cliente:{nome:nome,telefone:fone},entrega:entD,itens:itens,
       subtotal:k.c.subtotal,cupom:k.c.cupom?{codigo:k.c.cupom.codigo,desconto:k.c.desconto}:null,
       frete:k.frete,total:k.total,pagamento:ckPag||"",pecas:k.c.pecas};
     var N=CATALOGO.nuvem,c=ck();
@@ -1890,6 +1969,7 @@ var LOJA_APP = true;
     return m==="muitos"?"Muitos pedidos seguidos deste aparelho. Espere alguns minutos e tente de novo.":
       m==="email"?"Confira o seu e-mail.":
       m==="pedido"?"Os preços da loja mudaram enquanto você montava o pedido. Feche e abra o pedido de novo, por favor.":
+      m==="frete"?(ckFrete.cep="",setTimeout(renderCheckout,0),"O frete mudou ou não está disponível agora para esse CEP. Confira o frete de novo e tente outra vez."):
       "Não consegui abrir o pagamento agora. Tente de novo em instantes — ou combine pelo WhatsApp.";
   }
   function pagarNoMP(dados,nome,email,k){
