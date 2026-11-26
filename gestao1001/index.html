@@ -1004,6 +1004,10 @@ main.larga{max-width:1480px}
 .suporte-item{display:flex;flex-direction:column;gap:.25rem;padding:.7rem 0;border-top:1px solid var(--borda)}
 .suporte-item .mut{font-size:.8rem}
 .suporte-item .barra{margin-top:.3rem}
+.faxina-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:.5rem;max-height:46vh;overflow:auto;padding:.1rem}
+.faxina-item{display:flex;flex-direction:column;gap:.2rem;text-decoration:none;color:var(--texto2);font-size:.7rem;line-height:1.2}
+.faxina-item img,.faxina-vid{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;border:1px solid var(--borda);background:var(--painel2)}
+.faxina-vid{display:flex;align-items:center;justify-content:center;font-size:1.6rem}
 .app-passos{list-style:none;margin:.4rem 0 .8rem;padding:0;display:flex;flex-direction:column;gap:.8rem}
 .app-passos li{display:flex;gap:.7rem;align-items:flex-start;font-size:.92rem;line-height:1.45}
 .app-n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--nav-on);color:var(--nav-on-tx);font-weight:700;font-size:.82rem;display:flex;align-items:center;justify-content:center}
@@ -1632,7 +1636,7 @@ try{
       <div id="pMidia" class="midia-grade"></div>
       <input type="file" id="pFotoInput" accept="image/*" hidden onchange="addFotoProduto(this)">
       <input type="file" id="pVideoInput" accept="video/*" hidden onchange="addVideoProduto(this)">
-      <p class="mut" style="font-size:.74rem;margin-top:.3rem">💡 Arraste as fotos para mudar a ordem — a primeira é a capa que aparece na loja. Vídeo até 50 MB.</p>
+      <p class="mut" style="font-size:.74rem;margin-top:.3rem">💡 Arraste as fotos para mudar a ordem — a primeira é a capa que aparece na loja. Vídeo até 15 MB (10 a 20 segundos bastam).</p>
     </div>
   </div>
   <div class="rodape">
@@ -5248,13 +5252,25 @@ function addFotoProduto(inp){
 }
 function addVideoProduto(inp){
   const f=inp.files[0];inp.value='';if(!f)return;
-  if(f.size>50*1024*1024){avisar('Vídeo muito grande ('+(f.size/1048576).toFixed(1)+' MB). O limite é 50 MB.');return;}
+  if(f.size>VIDEO_MAX_MB*1024*1024){avisoVideoGrande(f.size);return;}
   const r=new FileReader();
   r.onload=()=>{
     toast('Enviando vídeo... pode demorar um pouco.');
     guardarMidiaOuAvisar(r.result,'produtos',u=>{prodVideo=u;renderMidiaProduto();toast('Vídeo enviado ✓');});
   };
   r.readAsDataURL(f);
+}
+/* Vídeo sobe do jeito que veio do celular, sem comprimir — e o espaço da nuvem é
+   dividido entre todas as lojas (25/11/2026: só a 1001 já usava metade do plano grátis).
+   O banco também barra acima de 20 MB (supabase-storage-seguro.sql). */
+var VIDEO_MAX_MB=15;
+function avisoVideoGrande(bytes){
+  avisar('Este vídeo tem '+(bytes/1048576).toFixed(1).replace('.',',')+' MB e o limite é '+VIDEO_MAX_MB+' MB.\n\n'
+    +'Para ficar mais leve:\n'
+    +'• Grave mais curto — 10 a 20 segundos já mostram bem a peça.\n'
+    +'• Na câmera do celular, grave em 1080p ou 720p (4K pesa muito).\n'
+    +'• Ou mande o vídeo para você mesma no WhatsApp e salve de volta: ele chega comprimido.',
+    {titulo:'Vídeo grande demais'});
 }
 function removerFotoProduto(i){prodFotos.splice(i,1);renderMidiaProduto();}
 function removerVideoProduto(){prodVideo='';renderMidiaProduto();}
@@ -10331,6 +10347,8 @@ function ferramentasSuporteHTML(){
     ${naNuvem?`<div class="suporte-item"><b>Sincronização</b><span class="mut">Normalmente acontece sozinha. "Este aparelho está certo" substitui a nuvem pelo que está aqui — só depois de restaurar uma cópia.</span>
       <div class="barra"><button class="bt" onclick="sincronizarComNuvem({completo:true})">🔄 Sincronizar agora</button>
       <button class="bt perigo" onclick="forcarEnvioParaNuvem()">⬆ Este aparelho está certo</button></div></div>`:''}
+    ${naNuvem&&typeof podeEscrever==='function'&&podeEscrever('config')?`<div class="suporte-item"><b>Fotos e vídeos sem uso</b><span class="mut">Trocar ou apagar a foto de uma peça deixa o arquivo antigo guardado na nuvem, ocupando espaço. Aqui você vê quais nenhuma peça usa mais e decide se apaga.</span>
+      <div class="barra"><button class="bt" onclick="abrirFaxinaMidia()">🧹 Procurar arquivos sem uso</button></div></div>`:''}
     <div class="suporte-item"><b>Recomeçar do zero</b><span class="mut">Apaga vendas, produtos, clientes e lançamentos (mantém os cadastros).</span>
       <div class="barra"><button class="bt perigo" onclick="apagarTudo()">Apagar tudo e recomeçar</button></div></div>
     <p class="mut" style="font-size:.74rem;margin-top:.6rem">Versão do painel: ${esc(typeof VERSAO_APP!=='undefined'?VERSAO_APP:'')}</p>`;
@@ -13687,7 +13705,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-11-25 01:11';
+const VERSAO_APP='2026-11-25 22:37';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -14685,8 +14703,17 @@ async function guardarMidia(dataUrl,prefixo){
     throw {tipo:'semNuvem',msg:'Para adicionar foto ou vídeo é preciso estar conectado à internet e à sua conta.\n\n'
       +'O produto pode ser cadastrado agora mesmo assim — depois é só abrir de novo e pôr a imagem.'};
   }
-  const caminho=prefixo+'/'+novoId()+'.'+extDe(dataUrl);
+  const caminho=pastaDaLoja()+prefixo+'/'+novoId()+'.'+extDe(dataUrl);
   return await subirArquivo(caminho,dataUrlParaBlob(dataUrl));
+}
+/* Cada loja guarda os arquivos na própria pasta (`<loja>/produtos/...`): é por ela
+   que o banco decide quem pode trocar ou apagar (supabase-storage-seguro.sql). Antes
+   de 25/11/2026 tudo ia para `produtos/...` sem a loja — e qualquer conta logada podia
+   apagar a foto de qualquer loja. Sem a loja (não deveria acontecer) cai no jeito
+   antigo, que o banco ainda aceita para quem enviou. */
+function pastaDaLoja(){
+  const l=lojaId();
+  return (typeof l==='string'&&/^[0-9a-f-]{36}$/i.test(l))?l+'/':'';
 }
 /* usada pelos formulários: cuida do aviso e só chama de volta se deu certo */
 function guardarMidiaOuAvisar(dataUrl,prefixo,aoConcluir){
@@ -14799,7 +14826,7 @@ async function migrarMidiaParaNuvem(){
   for(const it of itens){
     NUVEM.progresso={oque:'fotos',feito:feitos+1,total:itens.length};atualizarChipNuvem();
     try{
-      const url=await subirArquivo('produtos/'+novoId()+'.'+extDe(it.d),dataUrlParaBlob(it.d));
+      const url=await subirArquivo(pastaDaLoja()+'produtos/'+novoId()+'.'+extDe(it.d),dataUrlParaBlob(it.d));
       if(it.campo==='video')it.p.video=url;else it.p.fotos[it.i]=url;
       feitos++;
       // grava a cada arquivo: se cair a conexão no meio, o que já subiu não se perde
@@ -14812,6 +14839,131 @@ async function migrarMidiaParaNuvem(){
   await sincronizarComNuvem({completo:true});
   avisar(feitos+' arquivo(s) enviados.'+(falhas?'\n'+falhas+' não foram — tente de novo mais tarde.':'')
     +'\n\nO espaço usado no navegador deve ter caído bastante.');
+}
+
+/* ============================================================
+   FAXINA DOS ARQUIVOS SEM USO (25/11/2026)
+   Trocar a foto de uma peça, ou apagar a peça, nunca apagou o arquivo da
+   nuvem: ele ficava ocupando o espaço, que é dividido entre todas as lojas.
+   Aqui a loja vê o que guardou, sem o que algum cadastro ainda usa, e
+   decide se apaga.
+   Travas: só quem mexe nas configurações; só depois de uma sincronização
+   completa (o celular de outra pessoa pode ter posto uma foto que este
+   aparelho ainda não viu); arquivo com menos de FAXINA_DIAS dias nunca
+   entra; e só com as regras novas do banco (supabase-storage-seguro.sql)
+   — com as antigas, a lista trazia os arquivos de TODAS as lojas.
+   ============================================================ */
+const FAXINA_DIAS=7;
+var FAXINA=null;
+async function listarMidia(prefixo,comConta){
+  const itens=[];let offset=0;
+  for(;;){
+    const h={'apikey':NUVEM_KEY,'Content-Type':'application/json'};
+    if(comConta){await garantirToken();h.Authorization='Bearer '+NUVEM.sessao.access_token;}
+    let r;
+    try{
+      r=await fetch(NUVEM_URL+'/storage/v1/object/list/'+BUCKET,{method:'POST',headers:h,
+        body:JSON.stringify({prefix:prefixo,limit:1000,offset,sortBy:{column:'name',order:'asc'}})});
+    }catch(e){throw {tipo:'rede',msg:'Sem conexão com a internet.'};}
+    if(!r.ok)throw {tipo:'servidor',status:r.status,msg:'Não deu para ler os arquivos da nuvem ('+r.status+').'};
+    let lote=[];try{lote=JSON.parse(await r.text()||'[]');}catch(e){}
+    if(!Array.isArray(lote))lote=[];
+    itens.push(...lote);
+    if(lote.length<1000)return itens;
+    offset+=1000;
+  }
+}
+/* Sem conta, a lista tem que vir vazia: é o sinal de que as regras novas estão
+   no banco. Erro de permissão também serve. Sem internet não decide nada. */
+async function regrasNovasDaMidia(){
+  try{return (await listarMidia('',false)).length===0;}
+  catch(e){if(e&&e.status>=400&&e.status<500)return true;throw e;}
+}
+async function todosArquivosMidia(){
+  const achados=[];
+  async function andar(prefixo,fundo){
+    for(const it of await listarMidia(prefixo,true)){
+      const caminho=(prefixo?prefixo+'/':'')+it.name;
+      if(it.id==null){if(fundo<5)await andar(caminho,fundo+1);continue;}   // é pasta
+      if(it.name==='.emptyFolderPlaceholder')continue;
+      achados.push({caminho,bytes:+((it.metadata&&it.metadata.size)||0),em:it.created_at||it.updated_at||''});
+    }
+  }
+  await andar('',0);
+  return achados;
+}
+/* Qualquer endereço de arquivo que apareça em qualquer lugar dos dados conta como
+   "em uso" — peça, coleção, capa, banner, logo, venda, pedido. Mais seguro que
+   listar campo por campo e esquecer um. */
+function midiasEmUso(){
+  const usados=new Set(),re=/\/storage\/v1\/object\/public\/midia\/([^"'\s?#\\)]+)/g;
+  const textos=[JSON.stringify(dados)];
+  try{if(window.LOJA_ON&&LOJA_ON.pedidos)textos.push(JSON.stringify(LOJA_ON.pedidos));}catch(e){}
+  textos.forEach(s=>{let m;re.lastIndex=0;while((m=re.exec(s))){try{usados.add(decodeURIComponent(m[1]));}catch(e){usados.add(m[1]);}}});
+  return usados;
+}
+function arquivosSemUso(lista,usados,agora){
+  const limite=(agora||Date.now())-FAXINA_DIAS*864e5;
+  return lista.filter(a=>!usados.has(a.caminho)&&a.em&&Date.parse(a.em)<limite);
+}
+function mbTexto(b){return (b/1048576).toFixed(1).replace('.',',')+' MB';}
+function pintarFaxina(h){const c=$('suporteCorpo');if(c)c.innerHTML=h;}
+const FAXINA_VOLTAR='<div class="barra" style="margin-top:.6rem"><button class="bt" onclick="abrirSuporte()">← Voltar</button></div>';
+async function abrirFaxinaMidia(){
+  if(!nuvemLigada()||!podeEscrever('config')){avisar('Só quem cuida das configurações da loja pode fazer a faxina dos arquivos.');return;}
+  pintarFaxina('<p class="mut">🔎 Procurando arquivos sem uso… pode levar alguns segundos.</p>');
+  try{
+    if(!await regrasNovasDaMidia()){
+      pintarFaxina('<p>A faxina ainda não está liberada nesta conta.</p>'+FAXINA_VOLTAR);return;
+    }
+    if(!NUVEM.ultimoCompleto||Date.now()-NUVEM.ultimoCompleto>120000)await sincronizarComNuvem({completo:true});
+    const lista=await todosArquivosMidia();
+    FAXINA={arquivos:arquivosSemUso(lista,midiasEmUso()),total:lista.length,
+      bytesTotal:lista.reduce((s,a)=>s+a.bytes,0)};
+    pintarFaxina(faxinaHTML());
+  }catch(e){pintarFaxina('<p>'+esc((e&&e.msg)||'Não deu para procurar agora. Tente de novo.')+'</p>'+FAXINA_VOLTAR);}
+}
+function faxinaHTML(){
+  const F=FAXINA,n=F.arquivos.length,soma=F.arquivos.reduce((s,a)=>s+a.bytes,0);
+  if(!n)return `<p>✅ Nenhum arquivo sem uso. Esta loja guarda ${F.total} arquivo(s), ${mbTexto(F.bytesTotal)} no total.</p>`+FAXINA_VOLTAR;
+  const mostra=F.arquivos.slice().sort((a,b)=>b.bytes-a.bytes).slice(0,40);
+  return `<p style="margin:0 0 .3rem"><b>${n} arquivo(s) sem uso · ${mbTexto(soma)}</b></p>
+    <p class="mut" style="font-size:.8rem;margin:0 0 .6rem">De ${mbTexto(F.bytesTotal)} guardados por esta loja. Nenhuma peça, coleção, capa, banner ou venda usa estes arquivos. Os enviados nos últimos ${FAXINA_DIAS} dias ficam de fora, por segurança.</p>
+    <div class="faxina-lista">${mostra.map(a=>{
+      const url=urlPublica(a.caminho),video=/\.(mp4|mov|webm)$/i.test(a.caminho);
+      return `<a class="faxina-item" href="${esc(url)}" target="_blank" rel="noopener">${video?'<span class="faxina-vid">🎬</span>':`<img src="${esc(url)}" loading="lazy" alt="">`}
+        <span>${video?'Vídeo':'Foto'} · ${mbTexto(a.bytes)}${a.em?' · '+fmtData(a.em.slice(0,10)):''}</span></a>`;
+    }).join('')}</div>
+    ${n>mostra.length?`<p class="mut" style="font-size:.8rem">… e mais ${n-mostra.length} arquivo(s) menores.</p>`:''}
+    <div class="barra" style="margin-top:.6rem"><button class="bt perigo" onclick="confirmarFaxina()">🗑 Apagar os ${n} arquivo(s)</button>
+      <button class="bt" onclick="abrirSuporte()">← Voltar</button></div>`;
+}
+function confirmarFaxina(){
+  const F=FAXINA;if(!F||!F.arquivos.length)return;
+  const soma=F.arquivos.reduce((s,a)=>s+a.bytes,0);
+  confirmar('Os '+F.arquivos.length+' arquivo(s) ('+mbTexto(soma)+') somem da nuvem para sempre. Nenhum cadastro usa eles hoje.',
+    {titulo:'Apagar arquivos sem uso?',ok:'Apagar',perigo:true},()=>{apagarFaxina();});
+}
+async function apagarFaxina(){
+  // confere de novo na hora: alguém pode ter usado um deles enquanto a lista estava aberta
+  const usados=midiasEmUso(),caminhos=FAXINA.arquivos.map(a=>a.caminho).filter(c=>!usados.has(c));
+  pintarFaxina('<p class="mut">🗑 Apagando…</p>');
+  let apagados=0,falhou=false;
+  for(let i=0;i<caminhos.length;i+=100){
+    const parte=caminhos.slice(i,i+100);
+    try{
+      await garantirToken();
+      const r=await fetch(NUVEM_URL+'/storage/v1/object/'+BUCKET,{method:'DELETE',
+        headers:{'apikey':NUVEM_KEY,'Authorization':'Bearer '+NUVEM.sessao.access_token,'Content-Type':'application/json'},
+        body:JSON.stringify({prefixes:parte})});
+      if(!r.ok){falhou=true;continue;}
+      let v=null;try{v=JSON.parse(await r.text()||'null');}catch(e){}
+      apagados+=Array.isArray(v)?v.length:parte.length;
+    }catch(e){falhou=true;}
+  }
+  FAXINA=null;
+  pintarFaxina(`<p>✅ ${apagados} arquivo(s) apagados.</p>`
+    +(falhou?'<p class="mut">Alguns não foram — confira a internet e procure de novo.</p>':'')+FAXINA_VOLTAR);
 }
 
 /* Aberto pelo arquivo do computador, a versão nova já está na pasta: basta
