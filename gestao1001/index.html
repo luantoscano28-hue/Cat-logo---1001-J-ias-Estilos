@@ -1021,6 +1021,25 @@ main.larga{max-width:1480px}
   border:2px solid var(--ouro);border-radius:8px;box-shadow:0 0 0 999px rgba(0,0,0,.35)}
 .cam-lidos{display:flex;flex-direction:column;gap:.25rem;margin-top:.4rem;max-height:120px;overflow-y:auto}
 .cam-lidos div{font-size:.82rem;color:var(--verde)}
+/* V18: cobrar na hora (Pix na tela / aproximação) */
+.bt.cobrar-hora{background:color-mix(in srgb,var(--verde) 14%,var(--painel));border-color:color-mix(in srgb,var(--verde) 45%,var(--borda));font-weight:700}
+.v-cob-info{margin:.5rem 0 0;padding:.55rem .75rem;border-radius:10px;font-size:.84rem;background:color-mix(in srgb,var(--verde) 12%,var(--painel));border:1px solid color-mix(in srgb,var(--verde) 35%,var(--borda))}
+#dlgCobrarNaHora{max-width:400px}
+.cnh-qr{display:block;width:230px;height:230px;margin:.3rem auto .6rem;border-radius:12px;background:#fff;padding:8px;image-rendering:pixelated}
+.cnh-valor{text-align:center;font-size:1.6rem;font-weight:800;font-variant-numeric:tabular-nums;margin:.1rem 0}
+.cnh-passo{font-size:.86rem;color:var(--texto2);text-align:center;margin:.2rem 0 .6rem;line-height:1.45}
+.cnh-esp{text-align:center;font-size:.9rem;font-weight:600;margin:.5rem 0 0}
+.cnh-esp .pulso{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--laranja);margin-right:.4rem;animation:cnhPulso 1.2s ease-in-out infinite}
+@keyframes cnhPulso{50%{opacity:.25}}
+.cnh-copia{display:flex;gap:.4rem;margin-top:.4rem}.cnh-copia input{flex:1;min-width:0;font-family:"Courier New",monospace;font-size:.72rem}
+/* V18: NFC — ondinhas saindo do celular enquanto espera a etiqueta */
+#dlgNfc{max-width:420px}
+.nfc-ondas{position:relative;height:120px;display:grid;place-items:center;margin-top:.4rem}
+.nfc-ondas b{font-size:2.6rem;position:relative;z-index:1}
+.nfc-ondas span{position:absolute;width:70px;height:70px;border-radius:50%;border:2px solid var(--acento);opacity:0;animation:nfcOnda 2.4s ease-out infinite}
+.nfc-ondas span:nth-child(2){animation-delay:.8s}.nfc-ondas span:nth-child(3){animation-delay:1.6s}
+@keyframes nfcOnda{0%{transform:scale(.6);opacity:.7}100%{transform:scale(1.7);opacity:0}}
+@media (prefers-reduced-motion:reduce){.nfc-ondas span{animation:none;opacity:.3}}
 /* cor da peça: lista com as cores mais usadas + uma personalizada (nome + tom) */
 .cor-campo{display:flex;align-items:center;gap:.45rem;margin-top:.3rem}
 .cor-campo>select{flex:1;min-width:0}
@@ -1162,6 +1181,8 @@ main.larga{max-width:1480px}
   .rodape{position:sticky;bottom:0;background:var(--painel);padding-top:.7rem;
     margin:.8rem -.9rem -1.1rem;padding:.7rem .9rem 1rem;border-top:1px solid var(--borda)}
   .rodape .bt{flex:1;text-align:center}
+  /* V18: "Cobrar por aproximação / no Pix" ganha a linha de cima inteira (espremido virava 3 linhas) */
+  .rodape .bt.cobrar-hora{flex:1 1 100%;order:-1}
   .parc-row .pv,.parc-row .pd{flex:1;min-width:0;width:auto}
   .parc-row .lbl{width:100%}
   .totais-venda{justify-content:space-between;gap:.5rem}
@@ -1513,6 +1534,7 @@ try{
       <input id="vBipe" placeholder="🏷️ bipar ou digitar o código da etiqueta" autocomplete="off"
         inputmode="numeric" onkeydown="if(event.key==='Enter'){event.preventDefault();biparNaVenda(this.value);}">
       <button type="button" class="bt mini" id="vBipeCam" onclick="abrirCamera()" title="ler com a câmera">📷</button>
+      <button type="button" class="bt mini" id="vBipeNfc" onclick="abrirNfcVenda()" title="aproximar a etiqueta NFC" aria-label="Aproximar a etiqueta NFC" hidden>📳</button>
     </span>
     <small class="mut" id="vBipeHint"></small>
   </div>
@@ -1563,9 +1585,22 @@ try{
     <label class="campo mt">Observação do fiado <span class="mut">(só você vê — não vai na cobrança)</span>
       <input id="vObsFiado" placeholder="ex.: combinou de pagar quando receber o salário"></label>
   </div>
+  <!-- V18: permuta (troca por serviço/produto) — a venda entra pelo valor cheio e o mesmo valor
+       sai como o que a loja recebeu. Nenhum dinheiro entra nem sai das contas. -->
+  <div id="vPermutaBox" class="v-permuta" hidden>
+    <h4 class="mt">🔁 Permuta <button type="button" class="aj" data-ajuda="Troca de peças por um serviço ou produto. A venda entra no Resumo pelo valor das peças e o mesmo valor sai como o que vocês receberam — se foi para você ou alguém da família (ex.: fisioterapia), é Pró-labore / retirada; se foi para a loja (ex.: fotos, embalagens), escolha a despesa. Nenhum dinheiro entra nem sai das contas." aria-label="Ajuda">?</button></h4>
+    <div class="fgrid">
+      <label class="campo">O que vocês receberam em troca? <input id="vPermutaDesc" placeholder="ex.: sessões de fisioterapia" autocomplete="off"></label>
+      <label class="campo">Lançar como <select id="vPermutaCat" onchange="recalcVenda()"></select></label>
+    </div>
+    <p id="vPermutaDica" class="mut" style="font-size:.78rem;margin:.2rem 0 0"></p>
+  </div>
   <div class="fgrid"><label class="campo span2">Observações <input id="vObs"></label></div>
+  <!-- V18: pago na hora (Pix na tela / aproximação) e ainda não salvo -->
+  <p id="vCobrancaInfo" class="v-cob-info" hidden></p>
   <div class="rodape">
     <button type="button" class="bt" onclick="dlgVenda.close()">Cancelar</button>
+    <button type="button" class="bt cobrar-hora" id="vBtCobrar" hidden onclick="cobrarNaHora()"></button>
     <button type="submit" class="bt primario">Salvar venda</button>
   </div>
 </form>
@@ -1975,6 +2010,22 @@ try{
   <p class="mut" id="camAviso" style="font-size:.84rem;min-height:1.2rem;margin:.5rem 0 0"></p>
   <div id="camLidos" class="cam-lidos"></div>
   <div class="rodape"><button type="button" class="bt primario" onclick="fecharCamera()">Pronto</button></div>
+</dialog>
+<!-- V18: Pix na tela da venda presencial (Mercado Pago) — a cliente lê o QR com o app do banco -->
+<dialog id="dlgCobrarNaHora">
+  <h3 style="margin-top:0" id="cnhTitulo">📱 Pix</h3>
+  <div id="cnhCorpo"></div>
+  <div class="rodape">
+    <button type="button" class="bt" id="cnhCancelar" onclick="cancelarCobrancaNaHora()">Cancelar a cobrança</button>
+  </div>
+</dialog>
+<!-- V18: NFC — ler na venda e gravar a etiqueta (só no Chrome do Android) -->
+<dialog id="dlgNfc">
+  <h3 style="margin-top:0" id="nfcTitulo">📳 Aproxime a etiqueta</h3>
+  <div class="nfc-ondas" aria-hidden="true"><span></span><span></span><span></span><b>📳</b></div>
+  <p class="mut" id="nfcAviso" style="font-size:.86rem;min-height:1.2rem;margin:.5rem 0 0;line-height:1.5"></p>
+  <div id="nfcLidos" class="cam-lidos"></div>
+  <div class="rodape"><button type="button" class="bt primario" onclick="fecharNfc()">Pronto</button></div>
 </dialog>
 
 <!-- ====== ETIQUETAS COM CÓDIGO DE BARRAS ====== -->
@@ -2438,6 +2489,8 @@ function pedir(op,feito,desistiu){
     const vals={};
     for(const c of campos){
       if(c.mostrarSe&&!c.mostrarSe(vals))continue;
+      // campo novo que os testes antigos não conhecem: fica com o valor que já veio (V18)
+      if(c.soTela){vals[c.id]=c.valor;continue;}
       if(c.tipo==='simnao'){vals[c.id]=!!window.confirm(c.pergunta||c.rotulo);continue;}
       const padrao=c.tipo==='lista'?String(Math.max(0,c.opcoes.findIndex(o=>String(o[0])===String(c.valor))))
         :(c.valor==null?'':(c.tipo==='numero'?String(c.valor).replace('.',','):String(c.valor)));
@@ -2932,6 +2985,14 @@ function tipoNome(id){return nomeDe(C().tipos,id);}
 function fornNome(id){return nomeDe(C().fornecedores,id,'');}
 function localNome(id){return nomeDe(typeof locaisTodos==='function'?locaisTodos(true):C().locais,id,'');}
 function formaDe(id){return acha(C().formas,id);}
+/* V18 — permuta: troca de peças por um serviço ou produto (caso real: a Edilene trocou duas peças
+   por fisioterapia). Não entra dinheiro: a venda vale o preço cheio e o mesmo valor sai como o que a
+   loja recebeu em troca (pró-labore, quando foi para a família). Forma chamada "Permuta" criada
+   antes da V18 já vale como permuta, sem precisar editar. */
+function formaEhPermuta(f){
+  if(f&&typeof f!=='object')f=formaDe(f);
+  return !!f&&!f.ehFiado&&!f.usaCanal&&(f.permuta===true||(f.permuta!==false&&/permut/i.test(f.nome||'')));
+}
 function contaNome(id){return nomeDe(C().contas,id);}
 function catFinDe(id){return acha(C().catFin,id);}
 function prodPorId(id){return dados.produtos.find(p=>p.id===id);}
@@ -3438,9 +3499,10 @@ function painelCadastro(qual){
           taxaCel=cns.map(c=>{const v=(f.taxas&&f.taxas[c.id]!=null)?+f.taxas[c.id]:+f.taxa||0;
             return `<div style="font-size:.76rem"><span class="mut">${esc(c.nome.split(' ')[0])}:</span> ${v>0?`<b class="neg">${pctTxt(v)}</b>`:'<span class="mut">—</span>'}</div>`;}).join('');
         }else taxaCel=+f.taxa>0?`<b class="neg">${pctTxt(f.taxa)}</b>`:'<span class="mut">—</span>';
-        const dest=f.usaCanal&&cns.length?'<span class="mut">pelo canal</span>':(f.ehFiado?'—':esc(contaNome(f.contaId)));
-        const prazo=f.ehFiado?'<span class="mut">—</span>':(f.usaCanal&&cns.length?'<span class="mut">pelo canal</span>':(+f.prazoDias>0?`<span class="rdb">D+${+f.prazoDias}</span>`:'<span class="mut">na hora</span>'));
-        return `<tr><td>${esc(f.nome)}${f.ehFiado?' <span class="bd fiadoP">fiado</span>':''}${f.usaCanal?' <span class="bd rdb">cartão</span>':''}</td>
+        const pm=formaEhPermuta(f);
+        const dest=pm?'<span class="mut">não entra dinheiro</span>':f.usaCanal&&cns.length?'<span class="mut">pelo canal</span>':(f.ehFiado?'—':esc(contaNome(f.contaId)));
+        const prazo=f.ehFiado||pm?'<span class="mut">—</span>':(f.usaCanal&&cns.length?'<span class="mut">pelo canal</span>':(+f.prazoDias>0?`<span class="rdb">D+${+f.prazoDias}</span>`:'<span class="mut">na hora</span>'));
+        return `<tr><td>${esc(f.nome)}${f.ehFiado?' <span class="bd fiadoP">fiado</span>':''}${f.usaCanal?' <span class="bd rdb">cartão</span>':''}${pm?' <span class="bd">🔁 permuta</span>':''}</td>
         <td class="num">${taxaCel}</td><td>${prazo}</td><td>${dest}</td>
         <td class="acoes"><button class="bt mini" onclick="editarForma('${f.id}')">✎</button><button class="bt mini perigo" onclick="removerCadItem('formas','${f.id}')">✕</button></td></tr>`;}).join('')}
       </table></div>
@@ -3462,7 +3524,7 @@ function painelCadastro(qual){
         ||'<tr><td colspan="5" class="centro">Nenhum canal cadastrado.</td></tr>'}
       </table></div>
       <div class="rodape"><button class="bt primario" onclick="novoCanal()">+ Novo canal</button></div>
-    </div>`;
+    </div>`+(typeof painelCobrarNaHoraHTML==='function'?painelCobrarNaHoraHTML():'');
   }
   if(qual==='insumos'){
     const ins=cfg.insumos||[];
@@ -3594,14 +3656,19 @@ function novaForma(){
     {id:'taxa',tipo:'numero',rotulo:'Taxa (%)',dica:'deixe 0 se não tiver',valor:0,
       pergunta:'Taxa para a forma de pagamento (%)\nEx.: 4,98 — deixe 0 se não tiver taxa.'},
     {id:'prazo',tipo:'numero',rotulo:'Em quantos dias úteis o dinheiro cai na conta?',dica:'0 = na hora',valor:0,
-      mostrarSe:v=>!v.fiado&&!v.cartao,pergunta:'Em quantos DIAS ÚTEIS esse dinheiro cai na conta?\n0 = na hora (Pix, dinheiro)'}
+      mostrarSe:v=>!v.fiado&&!v.cartao,pergunta:'Em quantos DIAS ÚTEIS esse dinheiro cai na conta?\n0 = na hora (Pix, dinheiro)'},
+    // V18: por último e só na tela — os testes antigos respondem os campos na ordem de sempre
+    {id:'permuta',tipo:'simnao',soTela:true,rotulo:'É permuta (troca por um serviço ou produto)?',valor:false,mostrarSe:v=>!v.fiado&&!v.cartao,
+      sim:'Sim — não entra dinheiro: a venda entra pelo valor cheio e o mesmo valor sai como o que você recebeu',nao:'Não — entra dinheiro'}
   ]},v=>{
     const nm=String(v.nome||'').trim();if(!nm)return;
-    const fiado=!!v.fiado,usaCanal=!fiado&&!!v.cartao;
+    const fiado=!!v.fiado,usaCanal=!fiado&&!!v.cartao,permuta=!fiado&&!usaCanal&&!!v.permuta;
     let contaId=null;
-    if(!fiado){const cs=opcoesContas();contaId=cs[0]?cs[0][0]:null;}
-    const prazoDias=(!fiado&&!usaCanal)?diasLidos(v.prazo):0;
-    C().formas.push({id:novoId(),nome:nm,entraCaixa:!fiado,contaId,ehFiado:fiado,taxa:taxaLida(v.taxa),prazoDias,usaCanal,taxas:{}});
+    if(!fiado&&!permuta){const cs=opcoesContas();contaId=cs[0]?cs[0][0]:null;}
+    const prazoDias=(!fiado&&!usaCanal&&!permuta)?diasLidos(v.prazo):0;
+    const f={id:novoId(),nome:nm,entraCaixa:!fiado&&!permuta,contaId,ehFiado:fiado,taxa:permuta?0:taxaLida(v.taxa),prazoDias,usaCanal,taxas:{}};
+    if(permuta)f.permuta=true;
+    C().formas.push(f);
     salvar();renderConfig();
     if(usaCanal)toast('Defina as taxas por canal na aba "Canais".');
   });
@@ -3615,15 +3682,22 @@ function editarForma(id){
     {id:'cartao',tipo:'simnao',rotulo:'É cartão (maquininha ou link)?',valor:!!f.usaCanal,mostrarSe:()=>temCanais,
       sim:'Sim — a taxa e o prazo vêm do canal escolhido na venda',nao:'Não (Pix, dinheiro...)',
       pergunta:'"'+f.nome+'" é pagamento por cartão (maquininha ou link)?\nOK = sim (taxa e prazo vêm do canal escolhido na venda)\nCancelar = não (Pix, dinheiro...)'},
+    // V18: permuta (só na tela; nos testes antigos fica como estava)
+    {id:'permuta',tipo:'simnao',soTela:true,rotulo:'É permuta (troca por um serviço ou produto)?',valor:formaEhPermuta(f),
+      mostrarSe:v=>!f.ehFiado&&!v.cartao,sim:'Sim — não entra dinheiro',nao:'Não — entra dinheiro'},
     {id:'conta',tipo:'lista',rotulo:'Em qual conta o dinheiro cai?',opcoes:cs,valor:f.contaId||(cs[0]&&cs[0][0]),
-      mostrarSe:v=>!f.ehFiado&&!v.cartao&&cs.length>0,pergunta:'Em qual conta esse dinheiro cai?\n'+cs.map((c,i)=>i+') '+c[1]).join('\n')},
+      mostrarSe:v=>!f.ehFiado&&!v.cartao&&!v.permuta&&cs.length>0,pergunta:'Em qual conta esse dinheiro cai?\n'+cs.map((c,i)=>i+') '+c[1]).join('\n')},
     {id:'taxa',tipo:'numero',rotulo:f.usaCanal?'Taxa geral (%)':'Taxa da maquininha (%)',dica:'deixe 0 se não tiver',valor:f.taxa||0,
-      pergunta:'Taxa em "'+f.nome+'" (%)\nEx.: 4,98 — deixe 0 se não tiver taxa.'},
+      mostrarSe:v=>!v.permuta,pergunta:'Taxa em "'+f.nome+'" (%)\nEx.: 4,98 — deixe 0 se não tiver taxa.'},
     {id:'prazo',tipo:'numero',rotulo:'Em quantos dias úteis o dinheiro cai na conta?',dica:'0 = na hora',valor:f.prazoDias||0,
-      mostrarSe:v=>!f.ehFiado&&!v.cartao,pergunta:'Em quantos DIAS ÚTEIS o dinheiro de "'+f.nome+'" cai na conta?\n0 = na hora (Pix, dinheiro)'}
+      mostrarSe:v=>!f.ehFiado&&!v.cartao&&!v.permuta,pergunta:'Em quantos DIAS ÚTEIS o dinheiro de "'+f.nome+'" cai na conta?\n0 = na hora (Pix, dinheiro)'}
   ]},v=>{
     f.nome=String(v.nome||'').trim()||f.nome;
     if(temCanais)f.usaCanal=!!v.cartao;
+    const eraPermuta=formaEhPermuta(f);
+    if(!f.ehFiado&&!f.usaCanal&&!!v.permuta!==eraPermuta)f.permuta=!!v.permuta;
+    if(formaEhPermuta(f)){f.taxa=0;f.prazoDias=0;f.entraCaixa=false;salvar();renderConfig();return;}
+    if(eraPermuta){f.entraCaixa=true;if(!f.contaId){const c0=cs[0];f.contaId=c0?c0[0]:null;}}
     if(!f.ehFiado&&!f.usaCanal){
       if(v.conta)f.contaId=v.conta;
       if(v.prazo!==undefined)f.prazoDias=diasLidos(v.prazo);
@@ -5586,6 +5660,7 @@ const ICONES_MENU_PROD={
   editar:'M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4',
   mesclar:'M6 3v5c0 3 3 5 6 5s6-2 6-5V3M12 13v8',
   link:'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',
+  nfc:'M7 3h7a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM9.5 18h2M18 9a4 4 0 0 1 0 6M20.5 6.5a8 8 0 0 1 0 11',
   excluir:'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6'
 };
 function svgMenuProd(d){
@@ -5599,7 +5674,7 @@ function abrirMenuProduto(id,btn){
   m.dataset.id=id;m.dataset.tipo='prod';   // o mesmo menu serve aos clientes (V12)
   const item=(acao,rot)=>`<button type="button" role="menuitem"${acao==='excluir'?' class="perigo"':''} onclick="acaoProduto('${acao}')">${svgMenuProd(ICONES_MENU_PROD[acao])}<span>${rot}</span></button>`;
   m.innerHTML=`<div class="menu-cab">${esc(p.nome)}</div>
-    ${item('estoque','Ajustar estoque')}${item('editar','Editar')}${item('link','Copiar link da peça na loja')}${item('mesclar','Mesclar com outro produto')}
+    ${item('estoque','Ajustar estoque')}${item('editar','Editar')}${item('link','Copiar link da peça na loja')}${typeof temNfc==='function'&&temNfc()?item('nfc','Gravar etiqueta NFC'):''}${item('mesclar','Mesclar com outro produto')}
     <div class="menu-sep"></div>${item('excluir','Excluir')}`;
   m.hidden=false;$('menuProdutoFundo').hidden=false;
   posicionarMenuProduto(m,btn);
@@ -5627,6 +5702,7 @@ function acaoProduto(acao){
   if(acao==='estoque')abrirMov(id);
   else if(acao==='editar')editarProduto(id);
   else if(acao==='link')copiarLinkDaPeca(id);
+  else if(acao==='nfc')gravarNfcDoProduto(id);
   else if(acao==='mesclar')abrirMesclar(id,'menu');
   else if(acao==='excluir')excluirProduto(id);
 }
@@ -6560,6 +6636,8 @@ function preencherSelectsVenda(localSel){
   $('vCanal').innerHTML=opcoes(canais());
   const cp=canalPadrao();if(cp)$('vCanal').value=cp.id;
   $('vParcCartao').innerHTML=Array.from({length:MAX_PARC_CARTAO},(_,i)=>`<option value="${i+1}">${i+1}x${i===0?' (à vista)':''}</option>`).join('');
+  // V18: a lista do "lançar como" da permuta se monta de novo a cada venda aberta
+  if($('vPermutaCat')){$('vPermutaCat').innerHTML=opcoes(catsPermuta());$('vPermutaCat').value=catPermutaPadrao();}
   vCanalMudou();
 }
 function canalSelecionado(){return formaUsaCanal($('vForma').value)?$('vCanal').value:null;}
@@ -6602,6 +6680,7 @@ function vCanalMudou(){
 }
 function abrirNovaVenda(){
   window.VENDA_DO_PEDIDO=null;   // V15: só a venda aberta por "Registrar venda" do pedido online leva o vínculo
+  if(typeof COBRANCA!=="undefined")COBRANCA.ok=null;   // V18: pagamento da hora é desta venda só
   $('formVenda').reset();preencherSelectsVenda();
   $('dlgVendaTitulo').textContent='Nova venda';$('vId').value='';$('vData').value=hoje();$('vDesconto').value=0;$('vDescontoTipo').value='valor';marcarCupomVenda('');
   $('vAjuste').value=0;$('vAjusteTipo').value='valor';
@@ -6615,11 +6694,13 @@ function abrirNovaVenda(){
 }
 function editarVenda(id){
   window.VENDA_DO_PEDIDO=null;
+  if(typeof COBRANCA!=="undefined")COBRANCA.ok=null;
   const v=vendaPorId(id);if(!v)return;
   if(v.receber&&recParcelas(v).some(parcTocada)){avisar('Este fiado já tem valor recebido ou desconto aplicado. Ajuste em "✎ parcelas" na aba Fiado, ou desfaça o recebimento primeiro.');return;}
   $('formVenda').reset();preencherSelectsVenda(v.localId);
   $('dlgVendaTitulo').textContent='Editar venda';$('vId').value=v.id;$('vData').value=v.data;V_VENC_AUTO='';
   $('vCliente').value=v.clienteNome||'';$('vLocal').value=v.localId||'';$('vForma').value=v.formaId;$('vObs').value=v.obs||'';
+  if(v.permuta){$('vPermutaDesc').value=v.permuta.recebido||'';if(v.permuta.catId&&catFinDe(v.permuta.catId))$('vPermutaCat').value=v.permuta.catId;}
   $('vDescontoTipo').value=v.descontoTipo==='perc'?'perc':'valor';marcarCupomVenda(v.cupom||'');
   $('vDesconto').value=v.descontoTipo==='perc'?(+v.descontoValor||0):(v.desconto||0);
   $('vAjuste').value=v.ajusteValor||0;$('vAjusteTipo').value=v.ajusteTipo||'valor';
@@ -7138,6 +7219,8 @@ function cliqueDesfazerRecebivel(id){
 }
 function vFormaMudou(){
   const fiado=formaAtualFiado();$('vFiadoBox').hidden=!fiado;
+  pintarPermuta();
+  if(typeof pintarBotaoCobrar==="function")pintarBotaoCobrar();
   $('vCanalBox').hidden=!formaUsaCanal($('vForma').value);
   if(fiado&&!$('vVencUnico').value)sugerirVencimento();
   reprecarPelaForma();
@@ -7224,6 +7307,8 @@ function aplicarDatas(parc,base,c){const ds=datasDasParcelas(base,parc.length,c)
 function recalcVenda(){
   const total=totalVenda();
   $('vSubtotal').textContent=fmt(subtotalVenda());$('vTotal').textContent=fmt(total);
+  pintarPermuta();
+  if(typeof pintarBotaoCobrar==="function")pintarBotaoCobrar();
   // explica em R$ quanto o ajuste representa (útil quando está em %)
   const aj=ajusteVenda(),ai=$('vAjusteInfo');
   const dv=descontoVenda(),dsc=descontoVendaBruto();
@@ -7322,14 +7407,15 @@ function aplicarEstoque(v,sinal){
     }
   });
 }
-function salvarVenda(){
+/* as conferências do começo do salvar — também valem ANTES de cobrar na hora (V18:
+   Pix na tela / aproximação), para a cliente nunca pagar uma venda que não salva */
+function problemaAntesDeSalvar(cobrando){
   itensVenda=itensVenda.filter(i=>i.nome.trim()&&(+i.qtd>0));
-  if(!itensVenda.length){toast('Adicione ao menos um item com quantidade.');return;}
+  if(!itensVenda.length)return {toast:'Adicione ao menos um item com quantidade.'};
   // V14: sem a tabela de taxas, venda no cartão precisa do valor que cai na conta
-  if(canalSelecionado()&&!formaAtualFiado()&&!$('vTaxaBox').hidden&&liquidoManualVenda()==null){
-    avisar('Digite quanto vai cair na conta: é o valor que o app da maquininha mostra para esta venda. Com ele o painel calcula a taxa.',{titulo:'Falta o valor que cai'});
-    return;
-  }
+  // (cobrando por aproximação o painel preenche sozinho depois)
+  if(!cobrando&&canalSelecionado()&&!formaAtualFiado()&&!$('vTaxaBox').hidden&&liquidoManualVenda()==null)
+    return {msg:'Digite quanto vai cair na conta: é o valor que o app da maquininha mostra para esta venda. Com ele o painel calcula a taxa.',titulo:'Falta o valor que cai'};
   /* cupom com limite (V10.2): confere de novo ao salvar — a cliente pode ter sido
      trocada depois de escolher o cupom. Editar venda que já tinha o cupom, da
      mesma cliente, não confere de novo (ela não pode contar contra ela mesma). */
@@ -7339,8 +7425,18 @@ function salvarVenda(){
     const jaTinha=!!antes&&chaveCupom(antes.cupom||'')===chaveCupom(cupomV)&&chaveBusca(antes.clienteNome||'')===chaveBusca(nomeV);
     const cp=cupons().find(x=>chaveCupom(x.codigo)===chaveCupom(cupomV));
     const lim=jaTinha?'':motivoLimiteCupom(cp,nomeV,idV);
-    if(lim){avisar(lim+' Tire o cupom (🎟️ cupom → sem cupom) ou troque a cliente.',{titulo:'Cupom'});return;}
+    if(lim)return {msg:lim+' Tire o cupom (🎟️ cupom → sem cupom) ou troque a cliente.',titulo:'Cupom'};
   }
+  // V18: permuta vale o preço das peças — com desconto até zerar, a venda sumiria do Resumo
+  if(permutaAtual()&&totalVenda()<=0)
+    return {msg:'Na permuta a venda entra pelo valor das peças e o mesmo valor sai como o que vocês receberam em troca — não precisa dar desconto. Tire o desconto e salve de novo.',titulo:'Permuta de R$ 0,00'};
+  if(cobrando&&!$('vData').value)return {toast:'Informe a data.'};
+  return null;
+}
+function mostrarProblema(p){if(p.toast)toast(p.toast);else avisar(p.msg,{titulo:p.titulo});}
+function salvarVenda(){
+  const pr=problemaAntesDeSalvar(false);
+  if(pr){mostrarProblema(pr);return;}
   const forma=formaDe($('vForma').value),nome=$('vCliente').value.trim(),localId=$('vLocal').value||null;
   const criados=[];
   for(const it of itensVenda){
@@ -7379,6 +7475,14 @@ function salvarVenda(){
     totalBruto:sub,desconto:desc,descontoTipo:dsc.tipo,descontoValor:dsc.n,cupom:($('vCupom')&&$('vCupom').value)||'',ajusteTipo:aj.tipo,ajusteValor:aj.n,ajuste:ajValor,
     total,custoTotal:r2(itensVenda.filter(i=>!itemVoltaEstoque(i)).reduce((s,i)=>s+(+i.qtd||0)*(+i.custo||0),0)),
     custoInsumos:custoInsumosDaVenda(itensVenda),taxaValor:0,obs:$('vObs').value.trim()};
+  // V18: o que a loja recebeu na permuta (sem permuta o campo some da venda)
+  dv.permuta=formaEhPermuta(forma)?{catId:$('vPermutaCat').value||null,recebido:$('vPermutaDesc').value.trim()}:undefined;
+  // V18: cobrada na hora (Pix na tela / aproximação): guarda o comprovante do pagamento
+  const cob=typeof COBRANCA!=='undefined'&&COBRANCA.ok;
+  if(cob){
+    dv.cobranca=Object.assign({em:new Date().toISOString()},cob);
+    if(cob.liberacao&&cob.liberacao.slice(0,10)>dv.data)dv.liberacao=cob.liberacao.slice(0,10);
+  }
   if(!dv.data){toast('Informe a data.');return;}
   const id=$('vId').value;
   let receber=null;
@@ -7447,7 +7551,7 @@ function salvarVenda(){
     if(receber)v.receber=receber;else{delete v.receber;lancarVendaAvista(v,forma);}
     aplicarEstoque(v,1);
     // venda à vista que diminuiu (item com defeito/devolvido): o dinheiro já tinha entrado
-    if(!receber&&tinhaLanc&&total<totalAntigo-0.005){
+    if(!receber&&tinhaLanc&&total<totalAntigo-0.005&&!formaEhPermuta(forma)){
       const dif=r2(totalAntigo-total);
       // as duas respostas seguem em frente; só "não devolvi" grava o crédito
       confirmar('O valor desta venda caiu '+fmt(dif)+'. Você devolveu esse dinheiro ao cliente?\n\n'
@@ -7477,6 +7581,7 @@ function salvarVenda(){
     toast('Venda registrada ✓'+(forma.ehFiado?' (fiado)':'')+(usouCred?' — usei '+fmt(usouCred.valor)+' de crédito dela':''));
   }
   if(criados.length)setTimeout(()=>toast('Cadastrei no estoque: '+criados.join(', ')+'. Ajuste a categoria depois em Produtos.'),1400);
+  if(typeof COBRANCA!=='undefined')COBRANCA.ok=null;   // o pagamento da hora já está na venda
   acFechar();salvar();dlgVenda.close();renderTudo();
   if(contaDe&&vendasEmAbertoDe(contaDe.nome).length>1)abrirContaFiado(contaDe.nome,contaDe.id);
   }
@@ -7541,7 +7646,40 @@ function cfAbrirNoFiado(){
   ui.f.abertos[n]=true;ui.f.filtro='todos';ui.f.busca='';
   trocarTab('fiado');
 }
+/* ============================================================
+   V18 — PERMUTA (troca de peças por um serviço ou produto)
+   A venda entra pelo valor cheio (receita e custo das peças, como qualquer
+   venda) e o mesmo valor sai como o que a loja recebeu: pró-labore quando
+   foi para a família (a fisioterapia da Edilene), ou uma despesa da loja.
+   O lançamento não tem conta: aparece em "Deu lucro?", mas não mexe em
+   saldo nenhum nem em "Dinheiro: entrou e saiu" — dinheiro nenhum passou.
+   ============================================================ */
+function catsPermuta(){
+  return (C().catFin||[]).filter(c=>c.natureza==='saida'&&['prolabore','fixa','marketing','outra','compra_insumo'].includes(c.grupo));
+}
+function catPermutaPadrao(){const c=(C().catFin||[]).find(x=>x.grupo==='prolabore'&&x.natureza==='saida');return c?c.id:'';}
+function permutaAtual(){return !!$('vForma')&&formaEhPermuta($('vForma').value);}
+function pintarPermuta(){
+  const box=$('vPermutaBox');if(!box)return;
+  const pm=permutaAtual();box.hidden=!pm;if(!pm)return;
+  const sel=$('vPermutaCat');
+  if(!sel.options.length){sel.innerHTML=opcoes(catsPermuta());if(!sel.value||!catFinDe(sel.value))sel.value=catPermutaPadrao();}
+  const total=totalVenda(),cat=catFinDe(sel.value);
+  $('vPermutaDica').innerHTML=total>0
+    ?`A venda entra com <b>${fmt(total)}</b> e o mesmo valor sai como <b>${esc(cat?cat.nome:'Pró-labore')}</b>. Nenhum dinheiro entra nem sai das contas.`
+    :'<span style="color:var(--laranja)">Total R$ 0,00 — na permuta não precisa dar desconto: a venda entra pelo valor das peças.</span>';
+}
+function lancarPermuta(v){
+  v.lancId=null;v.lancTaxaId=null;v.recebivelId=null;v.taxaValor=0;
+  if(!(+v.total>0))return;
+  const pm=v.permuta||{},c=catFinDe(pm.catId);
+  const catId=c&&c.natureza==='saida'?c.id:catFinDoGrupo('prolabore','Pró-labore').id;
+  const L=criarLanc({tipo:'saida',data:v.data,valor:r2(v.total),contaId:null,catId,
+    descricao:'Permuta'+(pm.recebido?' — '+pm.recebido:'')+(v.clienteNome?' ('+v.clienteNome+')':''),origem:'permuta',refId:v.id});
+  v.lancId=L.id;
+}
 function lancarVendaAvista(v,forma){
+  if(formaEhPermuta(forma)){lancarPermuta(v);return;}
   const r=registrarEntrada({data:v.data,valor:v.total,formaId:forma.id,canalId:v.canalId,bandeiraId:v.bandeiraId,parcelasCartao:v.parcelasCartao,
     taxaPerc:v.taxaPercManual,liquido:v.liquidoManual,previsto:v.liberacao||null,descricao:'Venda'+(v.clienteNome?' — '+v.clienteNome:''),origem:'venda',refId:v.id});
   v.lancId=r.lancId;v.lancTaxaId=r.lancTaxaId;v.recebivelId=r.recebivelId;v.taxaValor=r.taxa;
@@ -9542,7 +9680,7 @@ function abrirNovoLanc(tipo){
 }
 function editarLanc(id){
   const l=lancPorId(id);if(!l)return;
-  if(l.origem!=='manual'&&l.origem!=='compra'){avisar('Este lançamento foi gerado automaticamente por uma '+(l.origem==='venda'?'venda':'operação de fiado')+'. Edite pela aba correspondente.');return;}
+  if(l.origem!=='manual'&&l.origem!=='compra'){avisar('Este lançamento foi gerado automaticamente por uma '+(l.origem==='venda'?'venda':l.origem==='permuta'?'venda em permuta':'operação de fiado')+'. Edite pela aba correspondente.');return;}
   $('formLanc').reset();$('dlgLancTitulo').textContent='Editar lançamento';$('lId').value=l.id;$('lTipo').value=l.tipo;$('lData').value=l.data;
   preencherSelectsLanc();
   $('lValor').value=l.valor;$('lConta').value=l.contaId||'';$('lContra').value=l.contraId||'';$('lCat').value=l.catId||'';$('lDesc').value=l.descricao||'';
@@ -9560,13 +9698,14 @@ function salvarLanc(){
 }
 function excluirLanc(id){
   const l=lancPorId(id);if(!l)return;
-  if(l.origem==='venda'||l.origem==='fiado'){avisar('Este lançamento vem de uma venda/fiado. Exclua ou edite na aba correspondente.');return;}
+  if(l.origem==='venda'||l.origem==='fiado'||l.origem==='permuta'){avisar('Este lançamento vem de uma venda/fiado. Exclua ou edite na aba correspondente.');return;}
   confirmar('Excluir este lançamento de '+fmt(l.valor)+'?',{titulo:'Excluir lançamento',ok:'Excluir',perigo:true},()=>{
     removerLanc(id);salvar();renderTudo();toast('Lançamento excluído');
   });
 }
 function rotuloLanc(l){
   if(l.origem==='venda')return 'Venda';
+  if(l.origem==='permuta')return 'Permuta · '+((catFinDe(l.catId)||{}).nome||'Pró-labore');
   if(l.origem==='cartao')return 'Cartão (maquininha)';
   if(l.origem==='taxa')return 'Taxa de cartão';
   if(l.origem==='fiado')return 'Recebimento fiado';
@@ -9704,7 +9843,7 @@ function acoesLanc(l){
     const pg=pagamentoDoLanc(l.id);
     if(pg)return `<button class="bt mini" title="desfazer este recebimento" onclick="cliqueDesfazerPagamento('${pg.id}')">↩ desfazer</button>`;
   }
-  if(l.origem==='venda'&&l.refId&&vendaPorId(l.refId))
+  if((l.origem==='venda'||l.origem==='permuta')&&l.refId&&vendaPorId(l.refId))
     return `<button class="bt mini" title="abrir a venda que gerou este lançamento" onclick="trocarTab('vendas');editarVenda('${l.refId}')">✎ venda</button>`;
   return '<span class="mut" style="font-size:.72rem">auto</span>';
 }
@@ -9719,7 +9858,7 @@ function renderFinTab(){
     const cls=l.tipo==='entrada'?'ent':l.tipo==='saida'?'sai':'rdb';
     const sinal=l.tipo==='entrada'?'+':l.tipo==='saida'?'−':'↔';
     const valcls=l.tipo==='entrada'?'pos':l.tipo==='saida'?'neg':'rdb';
-    const conta=l.tipo==='transferencia'?(contaNome(l.contaId)+' → '+contaNome(l.contraId)):contaNome(l.contaId);
+    const conta=l.tipo==='transferencia'?(contaNome(l.contaId)+' → '+contaNome(l.contraId)):l.origem==='permuta'?'sem dinheiro (permuta)':contaNome(l.contaId);
     return `<tr><td>${fmtData(l.data)}</td><td>${esc(l.descricao)}</td><td>${esc(conta)}</td>
       <td><span class="bd ${cls}">${esc(rotuloLanc(l))}</span></td>
       <td class="num ${valcls}"><b>${sinal} ${fmt(l.valor)}</b></td>
@@ -13705,7 +13844,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-11-25 22:37';
+const VERSAO_APP='2026-11-27 03:00';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -16410,6 +16549,7 @@ function atualizarBarraBipe(){
   const temCod=dados.produtos.some(p=>!faltaCod(p)||codDoProduto(p)>0);
   box.hidden=!temCod;
   const bt=$('vBipeCam');if(bt)bt.hidden=!podeUsarCamera();
+  const bn=$('vBipeNfc');if(bn)bn.hidden=!temNfc();   // V18: só no Chrome do Android
   const hint=$('vBipeHint');if(hint)hint.innerHTML='';
   const campo=$('vBipe');if(campo)campo.value='';
 }
@@ -16472,6 +16612,120 @@ function fecharCamera(){
 }
 /* fechar pelo Esc não passa pelo botão: a câmera precisa desligar do mesmo jeito */
 try{dlgCamera.addEventListener('close',()=>{if(CAM.aberta)fecharCamera();});}catch(e){}
+
+/* ============================================================
+   V18 — NFC: encostar a etiqueta no celular, em vez de mirar a câmera
+   (pedido do Luan: "na hora da venda é muito corrido"). Só existe no Chrome
+   do ANDROID (Web NFC); no iPhone e no computador o botão nem aparece e o
+   bipar/câmera continuam. A etiqueta guarda o MESMO número do código de
+   barras, como texto — então achar a peça, somar quantidade e entrar no
+   tamanho certo é tudo o biparNaVenda de sempre.
+   Metal atrapalha a leitura: a etiqueta vai na embalagem/cartela, não na
+   peça (ou etiqueta "anti-metal").
+   ============================================================ */
+var NFC={aberto:false,modo:'',ctrl:null,ultimo:'',quando:0,lidos:0,alvo:null};
+function temNfc(){return typeof window.NDEFReader==='function';}
+/* o texto que veio na etiqueta: registro de texto (o que o painel grava) ou um
+   endereço com o número no fim (etiqueta gravada por outro aplicativo) */
+function textoDaEtiquetaNfc(msg){
+  const recs=(msg&&msg.records)||[];
+  for(const r of recs){
+    try{
+      if(r.recordType==='text'||r.recordType==='url'||r.recordType==='absolute-url'||r.recordType==='mime'){
+        const t=new TextDecoder(r.encoding||'utf-8').decode(r.data);
+        if(numerosPossiveis(t).length)return t;
+      }
+    }catch(e){}
+  }
+  return '';
+}
+function abrirNfcDialogo(titulo,aviso){
+  $('nfcTitulo').textContent=titulo;$('nfcAviso').innerHTML=aviso;$('nfcLidos').innerHTML='';
+  if(!$('dlgNfc').open)$('dlgNfc').showModal();
+}
+/* venda: fica lendo enquanto a janela estiver aberta */
+async function abrirNfcVenda(){
+  if(!temNfc()){toast('Este aparelho não lê NFC pelo navegador — use o código de barras.');return;}
+  NFC.modo='ler';NFC.lidos=0;NFC.ultimo='';NFC.aberto=true;
+  abrirNfcDialogo('📳 Aproxime a etiqueta','Ligando o NFC…');
+  try{
+    NFC.ctrl=new AbortController();
+    const r=new NDEFReader();
+    r.onreading=ev=>lidoNfc(ev.message);
+    r.onreadingerror=()=>{$('nfcAviso').innerHTML='<span class="neg">Não consegui ler essa etiqueta.</span> Encoste de novo, devagar, no meio das costas do celular.';};
+    await r.scan({signal:NFC.ctrl.signal});
+    $('nfcAviso').innerHTML='Encoste a etiqueta NFC <b>nas costas do celular</b>. Pode encostar uma atrás da outra.';
+  }catch(e){
+    $('nfcAviso').innerHTML=e&&e.name==='NotAllowedError'
+      ?'<span class="neg">O NFC não foi liberado.</span> Ligue o NFC do celular e toque de novo em 📳 (se o navegador perguntar, permita).'
+      :'<span class="neg">Não consegui ligar o NFC.</span> Confira se ele está ligado nas configurações do celular.';
+  }
+}
+function lidoNfc(msg){
+  if(!NFC.aberto)return;
+  const txt=textoDaEtiquetaNfc(msg);
+  if(NFC.modo==='gravar')return;   // gravando: a leitura que acontece junto não conta
+  // a mesma etiqueta encostada por mais tempo dispara várias leituras
+  if(txt&&txt===NFC.ultimo&&Date.now()-NFC.quando<1500)return;
+  NFC.ultimo=txt;NFC.quando=Date.now();
+  const achou=txt?biparNaVenda(txt,true):null;
+  if(achou){
+    bipSom(true);NFC.lidos++;
+    $('nfcLidos').insertAdjacentHTML('afterbegin',`<div>✓ ${esc(achou.p.nome)}${achou.v?' · '+esc(achou.v.rotulo):''}</div>`);
+  }else{
+    bipSom(false);
+    $('nfcLidos').insertAdjacentHTML('afterbegin',`<div class="neg">✕ ${txt?esc(soDigitos(txt))+' não é uma etiqueta desta loja':'etiqueta vazia ou de outro aplicativo'}</div>`);
+  }
+}
+function fecharNfc(){
+  const lidos=NFC.modo==='ler'?NFC.lidos:0;
+  NFC.aberto=false;NFC.modo='';NFC.alvo=null;
+  if(NFC.ctrl){try{NFC.ctrl.abort();}catch(e){}NFC.ctrl=null;}
+  try{$('dlgNfc').close();}catch(e){}
+  if(lidos)toast(lidos+' peça(s) pelo NFC ✓');
+}
+try{$('dlgNfc').addEventListener('close',()=>{if(NFC.aberto)fecharNfc();});}catch(e){}
+
+/* produto (menu ⋮): grava na etiqueta o número da peça — e, com tamanhos/cores,
+   o de UM deles (cada tamanho tem o seu número, como na etiqueta de barras) */
+function gravarNfcDoProduto(id){
+  const p=prodPorId(id);if(!p)return;
+  if(!temNfc()){toast('Gravar NFC só funciona no Chrome do Android.');return;}
+  if(!podeEscrever('estoque')&&faltaCod(p)){avisar('Esta peça ainda não tem número de etiqueta, e só quem altera Produtos pode criar.',{titulo:'Gravar NFC'});return;}
+  if(temGrade(p)){
+    const ops=(p.variacoes||[]).map(v=>[v.id,v.rotulo]);
+    if(!ops.length)return;
+    pedir({titulo:'Gravar NFC — '+p.nome,ok:'Continuar',campos:[{id:'v',tipo:'lista',rotulo:'Qual tamanho/cor vai nesta etiqueta?',opcoes:ops,valor:ops[0][0]}]},
+      r=>gravarNfcAgora(p,(p.variacoes||[]).find(v=>v.id===r.v)||p.variacoes[0]));
+    return;
+  }
+  gravarNfcAgora(p,null);
+}
+async function gravarNfcAgora(p,v){
+  // a peça ganha o número agora se ainda não tinha (o mesmo que a etiqueta de barras usaria)
+  if(faltaCod(p)&&garantirCodsDoProduto(p,numerosEmUso()))salvar();
+  const n=v?codDaVariacao(p,v.id):codDoProduto(p);
+  if(!n){toast('Esta peça está sem número de etiqueta.');return;}
+  const nome=p.nome+(v?' · '+v.rotulo:'');
+  NFC.modo='gravar';NFC.aberto=true;NFC.alvo={p,v,n};
+  abrirNfcDialogo('📳 Gravar etiqueta NFC',`Encoste uma etiqueta NFC <b>nas costas do celular</b> para gravar <b>${esc(nome)}</b> (nº ${esc(ean13De(n))}).<br><span class="mut">Se a etiqueta já tinha outra peça, ela é trocada por esta.</span>`);
+  try{
+    NFC.ctrl=new AbortController();
+    const w=new NDEFReader();
+    await w.write({records:[{recordType:'text',data:ean13De(n)}]},{signal:NFC.ctrl.signal});
+    if(!NFC.aberto)return;
+    bipSom(true);
+    $('nfcAviso').innerHTML=`<span class="linkok">✓ Gravado: ${esc(nome)}</span><br>Cole a etiqueta na embalagem ou cartela da peça (no metal ela quase não lê).`;
+    $('nfcLidos').insertAdjacentHTML('afterbegin',`<div>✓ ${esc(nome)}</div>`);
+    NFC.modo='feito';
+  }catch(e){
+    if(!NFC.aberto||(e&&e.name==='AbortError'))return;
+    bipSom(false);
+    $('nfcAviso').innerHTML=e&&e.name==='NotAllowedError'
+      ?'<span class="neg">O NFC não foi liberado.</span> Ligue o NFC do celular e tente de novo.'
+      :'<span class="neg">Não consegui gravar.</span> Encoste de novo e segure parado um instante. Etiqueta travada (só leitura) não aceita gravar.';
+  }
+}
 
 /* ============================================================
    APP NO CELULAR (v15)
@@ -17867,6 +18121,334 @@ function testarFrete(){
   });
 }
 function tokenMEValido(t){t=String(t||'').replace(/\s/g,'');return t.length>=100&&/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(t);}
+
+/* ============================================================
+   V18 — COBRAR NA HORA (venda presencial), pedido do Luan: "se ela aproxima e
+   paga via InfinitePay depois ela tem que registrar a venda lá".
+   📱 Pix na tela: o painel pede um Pix ao Mercado Pago (função loja-pagamento,
+      acao pix_balcao, com o login de quem vende), mostra o QR e fica perguntando
+      (status_balcao). Caiu → a venda se salva sozinha, em "Pix (Mercado Pago)",
+      com o valor que cai de verdade.
+   📳 Aproximação: abre o app da InfinitePay (integração oficial "Checkout Tap":
+      só crédito e débito, sem chave) com o valor. A cliente aproxima o cartão e o
+      app devolve para o painel (result_url) com order_id/nsu/aut/card_brand. A
+      volta pode recarregar a página, então a venda da tela é guardada ANTES
+      (LS_COBRANCA) e remontada na volta. Se a volta não vier, quando a tela
+      volta o painel pergunta "foi aprovada?". Só Android (o app precisa estar
+      neste celular). O valor que cai sai da tabela da maquininha (o app não diz).
+   ============================================================ */
+var LS_COBRANCA='g1001_cobranca';
+var COBRANCA={ok:null,pix:null,timer:null,tapOrder:'',perguntando:false};
+function lerCobrancaPend(){
+  try{const c=JSON.parse(localStorage.getItem(LS_COBRANCA)||'null');return c&&Date.now()-(+c.quando||0)<24*3600e3?c:null;}catch(e){return null;}
+}
+function gravarCobrancaPend(c){try{if(c)localStorage.setItem(LS_COBRANCA,JSON.stringify(c));else localStorage.removeItem(LS_COBRANCA);}catch(e){}}
+function ehAndroid(){return /Android/i.test(navigator.userAgent||'');}
+function cfgTap(){return (C().loja&&C().loja.tap)||{};}
+function tapDisponivel(){return !!cfgTap().ativo&&(ehAndroid()||!!window.TAP_TESTE);}
+function formaEhPix(f){if(f&&typeof f!=='object')f=formaDe(f);return !!f&&!f.ehFiado&&!f.usaCanal&&!formaEhPermuta(f)&&/pix/i.test(f.nome||'');}
+function pixBalcaoDisponivel(){const L=lojaOn();return nuvemOn()&&!!(L.mp&&L.mp.ligada)&&podeEscrever('vendas');}
+function modoCobrarNaHora(){
+  if(COBRANCA.ok)return '';
+  const f=formaDe($('vForma')&&$('vForma').value);if(!f)return '';
+  if(formaEhPix(f)&&pixBalcaoDisponivel())return 'pix';
+  if(f.usaCanal&&(f.tipoCartao==='credito'||f.tipoCartao==='debito')&&tapDisponivel())return 'tap';
+  return '';
+}
+function pintarBotaoCobrar(){
+  const b=$('vBtCobrar');if(!b)return;
+  const L=lojaOn();
+  // venda no Pix: a conta do Mercado Pago é perguntada uma vez; quando chega, o botão se redesenha
+  if(formaEhPix($('vForma')&&$('vForma').value)&&nuvemOn()&&!L.mpBuscou&&!L.mpCarregando&&typeof carregarContaMP==='function')
+    carregarContaMP().then(()=>pintarBotaoCobrar()).catch(()=>{});
+  const m=modoCobrarNaHora(),t=totalVenda();
+  b.hidden=!m||!(t>=1);
+  b.textContent=m==='pix'?'📱 Cobrar '+fmt(t)+' no Pix':m==='tap'?'📳 Cobrar '+fmt(t)+' por aproximação':'';
+  const info=$('vCobrancaInfo');
+  if(info){
+    const ok=COBRANCA.ok;info.hidden=!ok;
+    info.innerHTML=!ok?'':ok.tipo==='pix'?'✓ <b>Pago no Pix</b> (Mercado Pago) — '+fmt(ok.pago||t)+'. Falta só salvar a venda.'
+      :'✓ <b>Pago por aproximação</b>'+(ok.bandeira?' ('+esc(ok.bandeira)+')':'')+(ok.manual?' — confirmado por você':'')+'. Falta só salvar a venda.';
+  }
+}
+function cobrarNaHora(){
+  const m=modoCobrarNaHora();
+  if(m==='pix')cobrarPixNaTela();
+  else if(m==='tap')cobrarPorAproximacao();
+}
+/* a venda da tela, para remontar depois (a volta do app pode recarregar a página) */
+function snapshotVenda(){
+  const v=id=>{const e=$(id);return e?e.value:'';};
+  return {vId:v('vId'),data:v('vData'),cliente:v('vCliente'),local:v('vLocal'),forma:v('vForma'),canal:v('vCanal'),
+    parcCartao:v('vParcCartao'),bandeira:v('vBandeira'),desconto:v('vDesconto'),descontoTipo:v('vDescontoTipo'),
+    ajuste:v('vAjuste'),ajusteTipo:v('vAjusteTipo'),cupom:v('vCupom'),obs:v('vObs'),telNovo:v('vTelNovo'),
+    itens:JSON.parse(JSON.stringify(itensVenda||[])),pedido:window.VENDA_DO_PEDIDO||null};
+}
+function restaurarVenda(s){
+  if(!s)return;
+  if(s.vId&&vendaPorId(s.vId))editarVenda(s.vId);else abrirNovaVenda();
+  const set=(id,val)=>{const e=$(id);if(e&&val!=null&&val!=='')e.value=val;};
+  set('vData',s.data);set('vCliente',s.cliente);set('vLocal',s.local);set('vForma',s.forma);
+  set('vDescontoTipo',s.descontoTipo);set('vDesconto',s.desconto);set('vAjusteTipo',s.ajusteTipo);set('vAjuste',s.ajuste);
+  if(typeof marcarCupomVenda==='function')marcarCupomVenda(s.cupom||'');
+  set('vObs',s.obs);set('vTelNovo',s.telNovo);
+  itensVenda=JSON.parse(JSON.stringify(s.itens||[]));
+  window.VENDA_DO_PEDIDO=s.pedido||null;
+  vClienteMudou();vFormaMudou();
+  if(s.canal&&canalDe(s.canal))$('vCanal').value=s.canal;
+  set('vParcCartao',s.parcCartao);
+  vCanalMudou();
+  if(s.bandeira)set('vBandeira',s.bandeira);
+  renderItensVenda();recalcVenda();
+}
+async function chamarFuncaoPagamento(corpo){
+  try{await garantirToken();}catch(e){}
+  const tok=NUVEM.sessao&&NUVEM.sessao.access_token;
+  const h={'Content-Type':'application/json',apikey:NUVEM_KEY};
+  if(tok)h.Authorization='Bearer '+tok;
+  const r=await fetch(NUVEM_URL+'/functions/v1/loja-pagamento',{method:'POST',cache:'no-store',headers:h,body:JSON.stringify(corpo)});
+  return await r.json();
+}
+var MOTIVO_COBRAR={rede:'Sem internet agora — tente de novo.',login:'Entre de novo na sua conta (o login venceu) e tente outra vez.',
+  acesso:'Seu acesso não pode registrar vendas nesta loja.',
+  'sem-conta':'Conecte a conta do Mercado Pago em Site da loja → Pagamento online.',
+  acao:'A função do servidor ainda é a antiga: publique de novo a loja-pagamento (e desligue o "Verify JWT" depois).',
+  valor:'O Pix precisa ser de pelo menos R$ 1,00.',servidor:'O servidor não respondeu direito — tente de novo.'};
+function motivoCobrar(r){return MOTIVO_COBRAR[r&&r.erro]||(r&&r.erro==='mp'?'O Mercado Pago não aceitou'+(r.detalhe?' ('+esc(r.detalhe)+')':'')+'.':'Não deu para gerar o Pix agora.');}
+
+/* ---------- 📱 Pix na tela ---------- */
+async function cobrarPixNaTela(){
+  const pr=problemaAntesDeSalvar(true);if(pr){mostrarProblema(pr);return;}
+  const total=totalVenda(),ref=novoId(),nome=$('vCliente').value.trim();
+  $('cnhTitulo').textContent='📱 Pix — '+fmt(total);
+  $('cnhCorpo').innerHTML='<p class="cnh-esp"><span class="pulso"></span>Gerando o Pix…</p>';
+  $('cnhCancelar').textContent='Cancelar a cobrança';
+  COBRANCA.pix=null;
+  if(!$('dlgCobrarNaHora').open)$('dlgCobrarNaHora').showModal();
+  let r;
+  try{
+    r=await chamarFuncaoPagamento({acao:'pix_balcao',loja:lojaId(),valor:total,ref,nome,
+      descricao:(nomeDaLoja()+' — '+(nome||'venda no balcão')).slice(0,120),
+      dominio:String((C().loja&&C().loja.dominio)||location.hostname||'')});
+  }catch(e){r={erro:'rede'};}
+  if(!$('dlgCobrarNaHora').open)return;   // desistiu enquanto gerava
+  if(!r||r.erro||!r.mp_id||!r.pix){
+    $('cnhCorpo').innerHTML='<p class="neg" style="font-size:.9rem">'+motivoCobrar(r||{})+'</p>';
+    $('cnhCancelar').textContent='Fechar';return;
+  }
+  COBRANCA.pix={mp_id:String(r.mp_id),ref,total,qr:r.pix};
+  gravarCobrancaPend({tipo:'pix',mp_id:String(r.mp_id),valor:total,quando:Date.now(),pix:r.pix,venda:snapshotVenda()});
+  pintarQrPix();
+  acompanharPixNaTela();
+}
+function pintarQrPix(){
+  const p=COBRANCA.pix;if(!p)return;
+  const img=p.qr&&p.qr.qr_code_base64?'<img class="cnh-qr" alt="QR code do Pix" src="data:image/png;base64,'+esc(p.qr.qr_code_base64)+'">':'';
+  $('cnhCorpo').innerHTML='<div class="cnh-valor">'+fmt(p.total)+'</div>'+img
+    +'<p class="cnh-passo">A cliente abre o app do banco → <b>Pix</b> → <b>Ler QR code</b> e aponta para esta tela.</p>'
+    +(p.qr&&p.qr.qr_code?'<div class="cnh-copia"><input readonly value="'+esc(p.qr.qr_code)+'" aria-label="Pix copia e cola"><button type="button" class="bt mini" onclick="copiarPixNaTela()">📋 Copiar</button></div>':'')
+    +'<p class="cnh-esp" id="cnhEsp"><span class="pulso"></span>Esperando o pagamento…</p>';
+}
+function copiarPixNaTela(){
+  const t=COBRANCA.pix&&COBRANCA.pix.qr&&COBRANCA.pix.qr.qr_code;if(!t)return;
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast('Pix copia e cola copiado 📋')).catch(()=>fallbackCopia(t));
+  else fallbackCopia(t);
+}
+function pararPixNaTela(){if(COBRANCA.timer){clearInterval(COBRANCA.timer);COBRANCA.timer=null;}}
+function acompanharPixNaTela(){
+  pararPixNaTela();
+  const inicio=Date.now();
+  const perguntar=async()=>{
+    const p=COBRANCA.pix;
+    if(!p||!$('dlgCobrarNaHora').open){pararPixNaTela();return;}
+    if(Date.now()-inicio>16*60000){pararPixNaTela();return;}
+    let r=null;
+    try{r=await chamarFuncaoPagamento({acao:'status_balcao',loja:lojaId(),mp_id:p.mp_id});}catch(e){return;}
+    if(!r||r.erro||!COBRANCA.pix||COBRANCA.pix.mp_id!==p.mp_id)return;
+    if(r.status==='approved')pixAprovadoNaTela(p,r);
+    else if(['cancelled','expired','rejected','refunded'].includes(r.status)){
+      pararPixNaTela();gravarCobrancaPend(null);COBRANCA.pix=null;
+      const e=$('cnhEsp');if(e)e.innerHTML='<span class="neg">Este Pix venceu ou foi cancelado.</span> <button type="button" class="bt mini" onclick="cobrarPixNaTela()">Gerar outro</button>';
+    }
+  };
+  COBRANCA.timer=setInterval(perguntar,window.PIX_INTERVALO||3000);
+}
+function pixAprovadoNaTela(p,r){
+  pararPixNaTela();gravarCobrancaPend(null);COBRANCA.pix=null;
+  try{$('dlgCobrarNaHora').close();}catch(e){}
+  if(!$('dlgVenda').open&&p.venda)restaurarVenda(p.venda);
+  // o dinheiro caiu no Mercado Pago: a venda vai para a forma e a conta dele (v35)
+  if(typeof garantirFinanceiroSite==='function'){try{garantirFinanceiroSite();}catch(e){}}
+  const sel=$('vForma');
+  if(formaDe('forma-mp-pix')&&sel.value!=='forma-mp-pix'){
+    // a forma pode ter acabado de nascer: a lista da venda aberta ainda não a conhece
+    if(![...sel.options].some(o=>o.value==='forma-mp-pix')){
+      sel.innerHTML=opcoes(C().formas);
+      if(typeof atualizarBotaoCombo==='function')try{atualizarBotaoCombo(sel);}catch(e){}
+    }
+    sel.value='forma-mp-pix';vFormaMudou();
+  }
+  COBRANCA.ok={tipo:'pix',mp_id:String(p.mp_id),pago:r.pago!=null?+r.pago:p.total,liquido:r.liquido!=null?+r.liquido:null,liberacao:r.liberacao||null};
+  if(r.liquido!=null&&$('vTaxaBox')&&!$('vTaxaBox').hidden)$('vLiquido').value=fmtNum(+r.liquido);
+  bipSom(true);pintarBotaoCobrar();
+  toast('✓ Pix recebido — salvando a venda');
+  salvarVenda();
+}
+async function cancelarCobrancaNaHora(){
+  const p=COBRANCA.pix;
+  pararPixNaTela();
+  try{$('dlgCobrarNaHora').close();}catch(e){}
+  if(!p)return;
+  COBRANCA.pix=null;
+  // desistiu: o QR deixa de valer. Se ela pagou bem nesse instante, a venda segue.
+  let r=null;
+  try{r=await chamarFuncaoPagamento({acao:'status_balcao',loja:lojaId(),mp_id:p.mp_id,cancelar:true});}catch(e){}
+  if(r&&r.status==='approved'){pixAprovadoNaTela(p,r);return;}
+  gravarCobrancaPend(null);
+  toast('Cobrança no Pix cancelada');
+}
+try{$('dlgCobrarNaHora').addEventListener('cancel',e=>{e.preventDefault();cancelarCobrancaNaHora();});}catch(e){}
+
+/* ---------- 📳 aproximação (app da InfinitePay) ---------- */
+function abrirLinkApp(url){if(typeof window.ABRIR_APP==='function')return window.ABRIR_APP(url);location.href=url;}
+function enderecoDeVolta(){return location.origin+location.pathname;}
+window.TAP_ESPERA_APP=window.TAP_ESPERA_APP||2500;
+function cobrarPorAproximacao(){
+  const pr=problemaAntesDeSalvar(true);if(pr){mostrarProblema(pr);return;}
+  const total=totalVenda(),f=formaDe($('vForma').value)||{},metodo=f.tipoCartao==='debito'?'debit':'credit';
+  const parc=metodo==='credit'?parcCartaoSel():1;
+  if(parc>1&&total/parc<1){avisar('No crédito parcelado cada parcela precisa ser de pelo menos R$ 1,00.',{titulo:'Aproximação'});return;}
+  const orderId='cd'+novoId();
+  gravarCobrancaPend({tipo:'tap',orderId,valor:total,metodo,parcelas:parc,quando:Date.now(),venda:snapshotVenda()});
+  COBRANCA.tapOrder=orderId;
+  const h=handleInfinite(cfgTap().handle||cfgCheckout().handle);
+  const url='infinitepaydash://infinitetap-app?amount='+Math.round(total*100)+'&payment_method='+metodo
+    +(metodo==='credit'?'&installments='+parc:'')+'&order_id='+encodeURIComponent(orderId)
+    +'&result_url='+encodeURIComponent(enderecoDeVolta())+'&app_client_referrer=Cadernota'
+    +(h?'&handle='+encodeURIComponent(h):'')+'&af_force_deeplink=true';
+  const saiu=Date.now();
+  abrirLinkApp(url);
+  // o app não abriu (não instalado): a tela nem saiu do lugar
+  setTimeout(()=>{
+    const p=lerCobrancaPend();
+    if(document.visibilityState==='visible'&&!document.hidden&&p&&p.orderId===orderId&&Date.now()-saiu<window.TAP_ESPERA_APP+800&&!window.TAP_SAIU)
+      avisar('O app da InfinitePay não abriu. Confira se ele está instalado neste celular e com a sua conta aberta — depois toque de novo em "Cobrar por aproximação".',{titulo:'Aproximação'});
+  },window.TAP_ESPERA_APP);
+}
+/* a bandeira que o app devolveu escolhe a linha da tabela de taxas da maquininha */
+function escolherBandeiraPelaMarca(marca){
+  const cid=canalSelecionado();if(!cid||!marca)return;
+  const bs=bandeirasDe(cid),m=String(marca).toLowerCase();
+  const alvo=/elo|amex|american|hiper/.test(m)?bs.find(b=>/elo|amex/i.test(b.nome)):bs.find(b=>/visa|master/i.test(b.nome));
+  if(alvo)$('vBandeira').value=alvo.id;
+}
+function preencherLiquidoPelaTabela(){
+  if(!$('vTaxaBox')||$('vTaxaBox').hidden||liquidoManualVenda()!=null)return;
+  const total=totalVenda(),perc=taxaPadraoVenda();
+  $('vLiquido').value=fmtNum(r2(total*(1-(+perc||0)/100)));
+}
+function tapAprovada(p,volta){
+  gravarCobrancaPend(null);
+  const aberta=$('dlgVenda').open&&COBRANCA.tapOrder===p.orderId;
+  COBRANCA.tapOrder='';
+  if(!aberta)restaurarVenda(p.venda);
+  COBRANCA.ok={tipo:'tap',orderId:p.orderId,nsu:volta.nsu||'',aut:volta.aut||'',bandeira:volta.bandeira||'',pago:p.valor,
+    metodo:p.metodo,parcelas:p.parcelas,manual:!!volta.manual};
+  escolherBandeiraPelaMarca(volta.bandeira);
+  preencherLiquidoPelaTabela();
+  bipSom(true);pintarBotaoCobrar();
+  toast('✓ Pagamento aprovado — salvando a venda');
+  salvarVenda();
+}
+function perguntarSeAprovou(p){
+  if(COBRANCA.perguntando)return;
+  COBRANCA.perguntando=true;
+  confirmar('A cobrança de '+fmt(p.valor)+' por aproximação voltou sem a confirmação da InfinitePay.\n\nSe o app mostrou o pagamento APROVADO, toque em "Foi aprovada" e a venda é salva. Se não, a venda volta para a tela para cobrar de novo.',
+    {titulo:'A cliente pagou?',ok:'Foi aprovada',cancelar:'Não foi'},
+    ()=>{COBRANCA.perguntando=false;tapAprovada(p,{manual:true});},
+    ()=>{COBRANCA.perguntando=false;gravarCobrancaPend(null);COBRANCA.tapOrder='';if(!$('dlgVenda').open)restaurarVenda(p.venda);});
+}
+/* a volta do app: ?order_id=…&nsu=…&aut=…&card_brand=… (e warning= quando deu problema) */
+function lerVoltaDaAproximacao(){
+  let q;try{q=new URLSearchParams(window.TAP_VOLTA_TESTE||location.search);}catch(e){return null;}
+  const oid=q.get('order_id');if(!oid)return null;
+  const r={orderId:oid,nsu:q.get('nsu')||'',aut:q.get('aut')||'',bandeira:q.get('card_brand')||'',aviso:q.get('warning')||''};
+  // sai do endereço: atualizar a página não pode registrar a venda de novo
+  window.TAP_VOLTA_TESTE='';
+  try{if(location.search)history.replaceState(history.state,'',location.pathname+location.hash);}catch(e){}
+  return r;
+}
+async function retomarCobrancaPendente(){
+  const volta=lerVoltaDaAproximacao(),p=lerCobrancaPend();
+  if(volta){
+    if(!p||p.tipo!=='tap'||p.orderId!==volta.orderId){
+      if(volta.nsu)avisar('Voltou do app da InfinitePay uma cobrança que este aparelho não conhece (transação '+volta.nsu+'). Confira no app e registre a venda à mão, se for o caso.',{titulo:'Aproximação'});
+      return;
+    }
+    if(volta.nsu&&!volta.aviso){tapAprovada(p,volta);return;}
+    gravarCobrancaPend(null);COBRANCA.tapOrder='';
+    if(!$('dlgVenda').open)restaurarVenda(p.venda);
+    avisar('A cobrança por aproximação não foi concluída'+(volta.aviso?' ('+volta.aviso+')':'')+'. A venda continua aberta: cobre de novo ou salve de outro jeito.',{titulo:'Aproximação'});
+    return;
+  }
+  if(!p)return;
+  if(p.tipo==='tap'){perguntarSeAprovou(p);return;}
+  if(p.tipo==='pix'&&nuvemOn()){
+    let r=null;
+    try{r=await chamarFuncaoPagamento({acao:'status_balcao',loja:lojaId(),mp_id:p.mp_id});}catch(e){return;}
+    if(!r||r.erro)return;
+    if(r.status==='approved'){pixAprovadoNaTela(p,r);return;}
+    if(r.status==='pending'||r.status==='in_process'){
+      // o painel fechou no meio do Pix: volta a venda e o QR, esperando
+      restaurarVenda(p.venda);
+      COBRANCA.pix={mp_id:p.mp_id,ref:'',total:p.valor,qr:p.pix,venda:p.venda};
+      $('cnhTitulo').textContent='📱 Pix — '+fmt(p.valor);$('cnhCancelar').textContent='Cancelar a cobrança';
+      if(!$('dlgCobrarNaHora').open)$('dlgCobrarNaHora').showModal();
+      pintarQrPix();acompanharPixNaTela();
+      return;
+    }
+    gravarCobrancaPend(null);
+  }
+}
+/* voltou para a tela sem passar pelo endereço de volta (trocou de app pelo botão do celular) */
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState!=='visible')return;
+  setTimeout(()=>{
+    const p=lerCobrancaPend();
+    if(COBRANCA.tapOrder&&!p){
+      // outra janela do painel recebeu a volta e salvou a venda: esta ficou velha
+      COBRANCA.tapOrder='';try{dlgVenda.close();}catch(e){}
+      toast('A venda foi salva na outra janela — atualizando');setTimeout(()=>location.reload(),900);return;
+    }
+    if(p&&p.tipo==='tap'&&Date.now()-(+p.quando||0)>3000)perguntarSeAprovou(p);
+  },window.TAP_ESPERA_VOLTA||1500);
+});
+/* a volta do app chega na abertura do painel: espera a nuvem terminar de juntar os dados */
+function esperarParaRetomar(n){
+  n=n||0;
+  const ocupado=typeof NUVEM!=='undefined'&&(NUVEM.modo==='indefinido'||NUVEM.sincronizando);
+  if(ocupado&&n<40){setTimeout(()=>esperarParaRetomar(n+1),500);return;}
+  try{retomarCobrancaPendente();}catch(e){}
+}
+if(!window.SEM_RETOMAR_COBRANCA)setTimeout(()=>esperarParaRetomar(0),1200);
+
+/* ---------- Configurações → Canais: ligar a aproximação ---------- */
+function painelCobrarNaHoraHTML(){
+  const t=cfgTap(),h=t.handle||handleInfinite(cfgCheckout().handle)||'',L=lojaOn();
+  const mpOk=nuvemOn()&&L.mp&&L.mp.ligada;
+  return '<div class="painel"><h3>📳 Cobrar na hora, pelo celular '+ajuda('Na venda presencial o painel já cobra e a venda se salva sozinha, sem registrar duas vezes. Aproximação: abre o app da InfinitePay com o valor, a cliente aproxima o cartão e volta para o Cadernota com a venda salva (crédito e débito; só no celular Android, com o app da InfinitePay instalado e a sua conta aberta nele). Pix na tela: o QR aparece no seu celular e a cliente paga lendo com o app do banco.')+'</h3>'
+    +'<label class="linha"><input type="checkbox" id="tapAtivo"'+(t.ativo?' checked':'')+'> <span>Na venda no <b>cartão</b>, mostrar <b>"📳 Cobrar por aproximação"</b> (app da InfinitePay)</span></label>'
+    +'<label class="campo" style="max-width:320px">Sua InfiniteTag (opcional) <input id="tapHandle" value="'+esc(h)+'" placeholder="ex.: minhaloja" autocomplete="off"></label>'
+    +'<p class="mut" style="font-size:.8rem;margin:.3rem 0 .6rem">O valor que cai na conta sai da tabela da maquininha (o app não informa a taxa) — confira no app da InfinitePay se quiser o centavo exato.</p>'
+    +'<p style="font-size:.86rem;margin:.2rem 0 .6rem">📱 <b>Pix na tela</b> (Mercado Pago): '+(mpOk?'<span class="linkok">ligado</span> — na venda no Pix aparece "Cobrar no Pix".':'aparece quando a conta do Mercado Pago estiver conectada em Site da loja → Pagamento online.')+'</p>'
+    +'<div class="rodape"><button type="button" class="bt primario" onclick="salvarCobrarNaHora()">Salvar</button></div></div>';
+}
+function salvarCobrarNaHora(){
+  const l=C().loja||(C().loja={});
+  l.tap={ativo:!!$('tapAtivo').checked,handle:handleInfinite($('tapHandle').value)};
+  salvar();renderConfig();
+  toast(l.tap.ativo?'Cobrança por aproximação ligada ✓':'Cobrança por aproximação desligada');
+}
 
 </script>
 </body>
