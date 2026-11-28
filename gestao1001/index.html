@@ -1021,6 +1021,30 @@ main.larga{max-width:1480px}
   border:2px solid var(--ouro);border-radius:8px;box-shadow:0 0 0 999px rgba(0,0,0,.35)}
 .cam-lidos{display:flex;flex-direction:column;gap:.25rem;margin-top:.4rem;max-height:120px;overflow-y:auto}
 .cam-lidos div{font-size:.82rem;color:var(--verde)}
+/* V19: encomendas (mesmo desenho dos pedidos do site: .pd) */
+.enc-cab{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}.enc-cab h2{margin:0}.enc-cab .esp{flex:1}
+.enc-sub{font-size:.86rem;color:var(--texto2);margin:.15rem 0 .2rem}
+.cards.enc-cards{grid-template-columns:repeat(4,minmax(0,1fr))}
+.pd.enc-chegou{border-left:4px solid var(--verde)}.pd.enc-comprar{border-left:4px solid var(--laranja)}.pd.enc-caminho{border-left:4px solid var(--acento)}
+.enc-grupo{margin-top:1.3rem}.enc-grupo>h3{font-size:.95rem;margin:0;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}.enc-grupo>h3 small{font-weight:400;color:var(--texto2);font-size:.8rem}
+.enc-peca{display:grid;grid-template-columns:56px minmax(0,1fr);gap:.7rem;align-items:center}
+.enc-peca img{width:56px;height:56px;object-fit:cover;border-radius:10px;border:1px solid var(--borda);background:var(--painel2)}
+.enc-peca .sem{width:56px;height:56px;border-radius:10px;border:1px dashed var(--borda);display:grid;place-items:center;font-size:1.3rem;color:var(--texto2)}
+.enc-peca b{display:block;font-size:.92rem}.enc-peca small{display:block;color:var(--texto2);font-size:.78rem;line-height:1.4}
+.enc-din{font-size:.84rem;line-height:1.5;background:var(--painel2);border-radius:10px;padding:.6rem .75rem;align-self:start}
+.enc-din .ln{display:flex;justify-content:space-between;gap:.6rem}.enc-din .ln b{font-variant-numeric:tabular-nums}
+.enc-din .falta{border-top:1px dashed var(--borda);margin-top:.25rem;padding-top:.25rem;font-weight:700}
+.enc-res{margin:0 1rem .75rem;padding:.5rem .75rem;border-radius:10px;font-size:.8rem;background:color-mix(in srgb,var(--verde) 10%,var(--painel));border:1px solid color-mix(in srgb,var(--verde) 30%,var(--borda))}
+.bd.nova{background:color-mix(in srgb,var(--acento) 18%,transparent);color:var(--texto)}
+.lc-grupo{margin-top:.8rem}.lc-grupo h4{margin:0 0 .3rem;font-size:.86rem}
+.lc-it{display:grid;grid-template-columns:auto 48px minmax(0,1fr);gap:.6rem;align-items:center;padding:.45rem 0;border-bottom:1px solid var(--borda);font-size:.86rem;cursor:pointer}
+.lc-it img,.lc-it .lc-sem{width:48px;height:48px;object-fit:cover;border-radius:8px}.lc-it .lc-sem{border:1px dashed var(--borda);display:grid;place-items:center;color:var(--texto2)}
+.lc-it small{display:block;color:var(--texto2);font-size:.76rem}.lc-it input{width:20px;height:20px}
+#dlgListaCompras{max-width:480px}
+.v-enc-info{margin:.2rem 0 .4rem;font-size:.84rem;padding:.45rem .65rem;border-radius:8px;background:color-mix(in srgb,var(--acento) 12%,var(--painel));border:1px solid color-mix(in srgb,var(--acento) 35%,var(--borda))}
+.v-enc-dica{font-size:.8rem;margin:.1rem 0 .4rem;padding:.45rem .65rem;border-radius:8px;background:color-mix(in srgb,var(--laranja) 12%,var(--painel));border:1px solid color-mix(in srgb,var(--laranja) 35%,var(--borda))}
+.v-enc-dica a{font-weight:700}
+@media (max-width:700px){.cards.enc-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
 /* V18: cobrar na hora (Pix na tela / aproximação) */
 .bt.cobrar-hora{background:color-mix(in srgb,var(--verde) 14%,var(--painel));border-color:color-mix(in srgb,var(--verde) 45%,var(--borda));font-weight:700}
 .v-cob-info{margin:.5rem 0 0;padding:.55rem .75rem;border-radius:10px;font-size:.84rem;background:color-mix(in srgb,var(--verde) 12%,var(--painel));border:1px solid color-mix(in srgb,var(--verde) 35%,var(--borda))}
@@ -1423,7 +1447,9 @@ try{
   <nav id="nav" aria-label="Seções">
     <button data-tab="resumo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Resumo</span></button>
     <button data-tab="vendas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2"/></svg><span>Vendas</span></button>
-    <button data-tab="pedidos" id="navBtPedidos" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/><path d="M3 4h2.5l2.2 11h10.1l1.7-8H6.4"/></svg><span>Pedidos</span><span class="cont" id="navPedidos" style="display:none"></span></button>
+    <button data-tab="pedidos" id="navBtPedidos" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/><path d="M3 4h2.5l2.2 11h10.1l1.7-8H6.4"/></svg><span>Pedidos do site</span><span class="cont" id="navPedidos" style="display:none"></span></button>
+    <!-- V19: encomendas da loja física (cliente pede peça esgotada; compra e avisa) -->
+    <button data-tab="encomendas" id="navBtEnc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-3.5L6 21z"/><path d="M9.5 9.5l1.8 1.8 3.4-3.6"/></svg><span>Encomendas</span><span class="cont" id="navEnc" style="display:none"></span></button>
     <button data-tab="fiado"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h11a3 3 0 0 1 3 3v11H7a3 3 0 0 1-3-3zM8 9h6M8 13h6M18 8h2v11a2 2 0 0 1-2 2"/></svg><span>Fiado</span><span class="cont" id="navFiado"></span></button>
     <button data-tab="produtos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10"/></svg><span>Produtos</span></button>
     <button data-tab="fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H3zM3 7V6a2 2 0 0 1 2-2h11M16 13h2"/></svg><span>Financeiro</span></button>
@@ -1483,6 +1509,7 @@ try{
   <section id="tab-resumo" class="tab"></section>
   <section id="tab-vendas" class="tab"></section>
   <section id="tab-pedidos" class="tab"></section>
+  <section id="tab-encomendas" class="tab"></section>
   <section id="tab-fiado" class="tab"></section>
   <section id="tab-produtos" class="tab"></section>
   <section id="tab-fin" class="tab"></section>
@@ -1542,6 +1569,9 @@ try{
     <thead><tr><th style="width:40%">Produto</th><th>Qtd</th><th>Preço un.</th><th class="num">Subtotal</th><th></th></tr></thead>
     <tbody id="vItensBody"></tbody>
   </table></div>
+  <!-- V19: venda que saiu de uma encomenda / peça sem estoque vira encomenda -->
+  <p id="vEncInfo" class="v-enc-info" hidden></p>
+  <div id="vEncDica" class="v-enc-dica" hidden></div>
   <button type="button" class="bt mini" onclick="addItemVenda()">+ adicionar item</button>
   <div class="totais-venda">
     <div><span class="mut">Subtotal</span> <b id="vSubtotal">R$ 0,00</b></div>
@@ -2011,6 +2041,41 @@ try{
   <div id="camLidos" class="cam-lidos"></div>
   <div class="rodape"><button type="button" class="bt primario" onclick="fecharCamera()">Pronto</button></div>
 </dialog>
+<!-- V19: encomenda (cliente presencial pede peça que acabou) -->
+<dialog id="dlgEncomenda">
+<form id="formEncomenda">
+  <h3 id="encTitulo">Nova encomenda</h3>
+  <div class="fgrid">
+    <label class="campo span2">Cliente <input id="encCliente" placeholder="digite pra buscar ou criar" autocomplete="off" oninput="encClienteMudou();acClientes(this,encClienteMudou)" onfocus="acClientes(this,encClienteMudou)" onkeydown="acTeclas(event,()=>acClientes(this,encClienteMudou))" onblur="acBlur()"><small id="encClienteHint" style="font-size:.72rem;min-height:.9rem;display:block"></small></label>
+    <label class="campo span2" id="encTelBox" hidden>Telefone dela (para avisar quando chegar) <input id="encTel" inputmode="tel" placeholder="(11) 9...."></label>
+    <label class="campo span2">Peça <select id="encProduto" onchange="encProdutoMudou()"></select></label>
+    <label class="campo span2" id="encDescBox" hidden>Como é a peça? <input id="encDesc" placeholder="ex.: brinco argola grande dourada" autocomplete="off"></label>
+    <label class="campo" id="encVarBox" hidden>Tamanho / cor <select id="encVar"></select></label>
+    <label class="campo" id="encTamBox">Tamanho / cor <input id="encTam" placeholder="opcional" autocomplete="off"></label>
+    <label class="campo">Quantidade <input type="number" id="encQtd" min="1" value="1"></label>
+    <label class="campo">Preço combinado (R$, cada) <input id="encPreco" inputmode="decimal" autocomplete="off"></label>
+    <label class="campo">Sinal pago agora (R$) <input id="encSinal" inputmode="decimal" placeholder="0 = sem sinal" autocomplete="off" oninput="encSinalMudou()"></label>
+    <label class="campo" id="encSinalFormaBox" hidden>Sinal pago em <select id="encSinalForma"></select></label>
+    <label class="campo">Prometi para <span class="mut">(opcional)</span> <input type="date" id="encPrazo"></label>
+    <label class="campo span2">Observação <input id="encObs" placeholder="ex.: avisar depois das 18h" autocomplete="off"></label>
+  </div>
+  <p class="mut" id="encDica" style="font-size:.8rem;margin:.3rem 0 0"></p>
+  <div class="rodape">
+    <button type="button" class="bt" onclick="dlgEncomenda.close()">Cancelar</button>
+    <button type="submit" class="bt primario">Salvar encomenda</button>
+  </div>
+</form>
+</dialog>
+<dialog id="dlgListaCompras">
+  <h3 style="margin-top:0">🛒 Lista de compras</h3>
+  <p class="mut2" style="font-size:.84rem">Tudo que está "A comprar", por fornecedor. Marque o que comprou e toque em "Marcar como compradas".</p>
+  <div id="lcCorpo"></div>
+  <div class="rodape">
+    <button type="button" class="bt" onclick="dlgListaCompras.close()">Fechar</button>
+    <button type="button" class="bt" onclick="lcCopiar()">📋 Copiar a lista</button>
+    <button type="button" class="bt primario" id="lcMarcar" onclick="lcMarcarCompradas()">✓ Marcar como compradas</button>
+  </div>
+</dialog>
 <!-- V18: Pix na tela da venda presencial (Mercado Pago) — a cliente lê o QR com o app do banco -->
 <dialog id="dlgCobrarNaHora">
   <h3 style="margin-top:0" id="cnhTitulo">📱 Pix</h3>
@@ -2182,8 +2247,12 @@ const MESES=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','
    compras, quanto já pagou e quanto falta depois desta. O recibo (imagem) só vai se a
    cliente pedir: Fiado → ⋮ → Recibo. Fica em loja.msgCobranca (o msgFiado antigo não é mais
    usado na cobrança). */
+/* V19: o 🏠 local da cliente voltou para o topo (pedido do Luan: as cobranças vão para o
+   WhatsApp da Edilene e ela encaminha — o local diz de quem é). Cliente sem local: a linha some. */
 const MSG_COBRANCA_PADRAO=
-`Oi, {NOME}! 😊
+`🏠 {RESPONSAVEL}
+
+Oi, {NOME}! 😊
 Passando pra lembrar {DO_QUE}:
 
 {PARCELAS}
@@ -2697,7 +2766,7 @@ function estruturaInicial(){
         {id:novoId(),nome:'Outra entrada',natureza:'entrada',grupo:'outra_ent'},
       ],
     },
-    produtos:[], clientes:[], vendas:[], lancamentos:[], movEstoque:[], pagamentosFiado:[], descontosFiado:[], fechamentos:[], recebiveis:[], planosFiado:[],
+    produtos:[], clientes:[], vendas:[], lancamentos:[], movEstoque:[], pagamentosFiado:[], descontosFiado:[], fechamentos:[], recebiveis:[], planosFiado:[], encomendas:[],
   };
 }
 
@@ -2949,6 +3018,9 @@ function migrar(d){
       if(v.cor===undefined)v.cor=null;
     });
   });
+  /* V19: encomendas (cliente presencial pede peça esgotada). Lista nova, sem mudar a
+     versão dos dados: aparelho com o painel antigo só não enxerga ela. */
+  if(!Array.isArray(d.encomendas))d.encomendas=[];
   d.versao=23;
   return d;
 }
@@ -3029,11 +3101,12 @@ function renderNav(){
   $('navFiado').textContent=n||'';$('navFiado').title=rotFiado;$('navFiado').style.display=n?'':'none';
   const nc=$('navFiadoCel');if(nc){nc.textContent=n||'';nc.title=rotFiado;nc.style.display=n?'':'none';}
   if(typeof pintarBadgePedidos==='function')pintarBadgePedidos();   // V15: pedidos pagos da loja esperando
+  if(typeof pintarBadgeEncomendas==='function')pintarBadgeEncomendas();   // V19: encomendas que chegaram
 }
 /* menu "Mais" do celular: o que não coube na barra de baixo, a aparência e a
    conta. Monta na hora de abrir, porque depende da permissão de quem está usando. */
 function preencherMais(){
-  const abas=[['resumo','Resumo'],['vendas','Vendas'],['pedidos','Pedidos da loja'],['fiado','Fiado'],['produtos','Produtos'],
+  const abas=[['resumo','Resumo'],['vendas','Vendas'],['pedidos','Pedidos do site'],['encomendas','Encomendas'],['fiado','Fiado'],['produtos','Produtos'],
     ['fin','Financeiro'],['clientes','Clientes'],['config','Configurações'],['config','Site da loja','lojaSite']];
   const pode=t=>typeof abaPermitida==='function'?abaPermitida(t):true;
   // o ícone vem do próprio menu lateral: um desenho só, nos dois lugares
@@ -3042,9 +3115,11 @@ function preencherMais(){
   const cfgAtual=ui.tab==='config'?(ui.cfgTab==='lojaSite'?'lojaSite':''):'';
   // pedidos pagos da loja esperando entrega (V15): o número aparece ao lado, como no menu do computador
   const nPed=typeof pedidosParaEntregar==='function'?pedidosParaEntregar().length:0;
+  // encomendas que chegaram e esperam a cliente (V19)
+  const nEnc=typeof encomendasChegaram==='function'?encomendasChegaram().length:0;
   $('maisCorpo').innerHTML=
     `<div class="mais-abas">${abas.filter(a=>pode(a[0])).map(a=>
-      `<button type="button" class="${ui.tab===a[0]&&(a[2]||'')===(a[0]==='config'?cfgAtual:'')?'ativo':''}" onclick="dlgMais.close();${a[2]?`ui.cfgTab='${a[2]}';`:(a[0]==='config'?`if(ui.cfgTab==='lojaSite')ui.cfgTab='geral';`:'')}trocarTab('${a[0]}')">${icone(a[0],a[2])}<span>${a[1]}</span>${a[0]==='pedidos'&&nPed?`<i class="cont">${nPed}</i>`:''}</button>`).join('')}</div>
+      `<button type="button" class="${ui.tab===a[0]&&(a[2]||'')===(a[0]==='config'?cfgAtual:'')?'ativo':''}" onclick="dlgMais.close();${a[2]?`ui.cfgTab='${a[2]}';`:(a[0]==='config'?`if(ui.cfgTab==='lojaSite')ui.cfgTab='geral';`:'')}trocarTab('${a[0]}')">${icone(a[0],a[2])}<span>${a[1]}</span>${a[0]==='pedidos'&&nPed?`<i class="cont">${nPed}</i>`:''}${a[0]==='encomendas'&&nEnc?`<i class="cont">${nEnc}</i>`:''}</button>`).join('')}</div>
     <h4 class="mt">Aparência</h4>
     <div class="mb-seg">${APARENCIAS.map(([id,rot])=>
       `<button type="button" class="${aparenciaEscolhida()===id?'on':''}" onclick="trocarAparencia('${id}')">${rot}</button>`).join('')}</div>
@@ -3114,7 +3189,7 @@ function aplicarIdentidade(){
 function renderTudo(){
   aplicarIdentidade();renderNav();renderDatalists();
   if(typeof avisoCobranca==='function')avisoCobranca();
-  ({resumo:renderResumo,vendas:renderVendas,pedidos:renderPedidos,fiado:renderFiado,produtos:renderProdutos,
+  ({resumo:renderResumo,vendas:renderVendas,pedidos:renderPedidos,encomendas:renderEncomendas,fiado:renderFiado,produtos:renderProdutos,
     fin:renderFin,clientes:renderClientes,config:renderConfig})[ui.tab]();
   // quem só pode consultar esta tela precisa saber disso ANTES de tentar mexer
   if(typeof avisoSomenteLeitura==='function')avisoSomenteLeitura();
@@ -3351,6 +3426,7 @@ function renderConfig(){
         <label class="campo span2">Nome da loja <input id="cfgNome" value="${esc(cfg.loja.nome)}"></label>
         <label class="campo">WhatsApp (pedidos da loja) <input id="cfgWpp" value="${esc(cfg.loja.whatsapp)}" placeholder="ex.: 5511999999999"></label>
         <label class="campo">Chave Pix (cobrança do fiado) <input id="cfgPix" value="${esc(cfg.loja.pix||'')}" placeholder="ex.: 11989455153"></label>
+        <label class="campo">WhatsApp que recebe as cobranças de quem não tem telefone ${ajuda('O botão Cobrar do Fiado manda a mensagem direto para a cliente quando o telefone dela está no cadastro. Cliente sem telefone: a cobrança vai para ESTE número (ex.: o da dona), que encaminha. Deixe vazio para o WhatsApp perguntar a conversa toda vez.')} <input id="cfgFoneCob" value="${esc(cfg.loja.foneCobranca||'')}" placeholder="ex.: 5511999999999" inputmode="tel"></label>
         <label class="campo span2">Domínio <input id="cfgDom" value="${esc(cfg.loja.dominio)}"></label>
       </div>
       <div class="rodape"><button class="bt primario" onclick="salvarGeral()">Salvar</button></div>
@@ -3437,6 +3513,7 @@ function salvarDiasAviso(v){
 function salvarGeral(){
   const cfg=C();cfg.loja.nome=$('cfgNome').value.trim();cfg.loja.whatsapp=$('cfgWpp').value.replace(/\D/g,'');
   cfg.loja.pix=$('cfgPix').value.trim();cfg.loja.dominio=$('cfgDom').value.trim();
+  if($('cfgFoneCob'))cfg.loja.foneCobranca=$('cfgFoneCob').value.replace(/\D/g,'');
   // igual ao padrão não grava: assim, se o padrão melhorar, a loja recebe a melhoria
   // (vazio, não apagado: a sincronização junta a loja campo a campo)
   const m=$('cfgMsg').value;cfg.loja.msgCobranca=m.trim()===MSG_COBRANCA_PADRAO.trim()?'':m;
@@ -5840,6 +5917,8 @@ function salvarMov(){
     }
   }
   salvar();dlgMov.close();renderTudo();toast('Estoque de "'+esc(p.nome)+'" agora: '+fmtN(p.estoque));
+  // V19: entrou peça que alguém encomendou? pergunta se é dela (fica reservada)
+  if(tipo==='entrada'&&q>0&&typeof talvezChegouEncomenda==='function')talvezChegouEncomenda(p.id,varId);
 }
 
 /* ============================================================
@@ -6681,6 +6760,7 @@ function vCanalMudou(){
 function abrirNovaVenda(){
   window.VENDA_DO_PEDIDO=null;   // V15: só a venda aberta por "Registrar venda" do pedido online leva o vínculo
   if(typeof COBRANCA!=="undefined")COBRANCA.ok=null;   // V18: pagamento da hora é desta venda só
+  window.VENDA_DA_ENCOMENDA=null;   // V19: só o "Fazer a venda" da encomenda marca
   $('formVenda').reset();preencherSelectsVenda();
   $('dlgVendaTitulo').textContent='Nova venda';$('vId').value='';$('vData').value=hoje();$('vDesconto').value=0;$('vDescontoTipo').value='valor';marcarCupomVenda('');
   $('vAjuste').value=0;$('vAjusteTipo').value='valor';
@@ -6695,6 +6775,7 @@ function abrirNovaVenda(){
 function editarVenda(id){
   window.VENDA_DO_PEDIDO=null;
   if(typeof COBRANCA!=="undefined")COBRANCA.ok=null;
+  window.VENDA_DA_ENCOMENDA=null;
   const v=vendaPorId(id);if(!v)return;
   if(v.receber&&recParcelas(v).some(parcTocada)){avisar('Este fiado já tem valor recebido ou desconto aplicado. Ajuste em "✎ parcelas" na aba Fiado, ou desfaça o recebimento primeiro.');return;}
   $('formVenda').reset();preencherSelectsVenda(v.localId);
@@ -7221,6 +7302,7 @@ function vFormaMudou(){
   const fiado=formaAtualFiado();$('vFiadoBox').hidden=!fiado;
   pintarPermuta();
   if(typeof pintarBotaoCobrar==="function")pintarBotaoCobrar();
+  if(typeof pintarEncNaVenda==="function")pintarEncNaVenda();
   $('vCanalBox').hidden=!formaUsaCanal($('vForma').value);
   if(fiado&&!$('vVencUnico').value)sugerirVencimento();
   reprecarPelaForma();
@@ -7309,6 +7391,7 @@ function recalcVenda(){
   $('vSubtotal').textContent=fmt(subtotalVenda());$('vTotal').textContent=fmt(total);
   pintarPermuta();
   if(typeof pintarBotaoCobrar==="function")pintarBotaoCobrar();
+  if(typeof pintarEncNaVenda==="function")pintarEncNaVenda();
   // explica em R$ quanto o ajuste representa (útil quando está em %)
   const aj=ajusteVenda(),ai=$('vAjusteInfo');
   const dv=descontoVenda(),dsc=descontoVendaBruto();
@@ -7574,6 +7657,8 @@ function salvarVenda(){
     // V15: venda aberta pelo "Registrar venda" de um pedido online fica ligada a ele
     if(window.VENDA_DO_PEDIDO){v.pedidoOnline=window.VENDA_DO_PEDIDO;if(typeof vendaDoPedidoSalva==='function')vendaDoPedidoSalva(v);window.VENDA_DO_PEDIDO=null;}
     dados.vendas.push(v);
+    // V19: venda que saiu de uma encomenda — a encomenda vira "entregue" e o sinal paga parte dela
+    if(window.VENDA_DA_ENCOMENDA&&typeof ligarVendaEncomenda==='function')ligarVendaEncomenda(v,forma);
     if(!forma.ehFiado)lancarVendaAvista(v,forma);
     aplicarEstoque(v,1);
     // crédito da cliente (pagou a mais antes, docx V15 item 8) desconta sozinho da compra no fiado
@@ -7680,7 +7765,10 @@ function lancarPermuta(v){
 }
 function lancarVendaAvista(v,forma){
   if(formaEhPermuta(forma)){lancarPermuta(v);return;}
-  const r=registrarEntrada({data:v.data,valor:v.total,formaId:forma.id,canalId:v.canalId,bandeiraId:v.bandeiraId,parcelasCartao:v.parcelasCartao,
+  // V19: o sinal da encomenda (crédito dela) já entrou no caixa — agora entra só o resto
+  const cred=r2(Math.min(+v.creditoUsado||0,+v.total||0)),valor=r2((+v.total||0)-cred);
+  if(cred>0.005&&valor<=0.005){v.lancId=null;v.lancTaxaId=null;v.recebivelId=null;v.taxaValor=0;return;}
+  const r=registrarEntrada({data:v.data,valor:cred>0.005?valor:v.total,formaId:forma.id,canalId:v.canalId,bandeiraId:v.bandeiraId,parcelasCartao:v.parcelasCartao,
     taxaPerc:v.taxaPercManual,liquido:v.liquidoManual,previsto:v.liberacao||null,descricao:'Venda'+(v.clienteNome?' — '+v.clienteNome:''),origem:'venda',refId:v.id});
   v.lancId=r.lancId;v.lancTaxaId=r.lancTaxaId;v.recebivelId=r.recebivelId;v.taxaValor=r.taxa;
 }
@@ -7699,6 +7787,8 @@ function excluirVenda(id){
     dados.vendas=dados.vendas.filter(x=>x.id!==id);
     // venda de pedido do site apagada de propósito: o painel não registra de novo sozinho
     if(v.pedidoOnline&&typeof pedidoSemVenda==='function')pedidoSemVenda(v);
+    // V19: venda de encomenda apagada — a encomenda volta para "chegou" e o sinal volta a ser crédito
+    if(typeof desligarVendaEncomenda==='function')desligarVendaEncomenda(v);
     salvar();renderTudo();toast('Venda excluída');
   });
 }
@@ -8281,9 +8371,12 @@ function abrirCobrar(nEnc){
   if(!abertas.length){toast('Nada em aberto para '+esc(n)+'.');return;}
   COB.nome=n;
   const marc=new Set(selCobrancaPadrao(n).map(s=>s.vid+':'+s.pid));
-  const c=dados.clientes.find(x=>x.nome===n),tel=c?foneWa(c.tel):'';
+  const c=dados.clientes.find(x=>x.nome===n),tel=c?foneWa(c.tel):'',dono=foneCobrancaDono();
   $('cobTitulo').textContent='Cobrar '+n;
-  $('cobSub').innerHTML='Marque o que entra nesta cobrança.'+(tel?'':' <b>Sem telefone no cadastro</b>: o WhatsApp vai pedir para escolher a conversa.');
+  // V19: sem telefone dela, vai para o WhatsApp de cobrança da loja (a dona encaminha)
+  $('cobSub').innerHTML='Marque o que entra nesta cobrança.'+(tel?'':dono
+    ?' <b>Sem telefone no cadastro</b>: vai para o WhatsApp de cobrança da loja ('+esc(typeof foneBonito==='function'?foneBonito(dono):dono)+'), para encaminhar.'
+    :' <b>Sem telefone no cadastro</b>: o WhatsApp vai pedir para escolher a conversa (ou cadastre em Configurações → Geral o número que recebe essas cobranças).');
   $('cobParcelas').innerHTML=abertas.map(x=>{
     const pids=x.itens.map(y=>y.v.id+':'+y.p.id).join(','),on=x.itens.some(y=>marc.has(y.v.id+':'+y.p.id));
     const venc=x.venc?fmtData(x.venc):'sem data',atr=x.venc&&x.venc<hoje()?' <span class="bd fiadoV">vencida</span>':'';
@@ -8310,9 +8403,11 @@ function cobrarCopiar(){
 }
 function cobrarWhats(){
   const s=selCobrarMarcadas();if(!s.length){toast('Marque ao menos uma parcela.');return;}
-  const c=dados.clientes.find(x=>x.nome===COB.nome),tel=c?foneWa(c.tel):'';
+  const c=dados.clientes.find(x=>x.nome===COB.nome),tel=(c?foneWa(c.tel):'')||foneCobrancaDono();
   window.open(linkWhats(tel,mensagemCobranca(COB.nome,s)),'_blank');
 }
+/* V19: WhatsApp que recebe as cobranças de quem não tem telefone (ex.: o da dona, que encaminha) */
+function foneCobrancaDono(){const d=String((C().loja&&C().loja.foneCobranca)||'').replace(/\D/g,'');return d?foneWa(d):'';}
 
 /* ============================================================
    DIA QUE A CLIENTE PAGA (V13 — pedido do Luan)
@@ -9318,6 +9413,8 @@ function mensagemCobranca(nome,sel){
     .replace(/\{VALOR\}/g,fmt(k.valor)).replace(/\{PIX\}/g,pix)
     .replace(/\{RESPONSAVEL\}/g,responsavelDe(c,nome)||'').replace(/\{LOJA\}/g,nomeDaLoja());
   if(!pix)msg=msg.replace(/^[^\n]*Pix:\s*$/m,'');
+  // cliente sem local: a linha "🏠" fica vazia e sai
+  msg=msg.replace(/^[ \t]*🏠[ \t]*$/mg,'');
   return msg.replace(/\n[ \t]*\n[ \t]*\n+/g,'\n\n').trim();
 }
 /* ---- recibo em imagem: o desenho é um "papel" de 420 px (tela de celular), em 2x ----
@@ -10689,11 +10786,15 @@ function criarZipLoja(arquivos){
    esgotado ou com estoque zerado/negativo fica de fora. Quem NÃO controla estoque
    (p.estoque === null e sem grade) continua aparecendo — não dá pra afirmar que
    acabou uma peça que ele nunca contou. */
+/* V19: peça que chegou para uma encomenda fica guardada para a cliente — a loja
+   online só enxerga o que sobra (estoque − reservadas) */
+function reservadasNaLoja(p,v){return typeof reservadasDe==='function'?reservadasDe(p.id,v?v.id:null):0;}
+function livreDaVariacao(p,v){return (+v.estoque||0)-reservadasNaLoja(p,v);}
 function naLoja(p){
   if(p.status==='oculto'||p.status==='esgotado')return false;
-  if(temGrade(p))return somaGrade(p)>0;
+  if(temGrade(p))return (p.variacoes||[]).some(v=>livreDaVariacao(p,v)>0);
   if(p.estoque==null)return true;
-  return +p.estoque>0;
+  return +p.estoque-reservadasNaLoja(p,null)>0;
 }
 function catalogoLoja(embutir){
   const cfg=C();
@@ -10710,7 +10811,7 @@ function catalogoLoja(embutir){
     const video=p.video
       ?((typeof ehEnderecoNuvem==='function'&&ehEnderecoNuvem(p.video))?p.video:(embutir?p.video:('videos/'+p.id+'.mp4')))
       :'';
-    const disp=temGrade(p)?(p.variacoes||[]).filter(v=>+v.estoque>0):[];
+    const disp=temGrade(p)?(p.variacoes||[]).filter(v=>livreDaVariacao(p,v)>0):[];
     const variacoes=disp.map(v=>v.rotulo);
     /* o cliente precisa saber o que está escolhendo: a mesma lista serve para
        tamanho ("18"), cor ("Dourado") e os dois juntos ("18 · Dourado") */
@@ -10725,8 +10826,8 @@ function catalogoLoja(embutir){
       escolha:rotuloEscolha,cor:corUnica};
     /* quanto a loja tem (V10): a cliente não consegue pedir mais do que existe.
        Peça sem controle de estoque (sem número) não leva limite. */
-    if(temGrade(p)){const e={};disp.forEach(v=>{e[v.rotulo]=+v.estoque;});item.estoques=e;}
-    else if(p.estoque!=null)item.max=Math.max(0,+p.estoque);
+    if(temGrade(p)){const e={};disp.forEach(v=>{e[v.rotulo]=livreDaVariacao(p,v);});item.estoques=e;}
+    else if(p.estoque!=null)item.max=Math.max(0,+p.estoque-reservadasNaLoja(p,null));
     // promoções que ainda vão valer — a loja escolhe a do dia sozinha (V10)
     const pr=promosParaLoja(p);if(pr.length)item.promos=pr;
     return item;
@@ -13844,7 +13945,7 @@ const LS_MODO='g1001_modo';   // 'local' = o usuário escolheu trabalhar sem con
    marcador abaixo. Com o painel existindo em dois lugares (a pasta do
    computador e o endereço publicado), é isto que permite avisar quando o que
    está aberto ficou pra trás. */
-const VERSAO_APP='2026-11-27 03:00';
+const VERSAO_APP='2026-11-27 23:23';
 
 /* `var` de propósito, não `const`: este arquivo é o último a ser executado, mas
    salvar() (part2) roda durante o boot e chama agendarSync() daqui. Com const,
@@ -14267,12 +14368,18 @@ const TABELAS=[
   {tab:'pagamentos_fiado', lista:'pagamentosFiado', area:'fiado',      tambem:['vendas']},
   {tab:'descontos_fiado',  lista:'descontosFiado',  area:'fiado',      tambem:['vendas']},
   {tab:'planos_fiado',     lista:'planosFiado',     area:'fiado',      tambem:['vendas']},
-  {tab:'fechamentos',      lista:'fechamentos',     area:'financeiro'}
+  {tab:'fechamentos',      lista:'fechamentos',     area:'financeiro'},
+  /* V19: encomendas. `opcional`: enquanto o supabase-encomendas.sql não for rodado a
+     tabela não existe (404) — a lista fica só no aparelho, sem derrubar a sincronização
+     e sem que a base registre nada (quando a tabela nascer, tudo o que está aqui sobe). */
+  {tab:'encomendas',       lista:'encomendas',      area:'vendas',     tambem:['estoque'], opcional:true}
 ];
+function tabelaFaltando(t){return !!(t&&t.opcional&&NUVEM.semTabela&&NUVEM.semTabela[t.tab]);}
 /* pode gravar nesta lista? Pela área dela, ou por uma das áreas de `tambem`.
    NUVEM.semAcessoAmplo: o banco ainda está com a regra antiga (recusou) — volta ao
    jeito de antes até o fim da sessão, sem derrubar a sincronização. */
 function podeGravarTabela(t){
+  if(tabelaFaltando(t))return false;
   if(podeEscrever(t.area))return true;
   return !NUVEM.semAcessoAmplo&&(t.tambem||[]).some(podeEscrever);
 }
@@ -14285,6 +14392,8 @@ async function enviarComRegra(t,linhas,apagar){
     if(apagar&&apagar.length)await apagarSumidos(t.tab,apagar);
     return true;
   }catch(e){
+    // V19: tabela nova que o banco ainda não tem — fica no aparelho, sem erro
+    if(t.opcional&&e&&e.status===404){(NUVEM.semTabela||(NUVEM.semTabela={}))[t.tab]=true;return false;}
     if(!podeEscrever(t.area)&&recusaDeRegra(e)){NUVEM.semAcessoAmplo=true;return false;}
     throw e;
   }
@@ -14372,7 +14481,7 @@ function podeLer(area){return ['ler','escrever'].includes(nivelEm(area));}
 function podeEscrever(area){return nivelEm(area)==='escrever';}
 function souDono(){return !NUVEM.acesso||NUVEM.acesso.papel==='dono';}
 /* qual área do sistema corresponde a cada aba */
-const AREA_DA_ABA={resumo:'resumo',vendas:'vendas',pedidos:'vendas',fiado:'fiado',produtos:'estoque',
+const AREA_DA_ABA={resumo:'resumo',vendas:'vendas',pedidos:'vendas',encomendas:'vendas',fiado:'fiado',produtos:'estoque',
   fin:'financeiro',clientes:'clientes',config:'config'};
 
 async function enviarLote(tab,linhas){
@@ -14419,7 +14528,14 @@ async function baixarTabela(tab){
 async function baixarDaNuvem(){
   const vindo={};
   for(const t of TABELAS){
-    vindo[t.lista]=(await baixarTabela(t.tab)).map(l=>l.dados);
+    try{
+      vindo[t.lista]=(await baixarTabela(t.tab)).map(l=>l.dados);
+      if(t.opcional&&NUVEM.semTabela)NUVEM.semTabela[t.tab]=false;
+    }catch(e){
+      // tabela nova que o banco ainda não tem: fica de fora desta vez (null = "não sei")
+      if(t.opcional&&e&&e.status===404){(NUVEM.semTabela||(NUVEM.semTabela={}))[t.tab]=true;vindo[t.lista]=null;continue;}
+      throw e;
+    }
   }
   const linhas=await chamarApi('/rest/v1/config?select=id,dados');
   const achar=id=>{const l=(linhas||[]).find(x=>x.id===id);return l?l.dados:null;};
@@ -14617,6 +14733,7 @@ async function sincronizarTudo(){
   NUVEM.appVelho=appDesatualizado(remoto.meta)?(remoto.meta.app||''):null;
   let mudouAqui=false;
   for(const t of TABELAS){
+    if(remoto.listas[t.lista]==null&&t.opcional)continue;   // a tabela ainda não existe no banco
     const p=planejarLista(dados[t.lista],remoto.listas[t.lista],base[t.tab]);
     /* Área só de leitura: adota o que vem da loja e não tenta devolver nada.
        Sem isto, quem não pode gravar ficaria com a versão do próprio aparelho
@@ -14670,7 +14787,8 @@ async function sincronizarTudo(){
   await enviarMeta(remoto.meta);
   // a base passa a ser o estado atual, que agora é igual dos dois lados
   const catAntes=base.catalogo;
-  base={};TABELAS.forEach(t=>{base[t.tab]=retratoDe(dados[t.lista]);});
+  // tabela que ainda não existe no banco: a base fica vazia (quando ela nascer, tudo daqui sobe)
+  base={};TABELAS.forEach(t=>{base[t.tab]=tabelaFaltando(t)?{}:retratoDe(dados[t.lista]);});
   fixarBaseConfig(dados.config);base.catalogo=catAntes;
   await talvezPublicarCatalogo();
   gravarBase();
@@ -16624,7 +16742,10 @@ try{dlgCamera.addEventListener('close',()=>{if(CAM.aberta)fecharCamera();});}cat
    peça (ou etiqueta "anti-metal").
    ============================================================ */
 var NFC={aberto:false,modo:'',ctrl:null,ultimo:'',quando:0,lidos:0,alvo:null};
-function temNfc(){return typeof window.NDEFReader==='function';}
+/* V19 (o Luan: "a tag custa ~R$ 0,70 e a etiqueta de barras é bem mais barata, com o mesmo
+   tempo de reação"): o NFC vem DESLIGADO — liga em Configurações → Canais → "Na hora da venda" */
+function nfcLigado(){return !!(C().loja&&C().loja.nfc);}
+function temNfc(){return typeof window.NDEFReader==='function'&&nfcLigado();}
 /* o texto que veio na etiqueta: registro de texto (o que o painel grava) ou um
    endereço com o número no fim (etiqueta gravada por outro aplicativo) */
 function textoDaEtiquetaNfc(msg){
@@ -17371,7 +17492,7 @@ function pintarPedidos(){if(ui.tab==='pedidos')renderPedidos();}
 function renderPedidos(){
   const sec=$('tab-pedidos');if(!sec)return;
   const L=lojaOn();
-  const cab=`<div class="barra"><h2 style="margin:0">Pedidos da loja</h2>${ajuda('Pedidos que as clientes fizeram e pagaram no site. O painel confere cada pagamento antes de mostrar como pago e registra a venda sozinho. Depois de entregar, toque em "Marcar como entregue".')}
+  const cab=`<div class="barra"><h2 style="margin:0">Pedidos do site</h2>${ajuda('Pedidos que as clientes fizeram e pagaram no site. O painel confere cada pagamento antes de mostrar como pago e registra a venda sozinho. Depois de entregar, toque em "Marcar como entregue".')}
     <span class="esp"></span><button class="bt" onclick="carregarPedidos(true)">↻ Atualizar</button></div>`;
   if(!pedidosLigados()||L.semSql){
     sec.innerHTML=cab+`<div class="painel vazio-inicio"><div class="big">🛒</div><p>A loja ainda não está recebendo pedidos pagos pelo site.</p>
@@ -18161,7 +18282,7 @@ function pintarBotaoCobrar(){
   // venda no Pix: a conta do Mercado Pago é perguntada uma vez; quando chega, o botão se redesenha
   if(formaEhPix($('vForma')&&$('vForma').value)&&nuvemOn()&&!L.mpBuscou&&!L.mpCarregando&&typeof carregarContaMP==='function')
     carregarContaMP().then(()=>pintarBotaoCobrar()).catch(()=>{});
-  const m=modoCobrarNaHora(),t=totalVenda();
+  const m=modoCobrarNaHora(),t=aCobrarAgora();
   b.hidden=!m||!(t>=1);
   b.textContent=m==='pix'?'📱 Cobrar '+fmt(t)+' no Pix':m==='tap'?'📳 Cobrar '+fmt(t)+' por aproximação':'';
   const info=$('vCobrancaInfo');
@@ -18171,6 +18292,8 @@ function pintarBotaoCobrar(){
       :'✓ <b>Pago por aproximação</b>'+(ok.bandeira?' ('+esc(ok.bandeira)+')':'')+(ok.manual?' — confirmado por você':'')+'. Falta só salvar a venda.';
   }
 }
+/* V19: venda de encomenda com sinal: cobra só o que falta (o sinal já entrou) */
+function aCobrarAgora(){return typeof valorACobrarAgora==="function"?valorACobrarAgora():totalVenda();}
 function cobrarNaHora(){
   const m=modoCobrarNaHora();
   if(m==='pix')cobrarPixNaTela();
@@ -18219,7 +18342,7 @@ function motivoCobrar(r){return MOTIVO_COBRAR[r&&r.erro]||(r&&r.erro==='mp'?'O M
 /* ---------- 📱 Pix na tela ---------- */
 async function cobrarPixNaTela(){
   const pr=problemaAntesDeSalvar(true);if(pr){mostrarProblema(pr);return;}
-  const total=totalVenda(),ref=novoId(),nome=$('vCliente').value.trim();
+  const total=aCobrarAgora(),ref=novoId(),nome=$('vCliente').value.trim();
   $('cnhTitulo').textContent='📱 Pix — '+fmt(total);
   $('cnhCorpo').innerHTML='<p class="cnh-esp"><span class="pulso"></span>Gerando o Pix…</p>';
   $('cnhCancelar').textContent='Cancelar a cobrança';
@@ -18315,7 +18438,7 @@ function enderecoDeVolta(){return location.origin+location.pathname;}
 window.TAP_ESPERA_APP=window.TAP_ESPERA_APP||2500;
 function cobrarPorAproximacao(){
   const pr=problemaAntesDeSalvar(true);if(pr){mostrarProblema(pr);return;}
-  const total=totalVenda(),f=formaDe($('vForma').value)||{},metodo=f.tipoCartao==='debito'?'debit':'credit';
+  const total=aCobrarAgora(),f=formaDe($('vForma').value)||{},metodo=f.tipoCartao==='debito'?'debit':'credit';
   const parc=metodo==='credit'?parcCartaoSel():1;
   if(parc>1&&total/parc<1){avisar('No crédito parcelado cada parcela precisa ser de pelo menos R$ 1,00.',{titulo:'Aproximação'});return;}
   const orderId='cd'+novoId();
@@ -18344,7 +18467,7 @@ function escolherBandeiraPelaMarca(marca){
 }
 function preencherLiquidoPelaTabela(){
   if(!$('vTaxaBox')||$('vTaxaBox').hidden||liquidoManualVenda()!=null)return;
-  const total=totalVenda(),perc=taxaPadraoVenda();
+  const total=aCobrarAgora(),perc=taxaPadraoVenda();
   $('vLiquido').value=fmtNum(r2(total*(1-(+perc||0)/100)));
 }
 function tapAprovada(p,volta){
@@ -18436,19 +18559,451 @@ if(!window.SEM_RETOMAR_COBRANCA)setTimeout(()=>esperarParaRetomar(0),1200);
 function painelCobrarNaHoraHTML(){
   const t=cfgTap(),h=t.handle||handleInfinite(cfgCheckout().handle)||'',L=lojaOn();
   const mpOk=nuvemOn()&&L.mp&&L.mp.ligada;
-  return '<div class="painel"><h3>📳 Cobrar na hora, pelo celular '+ajuda('Na venda presencial o painel já cobra e a venda se salva sozinha, sem registrar duas vezes. Aproximação: abre o app da InfinitePay com o valor, a cliente aproxima o cartão e volta para o Cadernota com a venda salva (crédito e débito; só no celular Android, com o app da InfinitePay instalado e a sua conta aberta nele). Pix na tela: o QR aparece no seu celular e a cliente paga lendo com o app do banco.')+'</h3>'
+  return '<div class="painel"><h3>📳 Na hora da venda, pelo celular '+ajuda('Na venda presencial o painel já cobra e a venda se salva sozinha, sem registrar duas vezes. Aproximação: abre o app da InfinitePay com o valor, a cliente aproxima o cartão e volta para o Cadernota com a venda salva (crédito e débito; só no celular Android, com o app da InfinitePay instalado e a sua conta aberta nele). Pix na tela: o QR aparece no seu celular e a cliente paga lendo com o app do banco.')+'</h3>'
     +'<label class="linha"><input type="checkbox" id="tapAtivo"'+(t.ativo?' checked':'')+'> <span>Na venda no <b>cartão</b>, mostrar <b>"📳 Cobrar por aproximação"</b> (app da InfinitePay)</span></label>'
     +'<label class="campo" style="max-width:320px">Sua InfiniteTag (opcional) <input id="tapHandle" value="'+esc(h)+'" placeholder="ex.: minhaloja" autocomplete="off"></label>'
     +'<p class="mut" style="font-size:.8rem;margin:.3rem 0 .6rem">O valor que cai na conta sai da tabela da maquininha (o app não informa a taxa) — confira no app da InfinitePay se quiser o centavo exato.</p>'
+    +'<label class="linha" style="margin-top:.4rem"><input type="checkbox" id="nfcAtivo"'+(C().loja&&C().loja.nfc?' checked':'')+'> <span><b>Etiquetas NFC</b>: botão 📳 na venda (encostar a etiqueta) e "Gravar etiqueta NFC" no ⋮ do produto — só no Android</span></label>'
     +'<p style="font-size:.86rem;margin:.2rem 0 .6rem">📱 <b>Pix na tela</b> (Mercado Pago): '+(mpOk?'<span class="linkok">ligado</span> — na venda no Pix aparece "Cobrar no Pix".':'aparece quando a conta do Mercado Pago estiver conectada em Site da loja → Pagamento online.')+'</p>'
     +'<div class="rodape"><button type="button" class="bt primario" onclick="salvarCobrarNaHora()">Salvar</button></div></div>';
 }
 function salvarCobrarNaHora(){
   const l=C().loja||(C().loja={});
   l.tap={ativo:!!$('tapAtivo').checked,handle:handleInfinite($('tapHandle').value)};
+  if($('nfcAtivo'))l.nfc=!!$('nfcAtivo').checked;
   salvar();renderConfig();
-  toast(l.tap.ativo?'Cobrança por aproximação ligada ✓':'Cobrança por aproximação desligada');
+  toast('Salvo ✓');
 }
+
+/* ============================================================
+   V19 — ENCOMENDAS (pedido do Luan no docx V18, rascunho aprovado em 27/11/2026:
+   "os clientes presenciais pedem alguma peça que já acabou e aí marcamos pra
+   comprar ela depois pra vender pra eles").
+   Diferente de "Pedidos do site" (a cliente pagou no site): aqui é a loja física.
+   Caminho: A comprar → A caminho (comprada) → Chegou (reservada, avisar) →
+   Entregue (virou venda) — ou Cancelada.
+   - Sinal: vira CRÉDITO da cliente (pagamentosFiado com `credito`, como quem paga
+     a mais): entra no caixa no dia, não é venda, e desconta da venda quando ela
+     levar a peça (no fiado o usarCreditoNaVenda já faz; à vista, `creditoUsado`).
+   - Reserva: peça que chegou fica guardada para ela — não aparece como disponível
+     na loja online (catalogoLoja desconta `reservadasDe`).
+   - Lista em `dados.encomendas`, tabela `encomendas` (supabase-encomendas.sql).
+   ============================================================ */
+var ENC_ROT={comprar:'a comprar',caminho:'a caminho',chegou:'chegou',entregue:'entregue',cancelada:'cancelada'};
+function encomendas(){return dados.encomendas||(dados.encomendas=[]);}
+function encPorId(id){return encomendas().find(e=>e.id===id);}
+function encAbertas(){return encomendas().filter(e=>e.status==='comprar'||e.status==='caminho'||e.status==='chegou');}
+function encomendasChegaram(){return encomendas().filter(e=>e.status==='chegou');}
+function nomeDaPecaEnc(e){const p=e&&e.produtoId&&prodPorId(e.produtoId);return p?p.nome:((e&&e.descricao)||'peça');}
+function tamanhoEnc(e){
+  const p=e.produtoId&&prodPorId(e.produtoId);
+  if(p&&e.variacaoId){const v=(p.variacoes||[]).find(x=>x.id===e.variacaoId);if(v)return v.rotulo;}
+  return e.tamanho||'';
+}
+function totalEnc(e){return r2((+e.preco||0)*(+e.qtd||1));}
+function faltaEnc(e){return r2(Math.max(0,totalEnc(e)-(+e.sinal||0)));}
+/* quantas unidades desta peça (e deste tamanho/cor) estão guardadas para quem encomendou */
+function reservadasDe(produtoId,variacaoId){
+  return encomendas().filter(e=>e.status==='chegou'&&e.produtoId===produtoId&&(e.variacaoId||null)===(variacaoId||null))
+    .reduce((s,e)=>s+(+e.qtd||1),0);
+}
+function clienteDaEnc(e){return dados.clientes.find(c=>c.id===e.clienteId)||dados.clientes.find(c=>c.nome===e.clienteNome)||null;}
+function podeMexerEnc(){return podeEscrever('vendas')||podeEscrever('estoque');}
+
+/* ---------- a aba ---------- */
+function encUi(){return ui.enc||(ui.enc={filtro:'',verHist:false});}
+function pintarBadgeEncomendas(){
+  const n=encomendasChegaram().length,rot=n?n+(n===1?' encomenda chegou — avisar a cliente':' encomendas chegaram — avisar as clientes'):'';
+  const e=$('navEnc');if(e){e.textContent=n||'';e.title=rot;e.style.display=n?'':'none';}
+  // o ≡ "Mais" do celular soma pedidos do site + encomendas que chegaram
+  const m=$('navMaisCont');
+  if(m){const np=(typeof pedidosLigados==='function'&&pedidosLigados()&&typeof pedidosParaEntregar==='function')?pedidosParaEntregar().length:0,t=np+n;
+    m.textContent=t||'';m.style.display=t?'':'none';}
+}
+function renderEncomendas(){
+  const sec=$('tab-encomendas');if(!sec)return;
+  const u=encUi(),ab=encAbertas(),todas=encomendas();
+  const ch=ab.filter(e=>e.status==='chegou'),co=ab.filter(e=>e.status==='comprar'),ca=ab.filter(e=>e.status==='caminho');
+  const hist=todas.filter(e=>e.status==='entregue'||e.status==='cancelada').sort((a,b)=>(b.fimEm||b.criadoEm||'')<(a.fimEm||a.criadoEm||'')?-1:1);
+  const pode=podeMexerEnc();
+  const card=(id,rot,n,extra,cor)=>`<div class="card clicavel${u.filtro===id?' escolhido':''}" onclick="encUi().filtro=encUi().filtro==='${id}'?'':'${id}';renderEncomendas()">
+    <div class="rotulo">${rot}</div><div class="valor"${cor&&n?` style="color:${cor}"`:''}>${n}</div><div class="extra">${extra}</div></div>`;
+  const comPrazo=co.filter(e=>e.prometido).length;
+  const semTabela=nuvemLigada()&&typeof tabelaFaltando==='function'&&tabelaFaltando({tab:'encomendas',opcional:true});
+  let h=`<div class="enc-cab"><h2>Encomendas</h2>${ajuda('Peça que a cliente pediu na loja física e você vai comprar. Anote aqui, marque quando comprar e quando chegar: a peça fica reservada para ela (não aparece como disponível na loja online), o WhatsApp de aviso sai pronto e a venda é feita com um toque. O sinal, se ela deixar, vira crédito dela e é descontado na venda.')}<span class="esp"></span>
+    ${co.length?`<button class="bt" onclick="abrirListaCompras()">🛒 Lista de compras</button>`:''}
+    ${pode?`<button class="bt primario" onclick="abrirNovaEncomenda()">+ Nova encomenda</button>`:''}</div>
+    <p class="enc-sub">Peças que clientes pediram na loja física e você vai comprar. Os pedidos feitos pelo site ficam em <b>Pedidos do site</b>.</p>
+    ${semTabela?'<p class="mut" style="font-size:.8rem;color:var(--laranja)">⚠️ As encomendas ainda ficam só neste aparelho — falta liberar na nuvem (supabase-encomendas.sql).</p>':''}
+    <div class="cards pd-cards enc-cards">
+      ${card('chegou','Chegou — avisar',ch.length,ch.length?(ch.length===1?'reservada para a cliente':'reservadas para as clientes'):'nada esperando','var(--verde)')}
+      ${card('comprar','A comprar',co.length,co.length?(comPrazo?comPrazo+' com data prometida':'leve a lista ao fornecedor'):'nada para comprar','var(--laranja)')}
+      ${card('caminho','A caminho',ca.length,ca.length?'já compradas':'—','')}
+      ${card('hist','Histórico',hist.length,hist.filter(e=>e.status==='entregue').length+' entregue(s) · '+hist.filter(e=>e.status==='cancelada').length+' cancelada(s)','')}
+    </div>`;
+  const grupo=(tit,sub,lista)=>lista.length?`<div class="enc-grupo"><h3>${tit} <small>${sub}</small></h3>${lista.map(cartaoEncHTML).join('')}</div>`:'';
+  const ord=l=>l.slice().sort((a,b)=>((a.prometido||'9999')+(a.criadoEm||''))<((b.prometido||'9999')+(b.criadoEm||''))?-1:1);
+  if(u.filtro==='hist'){
+    h+=hist.length?`<div class="pd-hist enc-hist">${hist.slice(0,u.verHist?hist.length:30).map(linhaEncHTML).join('')}</div>`
+      +(hist.length>30&&!u.verHist?`<p class="centro"><button class="bt mini" onclick="encUi().verHist=true;renderEncomendas()">ver as ${hist.length-30} mais antigas</button></p>`:'')
+      :'<div class="pd-vazio">Nenhuma encomenda entregue ou cancelada ainda.</div>';
+  }else if(!ab.length){
+    h+=`<div class="pd-vazio"><div class="big">📝</div>Nenhuma encomenda em andamento.${pode?'<br>Quando uma cliente pedir uma peça que acabou, toque em <b>+ Nova encomenda</b> (ou, na venda, em "Anotar como encomenda").':''}</div>`;
+  }else{
+    const f=u.filtro;
+    if(!f||f==='chegou')h+=grupo('📦 Chegou','avise a cliente e faça a venda',ord(ch));
+    if(!f||f==='comprar')h+=grupo('🛒 A comprar','leve a lista ao fornecedor',ord(co));
+    if(!f||f==='caminho')h+=grupo('🚚 A caminho','quando chegar, toque em "Chegou" — entra no estoque já reservada',ord(ca));
+    if(f&&!({chegou:ch,comprar:co,caminho:ca}[f]||[]).length)h+='<div class="pd-vazio">Nada aqui agora.</div>';
+  }
+  sec.innerHTML=h;
+}
+function passosEncHTML(e){
+  const i={comprar:1,caminho:2,chegou:3,entregue:4}[e.status]||0;
+  return `<ol class="pd-passos">${['Anotada','Comprada','Chegou','Entregue'].map((t,k)=>`<li class="${k<i?'ok':k===i?'agora':''}">${t}</li>`).join('')}</ol>`;
+}
+function dinheiroEncHTML(e){
+  const tot=totalEnc(e),fr=e.sinalForma?nomeDe(C().formas,e.sinalForma,''):'';
+  return `<div class="enc-din"><div class="pd-rot">Combinado</div>
+    <div class="ln"><span>${+e.qtd>1?(+e.qtd)+' × '+fmt(e.preco):'Preço'}</span><b>${fmt(tot)}</b></div>
+    ${+e.sinal>0?`<div class="ln"><span>Sinal${fr?' ('+esc(fr)+(e.sinalData?', '+fmtData(e.sinalData).slice(0,5):'')+')':''}</span><b>− ${fmt(e.sinal)}</b></div>
+      <div class="ln falta"><span>Falta na entrega</span><b>${fmt(faltaEnc(e))}</b></div>`:'<div class="ln"><span class="mut2">Sem sinal</span><span></span></div>'}</div>`;
+}
+function pecaEncHTML(e){
+  const p=e.produtoId&&prodPorId(e.produtoId),tam=tamanhoEnc(e),f=p&&typeof fotoCapa==='function'?fotoCapa(p):'';
+  const det=[tam?'tamanho/cor '+tam:'',(+e.qtd||1)+(+e.qtd>1?' unidades':' unidade')].filter(Boolean).join(' · ');
+  const forn=p&&p.fornId?fornNome(p.fornId):'';
+  return p?`<div class="enc-peca">${f?`<img src="${esc(f)}" alt="" loading="lazy">`:'<div class="sem">💍</div>'}<div><b>${esc(p.nome)}</b><small>${esc(det)}</small>${forn?`<small>Fornecedor: ${esc(forn)}</small>`:''}${e.obs?`<small>📝 ${esc(e.obs)}</small>`:''}</div></div>`
+    :`<div class="enc-peca"><div class="sem">?</div><div><b>${esc(e.descricao||'Peça')}</b><small>${esc(det)}</small><small><span class="bd nova">peça nova — ainda não está no cadastro</span></small>${e.obs?`<small>📝 ${esc(e.obs)}</small>`:''}</div></div>`;
+}
+function cartaoEncHTML(e){
+  const c=clienteDaEnc(e),tel=c&&c.tel?c.tel:'',pode=podeMexerEnc();
+  const meta=['anotada '+fmtData(e.criadoEm).slice(0,5),e.prometido?'prometida para '+fmtData(e.prometido).slice(0,5):'',
+    e.status==='caminho'&&e.compradaEm?'comprada '+fmtData(e.compradaEm).slice(0,5):'',
+    e.status==='chegou'&&e.avisadaEm?'avisada '+fmtData(e.avisadaEm).slice(0,5):''].filter(Boolean).join(' · ');
+  const atrasada=e.prometido&&e.prometido<hoje()&&e.status!=='chegou';
+  const sel=({chegou:'ok',comprar:'fiadoP',caminho:'rdb'})[e.status]||'';
+  const pri=!pode?'':e.status==='comprar'?`<button class="bt primario" onclick="encComprei('${e.id}')">✓ Comprei</button>`
+    :e.status==='caminho'?`<button class="bt primario" onclick="encChegou('${e.id}')">📦 Chegou</button>`
+    :e.status==='chegou'?`<button class="bt primario" onclick="encFazerVenda('${e.id}')">🧾 Fazer a venda</button>`:'';
+  const zap=`<button class="bt mini" onclick="encAvisar('${e.id}')">📲 ${e.status==='chegou'?'Avisar que chegou':'WhatsApp'}</button>`;
+  return `<article class="pd enc-${esc(e.status)}">
+    <div class="pd-topo"><div class="pd-quem"><div class="pd-meta">${meta}${atrasada?' <span class="bd fiadoV">passou da data</span>':''}</div>
+      <div class="pd-nome">${esc(e.clienteNome||'—')}</div>${tel?`<div class="pd-contato">📱 ${esc(typeof foneBonito==='function'?foneBonito(tel):tel)}</div>`:''}</div>
+      <div class="pd-valor"><b>${fmt(totalEnc(e))}</b><span class="bd ${sel}">${e.status==='chegou'?'📦 ':''}${ENC_ROT[e.status]||''}</span></div></div>
+    ${e.status==='chegou'&&e.produtoId?`<div class="enc-res">🔒 <b>Reservada para ${esc(primeiroNome(e.clienteNome||''))}</b> — não aparece como disponível na loja online até a venda.</div>`:''}
+    <div class="pd-meio"><div><div class="pd-rot">Peça</div>${pecaEncHTML(e)}</div>${dinheiroEncHTML(e)}</div>
+    ${passosEncHTML(e)}
+    <div class="pd-acoes">${zap}<span class="esp"></span>${pode?`<button class="bt mini bt-tres" title="mais ações" aria-label="Mais ações da encomenda" aria-haspopup="menu" onclick="abrirMenuEnc('${e.id}',this)">${IC_TRES_PONTOS}</button>`:''}${pri}</div>
+  </article>`;
+}
+function linhaEncHTML(e){
+  const v=e.vendaId&&vendaPorId(e.vendaId);
+  return `<details class="pd-linha ${esc(e.status)}"><summary>
+      <span class="n"><b>${esc(e.clienteNome||'—')}</b><small>${esc(nomeDaPecaEnc(e))} · ${fmtData(e.fimEm||e.criadoEm).slice(0,5)}</small></span>
+      <span class="bd ${e.status==='entregue'?'ok':''}">${ENC_ROT[e.status]}</span><span class="v">${fmt(totalEnc(e))}</span><span class="seta">›</span></summary>
+    <div class="pd-meio"><div><div class="pd-rot">Peça</div>${pecaEncHTML(e)}</div>${dinheiroEncHTML(e)}</div>
+    ${e.status==='cancelada'&&e.motivo?`<p class="pd-nota">${esc(e.motivo)}</p>`:''}
+    ${v?`<div class="pd-acoes"><span class="esp"></span><button class="bt mini" onclick="editarVenda('${v.id}')">🧾 Ver a venda</button></div>`:''}</details>`;
+}
+
+/* ---------- anotar / editar ---------- */
+var ENC_FORM={id:'',daVenda:null};
+function formasDoSinal(){return C().formas.filter(f=>!f.ehFiado&&!f.usaCanal&&!formaEhPermuta(f));}
+function abrirNovaEncomenda(pre){
+  if(!podeMexerEnc()){avisar('Seu acesso não pode anotar encomendas nesta loja.',{titulo:'Encomendas'});return;}
+  pre=pre||{};
+  ENC_FORM.id='';ENC_FORM.daVenda=pre.daVenda!=null?pre.daVenda:null;
+  $('formEncomenda').reset();
+  $('encTitulo').textContent='Nova encomenda';
+  preencherFormEnc();
+  $('encCliente').value=pre.cliente||'';
+  if(pre.produtoId)$('encProduto').value=pre.produtoId;
+  encProdutoMudou();
+  if(pre.variacaoId&&$('encVar').querySelector('option[value="'+pre.variacaoId+'"]'))$('encVar').value=pre.variacaoId;
+  if(pre.preco!=null)$('encPreco').value=fmtNum(pre.preco);
+  $('encQtd').value=pre.qtd||1;
+  $('encSinal').disabled=false;$('encSinal').value='';
+  encClienteMudou();encSinalMudou();
+  dlgEncomenda.showModal();
+  if(!pre.cliente)setTimeout(()=>$('encCliente').focus(),50);
+}
+function preencherFormEnc(){
+  const ps=dados.produtos.filter(p=>p.status!=='oculto').slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  $('encProduto').innerHTML='<option value="">✏️ Peça que não está no cadastro — vou descrever</option>'
+    +ps.map(p=>`<option value="${p.id}">${esc(p.nome)}</option>`).join('');
+  $('encSinalForma').innerHTML=opcoes(formasDoSinal());
+}
+function editarEncomenda(id){
+  const e=encPorId(id);if(!e)return;
+  ENC_FORM.id=id;ENC_FORM.daVenda=null;
+  $('formEncomenda').reset();$('encTitulo').textContent='Editar encomenda';
+  preencherFormEnc();
+  $('encCliente').value=e.clienteNome||'';
+  $('encProduto').value=e.produtoId||'';encProdutoMudou();
+  if(e.variacaoId)$('encVar').value=e.variacaoId;
+  $('encDesc').value=e.descricao||'';$('encTam').value=e.tamanho||'';
+  $('encQtd').value=e.qtd||1;$('encPreco').value=fmtNum(e.preco||0);
+  $('encSinal').value=+e.sinal>0?fmtNum(e.sinal):'';
+  // sinal já registrado entrou no caixa: para mudar, desfaz no Fiado (Pagamentos recebidos)
+  $('encSinal').disabled=!!e.sinalPgId;
+  if(e.sinalForma)$('encSinalForma').value=e.sinalForma;
+  $('encPrazo').value=e.prometido||'';$('encObs').value=e.obs||'';
+  encClienteMudou();encSinalMudou();
+  dlgEncomenda.showModal();
+}
+function encClienteMudou(){
+  const nome=$('encCliente').value.trim(),c=dados.clientes.find(x=>x.nome.toLowerCase()===nome.toLowerCase());
+  $('encTelBox').hidden=!nome||!!(c&&c.tel);
+  $('encClienteHint').innerHTML=!nome?'':c?'<span class="linkok">✓ cliente cadastrada</span>'+(c.tel?'':' · sem telefone — anote para avisar quando chegar')
+    :'<span class="linknovo">＋ cliente nova — será cadastrada ao salvar</span>';
+}
+function encProdutoMudou(){
+  const p=prodPorId($('encProduto').value);
+  $('encDescBox').hidden=!!p;
+  const grade=!!(p&&temGrade(p));
+  $('encVarBox').hidden=!grade;$('encTamBox').hidden=grade;
+  if(grade)$('encVar').innerHTML=(p.variacoes||[]).map(v=>`<option value="${v.id}">${esc(v.rotulo)}</option>`).join('');
+  // o preço combinado nasce com o preço de hoje da peça (dá para mudar)
+  if(p&&!ENC_FORM.id)$('encPreco').value=fmtNum(precoDeVenda(p,hoje(),''));
+}
+function encSinalMudou(){
+  const s=numDigitado($('encSinal').value);
+  $('encSinalFormaBox').hidden=!(s>0)||$('encSinal').disabled;
+  $('encDica').innerHTML=s>0&&!$('encSinal').disabled?'💰 O sinal entra no caixa hoje e fica como <b>crédito da cliente</b>: é descontado sozinho quando ela levar a peça.':'';
+}
+function salvarEncomenda(){
+  const nome=$('encCliente').value.trim();
+  if(!nome){toast('Informe a cliente.');return;}
+  const p=prodPorId($('encProduto').value),desc=$('encDesc').value.trim();
+  if(!p&&!desc){toast('Escolha a peça ou descreva como ela é.');return;}
+  const qtd=Math.max(1,parseInt($('encQtd').value)||1),preco=r2(numDigitado($('encPreco').value)||0);
+  const sinal=r2(Math.max(0,numDigitado($('encSinal').value)||0));
+  if(sinal>0&&!$('encSinal').disabled&&sinal>r2(preco*qtd)+0.005&&preco>0){toast('O sinal é maior que o combinado.');return;}
+  const c=acharOuCriarCliente(nome,null,$('encTel').value.trim());
+  const grade=!!(p&&temGrade(p));
+  const o={clienteId:c?c.id:null,clienteNome:nome,produtoId:p?p.id:null,variacaoId:grade?($('encVar').value||null):null,
+    tamanho:grade?'':$('encTam').value.trim(),descricao:p?'':desc,qtd,preco,prometido:$('encPrazo').value||'',obs:$('encObs').value.trim()};
+  let e;
+  if(ENC_FORM.id){e=encPorId(ENC_FORM.id);if(!e)return;Object.assign(e,o);}
+  else{e=Object.assign({id:novoId(),seq:novaSeq(),criadoEm:hoje(),status:'comprar',sinal:0},o);encomendas().push(e);}
+  if(sinal>0&&!e.sinalPgId){e.sinal=sinal;registrarSinalEnc(e,$('encSinalForma').value||((formasDoSinal()[0]||{}).id),hoje());}
+  else if(!e.sinalPgId)e.sinal=0;
+  // veio da venda ("Anotar como encomenda"): a peça sai da venda
+  const daVenda=ENC_FORM.daVenda;ENC_FORM.daVenda=null;
+  salvar();dlgEncomenda.close();
+  if(daVenda!=null&&$('dlgVenda').open&&itensVenda[daVenda]){
+    itensVenda.splice(daVenda,1);if(!itensVenda.length)itensVenda=[{nome:'',produtoId:null,qtd:1,preco:0,custo:0}];
+    renderItensVenda();recalcVenda();
+    toast('Encomenda anotada ✓ — tirei a peça desta venda');
+  }else toast(ENC_FORM.id?'Encomenda atualizada ✓':'Encomenda anotada ✓');
+  renderTudo();
+}
+/* o sinal: dinheiro que entra hoje e fica como crédito da cliente (não é venda) */
+function registrarSinalEnc(e,formaId,data){
+  if(!(+e.sinal>0)||!formaId)return null;
+  const pgId=novoId();
+  const r=registrarEntrada({data,valor:r2(e.sinal),formaId,descricao:'Sinal da encomenda — '+e.clienteNome+' ('+nomeDaPecaEnc(e)+')',origem:'fiado',refId:pgId});
+  const pg={id:pgId,seq:novaSeq(),data,clienteNome:e.clienteNome,valor:r2(e.sinal),aplicado:0,acrescimo:0,credito:r2(e.sinal),formaId,
+    canalId:null,bandeiraId:null,lancId:r.lancId,lancTaxaId:r.lancTaxaId,recebivelId:r.recebivelId,alocacoes:[],encomendaId:e.id};
+  (dados.pagamentosFiado||(dados.pagamentosFiado=[])).push(pg);
+  e.sinalPgId=pg.id;e.sinalForma=formaId;e.sinalData=data;
+  return pg;
+}
+
+/* ---------- comprar / chegou / avisar ---------- */
+function encComprei(id){
+  const e=encPorId(id);if(!e)return;
+  e.status='caminho';e.compradaEm=hoje();salvar();renderTudo();toast('Marcada como comprada ✓');
+}
+/* chegou: a peça entra no estoque (do cadastro) já reservada para ela */
+function encChegou(id,semEstoque){
+  const e=encPorId(id);if(!e)return;
+  const p=e.produtoId&&prodPorId(e.produtoId);
+  if(p&&!semEstoque){
+    const q=+e.qtd||1;
+    if(temGrade(p)){const va=(p.variacoes||[]).find(x=>x.id===e.variacaoId);if(va)va.estoque=r2((+va.estoque||0)+q);p.estoque=somaGrade(p);}
+    else p.estoque=r2((p.estoque==null?0:+p.estoque)+q);
+    dados.movEstoque.push({id:novoId(),data:hoje(),produtoId:p.id,variacaoId:e.variacaoId||null,tamanho:tamanhoEnc(e),tipo:'entrada',qtde:q,
+      obs:'encomenda de '+e.clienteNome,fornId:p.fornId||null,encomendaId:e.id});
+  }
+  e.status='chegou';e.chegouEm=hoje();
+  salvar();renderTudo();
+  toast(p?'📦 Chegou — entrou no estoque, reservada para '+esc(primeiroNome(e.clienteNome)):'📦 Marcada como chegou');
+}
+function mensagemEncomenda(e){
+  const nome=primeiroNome(e.clienteNome||''),peca=nomeDaPecaEnc(e),tam=tamanhoEnc(e);
+  if(e.status==='chegou')
+    return 'Oi, '+nome+'! 😊\nChegou a peça que você encomendou: *'+peca+'*'+(tam?' ('+tam+')':'')+'.\n'
+      +(+e.sinal>0?'Combinado: '+fmt(totalEnc(e))+' — com o sinal de '+fmt(e.sinal)+', falta *'+fmt(faltaEnc(e))+'*.':'Valor: *'+fmt(totalEnc(e))+'*.')
+      +'\nQuando fica bom para você buscar?';
+  return 'Oi, '+nome+'! 😊\nSobre a sua encomenda: *'+peca+'*'+(tam?' ('+tam+')':'')+'.';
+}
+function encAvisar(id){
+  const e=encPorId(id);if(!e)return;
+  const c=clienteDaEnc(e),tel=c&&c.tel?foneWa(c.tel):(typeof foneCobrancaDono==='function'?foneCobrancaDono():'');
+  window.open(linkWhats(tel,mensagemEncomenda(e)),'_blank');
+  if(e.status==='chegou'&&!e.avisadaEm){e.avisadaEm=hoje();salvar();renderTudo();}
+}
+/* ---------- virar venda ---------- */
+function encFazerVenda(id){
+  const e=encPorId(id);if(!e)return;
+  abrirNovaVenda();
+  window.VENDA_DA_ENCOMENDA=e.id;
+  $('vCliente').value=e.clienteNome||'';vClienteMudou();
+  const p=e.produtoId&&prodPorId(e.produtoId),va=p&&e.variacaoId?(p.variacoes||[]).find(x=>x.id===e.variacaoId):null;
+  itensVenda=[{nome:p?p.nome:(e.descricao||'Peça encomendada'),produtoId:p?p.id:null,qtd:+e.qtd||1,preco:+e.preco||0,custo:p&&p.custo!=null?+p.custo:0,
+    variacaoId:va?va.id:null,tamanho:va?va.rotulo:''}];
+  renderItensVenda();recalcVenda();
+}
+/* chamado pelo salvar da venda nova: liga a venda à encomenda e usa o sinal */
+function ligarVendaEncomenda(v,forma){
+  const id=window.VENDA_DA_ENCOMENDA;window.VENDA_DA_ENCOMENDA=null;
+  const e=id&&encPorId(id);if(!e)return;
+  e.status='entregue';e.entregueEm=hoje();e.fimEm=hoje();e.vendaId=v.id;v.encomendaId=e.id;
+  // à vista: o sinal (crédito dela) paga parte desta venda — só o resto entra no caixa agora.
+  // No fiado, o usarCreditoNaVenda de sempre desconta o crédito das parcelas.
+  if(!forma.ehFiado&&+e.sinal>0&&v.clienteNome){
+    const usa=r2(Math.min(creditoDe(v.clienteNome),+e.sinal,+v.total||0));
+    if(usa>0.005){
+      const pg={id:novoId(),seq:novaSeq(),data:v.data||hoje(),clienteNome:v.clienteNome,valor:usa,aplicado:usa,acrescimo:0,doCredito:true,
+        formaId:null,lancId:null,alocacoes:[],vendaId:v.id};
+      (dados.pagamentosFiado||(dados.pagamentosFiado=[])).push(pg);
+      v.creditoUsado=usa;v.creditoPgId=pg.id;
+    }
+  }
+}
+/* venda da encomenda apagada: a encomenda volta para "chegou" e o sinal volta a ser crédito */
+function desligarVendaEncomenda(v){
+  if(v.creditoPgId)dados.pagamentosFiado=(dados.pagamentosFiado||[]).filter(x=>x.id!==v.creditoPgId);
+  encomendas().forEach(e=>{if(e.vendaId===v.id){e.status='chegou';e.vendaId=null;e.entregueEm=null;e.fimEm=null;}});
+}
+/* o que a cliente paga AGORA na venda da encomenda (o sinal já foi) */
+function sinalNaVendaAtual(){
+  const e=window.VENDA_DA_ENCOMENDA&&encPorId(window.VENDA_DA_ENCOMENDA);
+  if(!e||!(+e.sinal>0)||(typeof formaAtualFiado==='function'&&formaAtualFiado()))return 0;
+  const nome=$('vCliente').value.trim();
+  return r2(Math.min(+e.sinal,nome?creditoDe(nome):0,totalVenda()));
+}
+function valorACobrarAgora(){return r2(Math.max(0,totalVenda()-sinalNaVendaAtual()));}
+function pintarEncNaVenda(){
+  const info=$('vEncInfo');
+  if(info){
+    const e=window.VENDA_DA_ENCOMENDA&&encPorId(window.VENDA_DA_ENCOMENDA),s=sinalNaVendaAtual();
+    info.hidden=!e;
+    info.innerHTML=!e?'':'📝 Encomenda de <b>'+esc(e.clienteNome)+'</b>'+(s>0?' — o sinal de <b>'+fmt(s)+'</b> já pago sai do total: ela paga agora <b>'+fmt(valorACobrarAgora())+'</b>.'
+      :(+e.sinal>0&&formaAtualFiado()?' — o sinal de '+fmt(e.sinal)+' (crédito dela) desconta das parcelas.':'.'));
+  }
+  // peça sem estoque na venda: anota como encomenda (a cliente leva depois)
+  const d=$('vEncDica');if(!d)return;
+  if(window.VENDA_DA_ENCOMENDA||$('vId').value||!podeMexerEnc()){d.hidden=true;return;}
+  const i=itensVenda.findIndex(it=>{
+    const p=it.produtoId&&prodPorId(it.produtoId);if(!p||!it.nome)return false;
+    if(temGrade(p)){const va=(p.variacoes||[]).find(x=>x.id===it.variacaoId);return !!va&&(+va.estoque||0)-reservadasDe(p.id,va.id)<=0;}
+    return p.estoque!=null&&(+p.estoque||0)-reservadasDe(p.id,null)<=0;
+  });
+  d.hidden=i<0;
+  if(i>=0){const it=itensVenda[i];
+    d.innerHTML='⚠️ <b>'+esc(it.nome)+'</b> está sem estoque'+(reservadasDe(it.produtoId,it.variacaoId||null)?' (as que tem estão reservadas para encomendas)':'')+'. <a href="#" onclick="event.preventDefault();anotarDaVenda('+i+')">📝 Anotar como encomenda</a> — a cliente leva depois, quando chegar.';}
+}
+function anotarDaVenda(i){
+  const it=itensVenda[i];if(!it)return;
+  abrirNovaEncomenda({cliente:$('vCliente').value.trim(),produtoId:it.produtoId,variacaoId:it.variacaoId||null,preco:+it.preco||0,qtd:+it.qtd||1,daVenda:i});
+}
+/* entrada de estoque pelo "Ajustar estoque": era a peça de alguma encomenda? */
+function talvezChegouEncomenda(produtoId,variacaoId){
+  const esp=encomendas().filter(e=>(e.status==='comprar'||e.status==='caminho')&&e.produtoId===produtoId&&(e.variacaoId||null)===(variacaoId||null));
+  if(!esp.length)return;
+  const e=esp.sort((a,b)=>(a.criadoEm||'')<(b.criadoEm||'')?-1:1)[0];
+  confirmar('Chegou a peça da encomenda de '+e.clienteNome+' ('+nomeDaPecaEnc(e)+(tamanhoEnc(e)?' · '+tamanhoEnc(e):'')+')?\n\nSe sim, ela fica reservada para ela e entra em "Chegou — avisar".',
+    {titulo:'Encomenda',ok:'Sim, é dela',cancelar:'Não'},()=>encChegou(e.id,true));
+}
+
+/* ---------- ⋮ ---------- */
+function itensMenuEnc(e){
+  const out=[['editar','✎','Editar']];
+  if(e.status==='caminho')out.push(['voltar','↩','Ainda não comprei']);
+  if(e.status==='chegou')out.push(['voltar','↩','Ainda não chegou']);
+  out.push(['cancelar','✕','Cancelar a encomenda']);
+  return out;
+}
+function abrirMenuEnc(id,btn){
+  const m=$('menuProduto'),e=encPorId(id);if(!e)return;
+  if(!m.hidden&&m.dataset.id===id&&m.dataset.tipo==='enc'){fecharMenuProduto();return;}
+  m.dataset.id=id;m.dataset.tipo='enc';
+  m.innerHTML=`<div class="menu-cab">Encomenda — ${esc(e.clienteNome||'')}</div>`
+    +itensMenuEnc(e).map(([a,ic,rot])=>`<button type="button" role="menuitem"${a==='cancelar'?' class="perigo"':''} onclick="acaoEnc('${a}')"><span class="ic-emoji" aria-hidden="true">${ic}</span><span>${rot}</span></button>`).join('');
+  m.hidden=false;$('menuProdutoFundo').hidden=false;
+  posicionarMenuProduto(m,btn);
+}
+function acaoEnc(a){
+  const id=$('menuProduto').dataset.id,e=encPorId(id);
+  fecharMenuProduto();if(!e)return;
+  if(a==='editar')editarEncomenda(id);
+  else if(a==='voltar')encVoltar(id);
+  else if(a==='cancelar')cancelarEncomenda(id);
+}
+function encVoltar(id){
+  const e=encPorId(id);if(!e)return;
+  if(e.status==='caminho'){e.status='comprar';e.compradaEm=null;}
+  else if(e.status==='chegou'){
+    // a peça que entrou pelo "Chegou" sai do estoque de novo
+    const mv=dados.movEstoque.find(m=>m.encomendaId===e.id&&m.tipo==='entrada');
+    const p=mv&&prodPorId(e.produtoId);
+    if(p){const q=+mv.qtde||0;
+      if(temGrade(p)){const va=(p.variacoes||[]).find(x=>x.id===e.variacaoId);if(va)va.estoque=r2((+va.estoque||0)-q);p.estoque=somaGrade(p);}
+      else if(p.estoque!=null)p.estoque=r2(+p.estoque-q);
+      dados.movEstoque=dados.movEstoque.filter(m=>m!==mv);}
+    e.status='caminho';e.chegouEm=null;e.avisadaEm=null;
+  }
+  salvar();renderTudo();
+}
+function cancelarEncomenda(id){
+  const e=encPorId(id);if(!e)return;
+  const fim=(devolveu)=>{
+    if(+e.sinal>0&&e.sinalPgId&&devolveu&&typeof desfazerPagamento==='function')desfazerPagamento(e.sinalPgId);
+    e.status='cancelada';e.canceladaEm=hoje();e.fimEm=hoje();
+    e.motivo=+e.sinal>0?(devolveu?'Sinal de '+fmt(e.sinal)+' devolvido.':'O sinal de '+fmt(e.sinal)+' ficou como crédito da cliente.'):'';
+    salvar();renderTudo();toast('Encomenda cancelada');
+  };
+  if(+e.sinal>0&&e.sinalPgId){
+    confirmar('Cancelar a encomenda de '+e.clienteNome+'?\n\nEla deixou '+fmt(e.sinal)+' de sinal. Você devolveu esse dinheiro?\n\nDevolvi = o sinal sai do caixa.\nNão devolvi = fica como crédito dela para a próxima compra.',
+      {titulo:'Cancelar encomenda',ok:'Devolvi o sinal',cancelar:'Não devolvi'},()=>fim(true),()=>fim(false));
+  }else confirmar('Cancelar a encomenda de '+e.clienteNome+' ('+nomeDaPecaEnc(e)+')?',{titulo:'Cancelar encomenda',ok:'Cancelar a encomenda',cancelar:'Voltar',perigo:true},()=>fim(false));
+}
+
+/* ---------- lista de compras ---------- */
+function abrirListaCompras(){
+  const co=encomendas().filter(e=>e.status==='comprar');
+  if(!co.length){toast('Nada para comprar agora.');return;}
+  const grupos={};
+  co.forEach(e=>{const p=e.produtoId&&prodPorId(e.produtoId),f=p&&p.fornId?fornNome(p.fornId):'';(grupos[f||'']||(grupos[f||'']=[])).push(e);});
+  const nomes=Object.keys(grupos).sort((a,b)=>!a?1:!b?-1:a.localeCompare(b,'pt-BR'));
+  $('lcCorpo').innerHTML=nomes.map(f=>`<div class="lc-grupo"><h4>${esc(f||'Sem fornecedor')}</h4>${grupos[f].map(e=>{
+    const p=e.produtoId&&prodPorId(e.produtoId),ft=p&&typeof fotoCapa==='function'?fotoCapa(p):'',tam=tamanhoEnc(e);
+    return `<label class="lc-it"><input type="checkbox" class="chkLc" value="${e.id}">${ft?`<img src="${esc(ft)}" alt="">`:'<span class="lc-sem">?</span>'}
+      <span><b>${esc(nomeDaPecaEnc(e))}${tam?' — '+esc(tam):''}${+e.qtd>1?' ×'+(+e.qtd):''}</b><small>para ${esc(e.clienteNome)}${e.prometido?' · prometido '+fmtData(e.prometido).slice(0,5):''}${p?'':' · peça nova'}</small></span></label>`;}).join('')}</div>`).join('');
+  lcAtualizar();
+  dlgListaCompras.showModal();
+}
+function lcAtualizar(){
+  const n=document.querySelectorAll('#lcCorpo .chkLc:checked').length;
+  $('lcMarcar').textContent='✓ Marcar como compradas'+(n?' ('+n+')':'');$('lcMarcar').disabled=!n;
+}
+function lcMarcarCompradas(){
+  const ids=[...document.querySelectorAll('#lcCorpo .chkLc:checked')].map(x=>x.value);
+  ids.forEach(id=>{const e=encPorId(id);if(e&&e.status==='comprar'){e.status='caminho';e.compradaEm=hoje();}});
+  dlgListaCompras.close();salvar();renderTudo();
+  toast(ids.length+(ids.length===1?' encomenda marcada como comprada ✓':' encomendas marcadas como compradas ✓'));
+}
+function textoListaCompras(){
+  const co=encomendas().filter(e=>e.status==='comprar'),grupos={};
+  co.forEach(e=>{const p=e.produtoId&&prodPorId(e.produtoId),f=p&&p.fornId?fornNome(p.fornId):'';(grupos[f||'']||(grupos[f||'']=[])).push(e);});
+  return Object.keys(grupos).map(f=>'*'+(f||'Sem fornecedor')+'*\n'+grupos[f].map(e=>'• '+nomeDaPecaEnc(e)+(tamanhoEnc(e)?' — '+tamanhoEnc(e):'')+(+e.qtd>1?' ×'+(+e.qtd):'')).join('\n')).join('\n\n');
+}
+function lcCopiar(){copiarTexto(textoListaCompras());}
+try{document.addEventListener('change',ev=>{if(ev.target&&ev.target.classList&&ev.target.classList.contains('chkLc'))lcAtualizar();});}catch(e){}
+try{$('formEncomenda').onsubmit=ev=>{ev.preventDefault();salvarEncomenda();};}catch(e){}
 
 </script>
 </body>
