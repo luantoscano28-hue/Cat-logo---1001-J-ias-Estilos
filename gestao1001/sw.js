@@ -17,7 +17,7 @@
      self.registration.unregister(). O celular confere este arquivo a cada
      abertura, então a correção chega sozinha.
    ============================================================ */
-const GUARDA = 'painel-1';
+const GUARDA = 'painel-2';
 const ESPERA_REDE = 6000;
 const ESCOPO = self.registration.scope;               // .../gestao1001/
 const PAGINA = ESCOPO;                                 // a chave da página guardada
